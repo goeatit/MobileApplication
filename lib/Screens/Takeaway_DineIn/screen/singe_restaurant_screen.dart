@@ -2,6 +2,8 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:eatit/Screens/Takeaway_DineIn//widget/dish_card_widget.dart';
 import 'package:eatit/Screens/Takeaway_DineIn//widget/single_dish.dart';
 import 'package:eatit/Screens/Takeaway_DineIn//widget/toggle_widget.dart';
+import 'package:eatit/Screens/Takeaway_DineIn/widget/added_item.dart';
+import 'package:eatit/Screens/homes/screen/home_screen.dart';
 import 'package:eatit/api/api_repository.dart';
 import 'package:eatit/api/network_manager.dart';
 import 'package:eatit/common/constants/colors.dart';
@@ -195,331 +197,393 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
             ),
           ],
         ),
-        body: Stack(
-          children: [
-            SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        body: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : Stack(
                 children: [
-                  // Restaurant Info
-                  Padding(
-                    padding: const EdgeInsets.all(10.0),
+                  SingleChildScrollView(
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(
-                          width: double.infinity,
-                          height: 200,
-                          child: Image.asset(
-                            "assets/images/restaurant.png",
-                          ),
-                        ),
-                        Text(
-                          widget.name,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.right,
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text("${dish?.restaurant.restaurantRating} ★ "),
-                            const Text("Indian · Biryani · 2.3km"),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const Center(
-                    child: DineInTakeawayToggle(),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 30, vertical: 10),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                            width: 1, color: const Color(0xffE5E5E5)),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          const Column(
+                        // Restaurant Info
+                        Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Text(
-                                "₹1200-₹1500",
-                                style: TextStyle(color: primaryColor),
+                              SizedBox(
+                                width: double.infinity,
+                                height: 200,
+                                child: Image.asset(
+                                  "assets/images/restaurant.png",
+                                ),
                               ),
                               Text(
-                                "for two",
-                                style: TextStyle(fontWeight: FontWeight.bold),
+                                widget.name,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                      "${dish?.restaurant.restaurantRating} ★ "),
+                                  const Text("Indian · Biryani · 2.3km"),
+                                ],
                               ),
                             ],
                           ),
-                          Container(
-                            height: 30,
+                        ),
+
+                        const Center(
+                          child: DineInTakeawayToggle(),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 30, vertical: 10),
+                          child: Container(
                             decoration: BoxDecoration(
                               border: Border.all(
                                   width: 1, color: const Color(0xffE5E5E5)),
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                          ),
-                          const Column(children: [
-                            Text(
-                              "20 mins",
-                              style: TextStyle(color: primaryColor),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                const Column(
+                                  children: [
+                                    Text(
+                                      "₹1200-₹1500",
+                                      style: TextStyle(color: primaryColor),
+                                    ),
+                                    Text(
+                                      "for two",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
+                                Container(
+                                  height: 30,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                        width: 1,
+                                        color: const Color(0xffE5E5E5)),
+                                  ),
+                                ),
+                                const Column(children: [
+                                  Text(
+                                    "20 mins",
+                                    style: TextStyle(color: primaryColor),
+                                  ),
+                                  Text(
+                                    "before reaching",
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                ])
+                              ],
                             ),
-                            Text(
-                              "before reaching",
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ])
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // Search Field
-                  Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.5), // Shadow color
-                            spreadRadius: 2, // How far the shadow spreads
-                            blurRadius: 5, // How blurry the shadow is
-                            offset: const Offset(
-                                0, 3), // Offset in X and Y direction
-                          ),
-                        ],
-                        borderRadius: BorderRadius.circular(
-                            8), // Optional: Rounded corners
-                      ),
-                      child: TextField(
-                        controller: _searchController,
-                        decoration: InputDecoration(
-                          prefixIcon: const Icon(
-                            Icons.search,
-                            color: primaryColor, // Search icon color
-                          ),
-                          hintText: "Search for Dishes",
-                          hintStyle: const TextStyle(
-                            color: Color(0xff737373),
-                            fontWeight: FontWeight.w100,
-                            fontFamily: 'Nunito Sans',
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(
-                                8.0), // Match with the container
-                            borderSide: BorderSide.none, // No border
                           ),
                         ),
-                      ),
+
+                        // Search Field
+                        Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey
+                                      .withOpacity(0.5), // Shadow color
+                                  spreadRadius: 2, // How far the shadow spreads
+                                  blurRadius: 5, // How blurry the shadow is
+                                  offset: const Offset(
+                                      0, 3), // Offset in X and Y direction
+                                ),
+                              ],
+                              borderRadius: BorderRadius.circular(
+                                  8), // Optional: Rounded corners
+                            ),
+                            child: TextField(
+                              controller: _searchController,
+                              decoration: InputDecoration(
+                                prefixIcon: const Icon(
+                                  Icons.search,
+                                  color: primaryColor, // Search icon color
+                                ),
+                                hintText: "Search for Dishes",
+                                hintStyle: const TextStyle(
+                                  color: Color(0xff737373),
+                                  fontWeight: FontWeight.w100,
+                                  fontFamily: 'Nunito Sans',
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(
+                                      8.0), // Match with the container
+                                  borderSide: BorderSide.none, // No border
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // Dishes Categories
+                        isLoading
+                            ? const Center(child: CircularProgressIndicator())
+                            : (errorMessage.isNotEmpty
+                                ? Center(child: Text(errorMessage))
+                                : Column(
+                                    children:
+                                        categorizedDishes.entries.map((entry) {
+                                      String category = entry.key;
+                                      List<AvailableDish> dishes = entry.value;
+                                      return Padding(
+                                        padding: const EdgeInsets.all(10.0),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              category,
+                                              style: const TextStyle(
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.bold),
+                                            ),
+                                            const SizedBox(height: 10),
+                                            Container(
+                                                height:
+                                                    220, // Adjust based on your UI needs
+                                                padding:
+                                                    const EdgeInsets.all(5),
+                                                child: Consumer<CartProvider>(
+                                                    builder: (ctx, cartProvider,
+                                                        child) {
+                                                  return ListView.builder(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(vertical: 8),
+                                                    scrollDirection:
+                                                        Axis.horizontal,
+                                                    itemCount: dishes.length,
+                                                    itemBuilder:
+                                                        (context, index) {
+                                                      final dish =
+                                                          dishes[index];
+                                                      int stored = ctx
+                                                          .watch<
+                                                              OrderTypeProvider>()
+                                                          .orderType;
+                                                      String orderType = "";
+                                                      if (stored == 0) {
+                                                        orderType = "Dine-in";
+                                                      } else {
+                                                        orderType = "Take-away";
+                                                      }
+                                                      // final cartItem = cartProvider
+                                                      //     .restaurantCarts[
+                                                      //         widget.name]?[orderType]
+                                                      //     ?.firstWhere(
+                                                      //   (item) => item.id == dish.id,
+                                                      //   orElse: () => CartItem(
+                                                      //       id: dish.id,
+                                                      //       restaurantName:
+                                                      //           widget.name,
+                                                      //       orderType: orderType,
+                                                      //       dish: dish,
+                                                      //       quantity: 0),
+                                                      // );
+                                                      return GestureDetector(
+                                                        onTap: () =>
+                                                            _showSlidingScreen(
+                                                                dish),
+                                                        child: DishCard(
+                                                          name: dish
+                                                              .dishId.dishName,
+                                                          price:
+                                                              "₹${dish.resturantDishPrice}",
+                                                          imageUrl: imgurls[
+                                                              index % 5],
+                                                          calories: "120 cal",
+                                                          quantity: (ctx
+                                                              .watch<
+                                                                  CartProvider>()
+                                                              .getQuantity(
+                                                                  widget.name,
+                                                                  orderType,
+                                                                  dish.id)),
+                                                          // Default to 0 if cartItem.quantity is null
+                                                          onAddToCart: () {
+                                                            final cartProvider =
+                                                                Provider.of<
+                                                                        CartProvider>(
+                                                                    context,
+                                                                    listen:
+                                                                        false);
+
+                                                            final cartITem = CartItem(
+                                                                id: dish.id,
+                                                                restaurantName:
+                                                                    widget.name,
+                                                                orderType:
+                                                                    orderType,
+                                                                dish: dish,
+                                                                quantity: 1);
+                                                            cartProvider
+                                                                .addToCart(
+                                                                    widget.name,
+                                                                    orderType,
+                                                                    cartITem);
+                                                          },
+                                                          onIncrement: () {
+                                                            ctx
+                                                                .read<
+                                                                    CartProvider>()
+                                                                .incrementQuantity(
+                                                                    widget.name,
+                                                                    orderType,
+                                                                    dish.id);
+                                                          },
+                                                          onDecrement: () {
+                                                            ctx
+                                                                .read<
+                                                                    CartProvider>()
+                                                                .decrementQuantity(
+                                                                    widget.name,
+                                                                    orderType,
+                                                                    dish.id);
+                                                          },
+                                                        ),
+                                                      );
+                                                    },
+                                                  );
+                                                })),
+                                          ],
+                                        ),
+                                      );
+                                    }).toList(),
+                                  )),
+                        // Add a similar horizontal list for Main Course Dishes
+                      ],
                     ),
                   ),
+                  Positioned(
+                    bottom: 20, // Adjust as needed
+                    left: 0,
+                    right: 0,
+                    child: Consumer<CartProvider>(
+                        builder: (ctx, cartProvider, child) {
+                      int stored = ctx.watch<OrderTypeProvider>().orderType;
+                      String orderType = stored == 0 ? "Dine-in" : "Take-away";
+                      int totalCount = ctx
+                          .watch<CartProvider>()
+                          .getTotalUniqueItems(widget.name, orderType);
 
-                  // Dishes Categories
-                  isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : (errorMessage.isNotEmpty
-                          ? Center(child: Text(errorMessage))
-                          : Column(
-                              children: categorizedDishes.entries.map((entry) {
-                                String category = entry.key;
-                                List<AvailableDish> dishes = entry.value;
-                                return Padding(
-                                  padding: const EdgeInsets.all(10.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        category,
-                                        style: const TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                      const SizedBox(height: 10),
-                                      Container(
-                                          height:
-                                              220, // Adjust based on your UI needs
-                                          padding: const EdgeInsets.all(5),
-                                          child: Consumer<CartProvider>(builder:
-                                              (ctx, cartProvider, child) {
-                                            return ListView.builder(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      vertical: 8),
-                                              scrollDirection: Axis.horizontal,
-                                              itemCount: dishes.length,
-                                              itemBuilder: (context, index) {
-                                                final dish = dishes[index];
-                                                int stored = ctx
-                                                    .watch<OrderTypeProvider>()
-                                                    .orderType;
-                                                String orderType = "";
-                                                if (stored == 0) {
-                                                  orderType = "Dine-in";
-                                                } else {
-                                                  orderType = "Take-away";
-                                                }
-                                                // final cartItem = cartProvider
-                                                //     .restaurantCarts[
-                                                //         widget.name]?[orderType]
-                                                //     ?.firstWhere(
-                                                //   (item) => item.id == dish.id,
-                                                //   orElse: () => CartItem(
-                                                //       id: dish.id,
-                                                //       restaurantName:
-                                                //           widget.name,
-                                                //       orderType: orderType,
-                                                //       dish: dish,
-                                                //       quantity: 0),
-                                                // );
-                                                return GestureDetector(
-                                                  onTap: () =>
-                                                      _showSlidingScreen(dish),
-                                                  child: DishCard(
-                                                    name: dish.dishId.dishName,
-                                                    price:
-                                                        "₹${dish.resturantDishPrice}",
-                                                    imageUrl:
-                                                        imgurls[index % 5],
-                                                    calories: "120 cal",
-                                                    quantity: (ctx
-                                                        .watch<CartProvider>()
-                                                        .getQuantity(
-                                                            widget.name,
-                                                            orderType,
-                                                            dish.id)),
-                                                    // Default to 0 if cartItem.quantity is null
-                                                    onAddToCart: () {
-                                                      final cartProvider =
-                                                          Provider.of<
-                                                                  CartProvider>(
-                                                              context,
-                                                              listen: false);
+                      return totalCount > 0
+                          ? Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 8),
+                              child: SizedBox(
+                                width: double.infinity,
+                                child: AddedItemButton(
+                                  itemCount: totalCount,
+                                  onPressed: () {
+                                    ctx
+                                        .read<OrderTypeProvider>()
+                                        .changeHomeState(2);
+                                    Navigator.pushReplacementNamed(
+                                        context, HomePage.routeName);
+                                  },
+                                ),
+                              ),
+                            )
+                          : const SizedBox
+                              .shrink(); // Returns an empty widget if totalCount is 0
+                    }),
+                  ),
+                  if (_isVisible)
+                    GestureDetector(
+                      onTap: _dismissSlidingScreen, // Dismiss on tap outside
+                      behavior: HitTestBehavior.opaque,
+                      child: Stack(
+                        children: [
+                          // This is the background blur
+                          Container(
+                            color: Colors.black.withOpacity(
+                                0.3), // Optional: add slight dark overlay
+                          ),
 
-                                                      final cartITem = CartItem(
-                                                          id: dish.id,
-                                                          restaurantName:
-                                                              widget.name,
-                                                          orderType: orderType,
-                                                          dish: dish,
-                                                          quantity: 1);
-                                                      cartProvider.addToCart(
-                                                          widget.name,
-                                                          orderType,
-                                                          cartITem);
-                                                    },
-                                                    onIncrement: () {
-                                                      ctx
-                                                          .read<CartProvider>()
-                                                          .incrementQuantity(
-                                                              widget.name,
-                                                              orderType,
-                                                              dish.id);
-                                                    },
-                                                    onDecrement: () {
-                                                      ctx
-                                                          .read<CartProvider>()
-                                                          .decrementQuantity(
-                                                              widget.name,
-                                                              orderType,
-                                                              dish.id);
-                                                    },
-                                                  ),
-                                                );
-                                              },
-                                            );
-                                          })),
-                                    ],
-                                  ),
-                                );
-                              }).toList(),
-                            )),
-                  // Add a similar horizontal list for Main Course Dishes
+                          // This is the bottom sheet content
+                          AnimatedPositioned(
+                              duration: const Duration(
+                                  milliseconds:
+                                      300), // Keep the duration for bottom sheet slide
+                              bottom: 0,
+                              left: 0,
+                              right: 0,
+                              child: SlideTransition(
+                                position: _offsetAnimation,
+                                child: GestureDetector(
+                                    onTap: () {},
+                                    child: Consumer<CartProvider>(
+                                        builder: (ctx, cartProvider, child) {
+                                      int stored = ctx
+                                          .watch<OrderTypeProvider>()
+                                          .orderType;
+                                      String orderType = "";
+                                      if (stored == 0) {
+                                        orderType = "Dine-in";
+                                      } else {
+                                        orderType = "Take-away";
+                                      }
+                                      return FoodItemBottomSheet(
+                                        name: selectedDish!.dishId.dishName,
+                                        imageUrl: '',
+                                        calories: '120',
+                                        quantity: ctx
+                                            .watch<CartProvider>()
+                                            .getQuantity(widget.name, orderType,
+                                                selectedDish!.id),
+                                        onAddToCart: () {
+                                          final cartProvider =
+                                              Provider.of<CartProvider>(context,
+                                                  listen: false);
+
+                                          final cartITem = CartItem(
+                                              id: selectedDish!.id,
+                                              restaurantName: widget.name,
+                                              orderType: orderType,
+                                              dish: selectedDish!,
+                                              quantity: 1);
+                                          cartProvider.addToCart(
+                                              widget.name, orderType, cartITem);
+                                        },
+                                        onIncrement: () {
+                                          ctx
+                                              .read<CartProvider>()
+                                              .incrementQuantity(widget.name,
+                                                  orderType, selectedDish!.id);
+                                        },
+                                        onDecrement: () {
+                                          ctx
+                                              .read<CartProvider>()
+                                              .decrementQuantity(widget.name,
+                                                  orderType, selectedDish!.id);
+                                        },
+                                        categories:
+                                            selectedDish!.dishId.dishCatagory,
+                                        price: selectedDish!.resturantDishPrice
+                                            .toString(),
+                                      );
+                                    })),
+                              )),
+                        ],
+                      ),
+                    ),
                 ],
-              ),
-            ),
-            if (_isVisible)
-              GestureDetector(
-                onTap: _dismissSlidingScreen, // Dismiss on tap outside
-                behavior: HitTestBehavior.opaque,
-                child: Stack(
-                  children: [
-                    // This is the background blur
-                    Container(
-                      color: Colors.black.withOpacity(
-                          0.3), // Optional: add slight dark overlay
-                    ),
-
-                    // This is the bottom sheet content
-                    AnimatedPositioned(
-                      duration: const Duration(
-                          milliseconds:
-                              300), // Keep the duration for bottom sheet slide
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: SlideTransition(
-                          position: _offsetAnimation,
-                          child: GestureDetector(
-                            onTap: (){},
-                          child: Consumer<CartProvider>(
-                              builder: (ctx, cartProvider, child) {
-                                int stored =
-                                    ctx.watch<OrderTypeProvider>().orderType;
-                                String orderType = "";
-                                if (stored == 0) {
-                                  orderType = "Dine-in";
-                                } else {
-                                  orderType = "Take-away";
-                                }
-                                return FoodItemBottomSheet(
-                                  name: selectedDish!.dishId.dishName,
-                                  imageUrl: '',
-                                  calories: '120',
-                                  quantity: ctx.watch<CartProvider>().getQuantity(
-                                      widget.name, orderType, selectedDish!.id),
-                                  onAddToCart: () {
-                                    final cartProvider = Provider.of<CartProvider>(
-                                        context,
-                                        listen: false);
-
-                                    final cartITem = CartItem(
-                                        id: selectedDish!.id,
-                                        restaurantName: widget.name,
-                                        orderType: orderType,
-                                        dish: selectedDish!,
-                                        quantity: 1);
-                                    cartProvider.addToCart(
-                                        widget.name, orderType, cartITem);
-                                  },
-                                  onIncrement: () {
-                                    ctx.read<CartProvider>().incrementQuantity(
-                                        widget.name, orderType, selectedDish!.id);
-                                  },
-                                  onDecrement: () {
-                                    ctx.read<CartProvider>().decrementQuantity(
-                                        widget.name, orderType, selectedDish!.id);
-                                  },
-                                  categories: selectedDish!.dishId.dishCatagory,
-                                  price:
-                                  selectedDish!.resturantDishPrice.toString(),
-                                );
-                              })),
-                          )
-                    ),
-                  ],
-                ),
-              ),
-          ],
-        ));
+              ));
   }
 }

@@ -1,6 +1,6 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
-import 'package:eatit/Screens/Takeaway_DineIn/widget/item_added.dart';
+import 'package:eatit/Screens/Takeaway_DineIn/widget/bottom_cart.dart';
 import 'package:eatit/api/api_client.dart';
 import 'package:eatit/api/api_repository.dart';
 import 'package:eatit/api/network_manager.dart';

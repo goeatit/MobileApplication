@@ -162,6 +162,12 @@ class CartProvider extends ChangeNotifier {
     }
     return []; // Return an empty list if no items found for the specified restaurant and orderType
   }
-
+  int getTotalUniqueItems(String restaurantName, String orderType) {
+    if (_restaurantCarts.containsKey(restaurantName) &&
+        _restaurantCarts[restaurantName]!.containsKey(orderType)) {
+      return _restaurantCarts[restaurantName]![orderType]!.length;
+    }
+    return 0; // Return 0 if no items found for the given restaurant and order type
+  }
 
 }
