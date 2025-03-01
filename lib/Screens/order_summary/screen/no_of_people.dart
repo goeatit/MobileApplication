@@ -1,3 +1,4 @@
+import 'package:eatit/Screens/order_summary/screen/reserve_time.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -172,6 +173,7 @@ class _SelectPeopleScreenState extends State<SelectPeopleScreen> {
                             final people = _peopleController.text.isNotEmpty
                                 ? _peopleController.text
                                 : selectedPeople.toString();
+                            Navigator.pushNamed(context, ReserveTime.routeName);
                             // print("Reserved for $people people");
                           }
                         : null,

@@ -1,5 +1,5 @@
 import 'package:eatit/Screens/cart_screen/widget/cart_item.dart';
-import 'package:eatit/Screens/order_summary/screen/order_summary.dart';
+import 'package:eatit/Screens/order_summary/screen/bill_summary.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/main.dart';
 import 'package:eatit/models/cart_items.dart';

@@ -148,7 +148,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     ),
                   ),
                   child: const Text(
-                    'Enable Local Notifications',
+                    'Enable Push Notifications',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
