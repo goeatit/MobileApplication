@@ -132,9 +132,9 @@ class _DineInScreen extends State<DineInScreen> {
                               imageUrl: 'assets/images/restaurant.png',
                               restaurantName: restaurants[0].restaurantName,
                               cuisineType:
-                                  "Cuisine Placeholder", // Update this if you have a field for cuisine
+                                  "Indian • Biryani", // Update this if you have a field for cuisine
                               priceRange:
-                                  "Price Placeholder", // Update this if you have price range info
+                                  "₹1200-₹1500 for two", // Update this if you have price range info
                               rating: restaurants[0].ratings.toDouble(),
                               promotionText:
                                   "Flat 10% off in booking", // Update if you have promo data
@@ -190,9 +190,9 @@ class _DineInScreen extends State<DineInScreen> {
                                   restaurantName: restaurant.restaurantName,
                                   location: city!,
                                   cuisineType:
-                                      "Cuisine Placeholder", // Update this if you have a field for cuisine
+                                      "Indian • Biryani", // Update this if you have a field for cuisine
                                   priceRange:
-                                      "Price Placeholder", // Update this if you have price range info
+                                      "₹1200-₹1500 for two", // Update this if you have price range info
                                   rating: restaurant.ratings.toDouble(),
                                   // promotionText:
                                   //     "Promoted", // Update if you have promo data
