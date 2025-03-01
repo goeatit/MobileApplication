@@ -34,6 +34,7 @@ class _SelectPeopleScreenState extends State<SelectPeopleScreen> {
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
             // Handle back navigation
+            Navigator.pop(context);
           },
         ),
         title: Column(
@@ -116,7 +117,6 @@ class _SelectPeopleScreenState extends State<SelectPeopleScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-
                   TextField(
                     controller: _peopleController,
                     keyboardType: TextInputType.number,
@@ -156,7 +156,6 @@ class _SelectPeopleScreenState extends State<SelectPeopleScreen> {
                         errorText: errorMessage),
                   ),
                   const SizedBox(height: 20),
-
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primaryColor,
