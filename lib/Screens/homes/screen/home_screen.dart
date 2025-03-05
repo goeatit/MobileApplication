@@ -47,7 +47,7 @@ class _HomePage extends State<HomePage> {
 
     return PopScope(
         canPop: _currentPage == 0, // Allow pop only if on Dine-In screen
-        onPopInvokedWithResult: (bool didPop,res) {
+        onPopInvokedWithResult: (bool didPop, res) {
           if (!didPop) {
             if (_currentPage != 0) {
               context.read<OrderTypeProvider>().changeHomeState(0);
@@ -77,22 +77,36 @@ class _HomePage extends State<HomePage> {
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              const SizedBox(
-                                width: 40,
+                              Container(
+                                width: 50,
                                 height: 50,
-                                child: Icon(Icons.location_on,
-                                    color: primaryColor),
+                                decoration: BoxDecoration(
+                                  color: const Color(
+                                      0xFFF8951D), // Background color #F8951D
+                                  borderRadius: BorderRadius.circular(
+                                      25), // 50% border radius
+                                ),
+                                child: const Icon(
+                                  Icons.location_on_outlined,
+                                  color: Colors.white,
+                                ),
                               ),
                               const SizedBox(width: 8),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
-                                  Text(
-                                    'Home ▾',
-                                    style: textTheme?.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        'Home',
+                                        style: textTheme?.titleMedium?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20,
+                                        ),
+                                      ),
+                                      const Icon(Icons.keyboard_arrow_down),
+                                    ],
                                   ),
                                   SizedBox(
                                     width: MediaQuery.of(context).size.width *
@@ -100,7 +114,7 @@ class _HomePage extends State<HomePage> {
                                     child: Text(
                                       fullAddress,
                                       style: textTheme?.bodySmall?.copyWith(
-                                        color: Colors.grey,
+                                        color: Colors.black,
                                       ),
                                       overflow: TextOverflow
                                           .ellipsis, // Adds ellipsis
@@ -212,7 +226,6 @@ class _HomePage extends State<HomePage> {
           ),
         ));
   }
-
 
   Widget bottomNavigationItem({
     required String imageIcon,

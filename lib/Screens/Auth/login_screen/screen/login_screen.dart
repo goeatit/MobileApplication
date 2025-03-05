@@ -67,47 +67,67 @@ class _LoginScreen extends State<LoginScreeen> {
             const SizedBox(height: 20),
             Container(
               padding: EdgeInsets.symmetric(horizontal: 8),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey),
-                borderRadius: BorderRadius.circular(8),
-              ),
               child: Row(
+                spacing: 2, // Gap between dropdown and phone number field
                 children: [
-                  DropdownButton<String>(
-                    value: selectedCountryCode,
-                    items: <String>['+91', '+1', '+44', '+61', '+81']
-                        .map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        selectedCountryCode = newValue!;
-                      });
-                    },
-                    underline: const SizedBox(), // Removes the default underline
-                  ),
-                  const VerticalDivider(color: Colors.grey),
-                  Expanded(
-                    child: TextField(
-                      inputFormatters: [
-                        LengthLimitingTextInputFormatter(10),
-                        FilteringTextInputFormatter.digitsOnly
-                      ],
-                      controller: phoneNumberController,
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        hintText: 'Mobile Number',
+                  Container(
+                    width: 84, // Fixed width for dropdown
+                    padding: EdgeInsets.fromLTRB(
+                        20, 0, 0, 0), // left, top, right, bottom
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey),
+                      borderRadius:
+                          BorderRadius.circular(15), // Updated border radius
+                    ),
+                    child: Row(children: [
+                      DropdownButton<String>(
+                        value: selectedCountryCode,
+                        items: <String>['+91', '+1', '+44', '+61', '+81']
+                            .map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            selectedCountryCode = newValue!;
+                          });
+                        },
+                        underline:
+                            const SizedBox(), // Removes the default underline
                       ),
-                      keyboardType: TextInputType.phone,
+                    ]),
+                  ),
+                  SizedBox(width: 5), // Gap between elements
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                        borderRadius:
+                            BorderRadius.circular(15), // Updated border radius
+                      ),
+                      child: TextField(
+                        inputFormatters: [
+                          LengthLimitingTextInputFormatter(10),
+                          FilteringTextInputFormatter.digitsOnly
+                        ],
+                        controller: phoneNumberController,
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          hintText: 'Mobile Number',
+                          contentPadding: EdgeInsets.symmetric(
+                              horizontal: 10), // Added padding for text
+                        ),
+                        keyboardType: TextInputType.phone,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+
+            const SizedBox(height: 70),
             SizedBox(
               width: 250,
               child: ElevatedButton(
@@ -166,7 +186,7 @@ class _LoginScreen extends State<LoginScreeen> {
             // login with another way.
             // another way
             const SizedBox(
-              height: 60,
+              height: 120,
             ),
             const Center(
                 child: Text(

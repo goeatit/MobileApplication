@@ -28,6 +28,41 @@ class _FirstTimeScreen extends State<FirstTimeScreen> {
     "Fast, Simple & Hassle-free",
   ];
   final List<String> subtitle = ["Booking", "Dining", "Payment"];
+  final List<String> _descriptions = [
+    "Get delicious food delivered right at your doorstep at zero cost.",
+    "Get delicious food delivered right at your doorstep at zero cost.",
+    "Get delicious food delivered right at your doorstep at zero cost.",
+  ];
+  Widget _buildIndicator(int index) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(3, (i) {
+        double width = (i == index) ? 24 : 10;
+        double height = (i == index) ? 10 : 10;
+        Color color;
+
+        if (i == index) {
+          color = const Color(0xFFFDDCB4); // Active index color
+        } else if (i < index) {
+          color = const Color(0xFFF8951D); // Previous index color
+        } else {
+          color = const Color(0xFFFDDCB4); // Next index color
+        }
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Container(
+            width: width,
+            height: height,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(47),
+            ),
+          ),
+        );
+      }),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,18 +100,35 @@ class _FirstTimeScreen extends State<FirstTimeScreen> {
                           Text(
                             _titles[index],
                             style: const TextStyle(
-                              fontSize: 20,
+                              fontSize: 22,
                               fontWeight: FontWeight.bold,
                             ),
                             textAlign: TextAlign.center,
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 1),
                           Text(
                             subtitle[index],
                             style: const TextStyle(
                                 fontSize: 22,
                                 fontWeight: FontWeight.bold,
-                                color: primaryColor),
+                                color: Color(0xFFF8951D)),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 1),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                _descriptions[index],
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 10),
+                              _buildIndicator(index),
+                            ],
                           ),
                         ],
                       ),
@@ -88,6 +140,7 @@ class _FirstTimeScreen extends State<FirstTimeScreen> {
                 padding: const EdgeInsets.only(left: 10.0, right: 10),
                 child: Column(
                   children: [
+                    const SizedBox(height: 20),
                     SizedBox(
                       height: 50,
                       width: double.infinity,
@@ -109,11 +162,13 @@ class _FirstTimeScreen extends State<FirstTimeScreen> {
                           }
                         },
                         style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                  15), // Set the border radius here
-                            ),
-                            backgroundColor: primaryColor),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                                15), // Set the border radius here
+                          ),
+                          backgroundColor: const Color(0xFFEA8307),
+                        ),
                         child: Text(
                           _currentIndex < _images.length - 1 ? "Next" : "Login",
                           style: const TextStyle(color: white),
@@ -126,12 +181,19 @@ class _FirstTimeScreen extends State<FirstTimeScreen> {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () {
-                          Navigator.pushReplacementNamed(context, LoginScreeen.routeName);
+                          Navigator.pushReplacementNamed(
+                              context, LoginScreeen.routeName);
                         },
                         style: ElevatedButton.styleFrom(
+                            elevation: 0,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(
                                   15), // Set the border radius here
+                              side: const BorderSide(
+                                width: 1,
+                                color: Color(
+                                    0xFFE5E5E5), // This is the hex code for #E5E5E5
+                              ),
                             ),
                             backgroundColor: white),
                         child: const Text(
