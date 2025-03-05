@@ -2,7 +2,7 @@ class ApiEndpoints {
   static String login = "/auth/login";
   static String fetchUserById(String userId) => "/user/$userId";
   static String fetchRestaurantByArea(String city, String country) =>
-      "/api/area/$city/$country";
+      "/mobile/area/$city/$country";
   static String fetchDishesByRestaurant(String name, String city) =>
       "/api/restaurantDetails/$name/$city";
   static String fetchRestaurantSearchAndFood(String query) =>

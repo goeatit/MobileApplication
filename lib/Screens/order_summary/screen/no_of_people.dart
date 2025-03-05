@@ -15,7 +15,7 @@ class _SelectPeopleScreenState extends State<SelectPeopleScreen> {
   late int selectedPeople = 0; // Default selected option
   final TextEditingController _peopleController = TextEditingController();
   String? errorMessage;
-  FocusNode _focusNode = FocusNode();
+  final FocusNode _focusNode = FocusNode();
 
   @override
   void dispose() {
@@ -33,7 +33,7 @@ class _SelectPeopleScreenState extends State<SelectPeopleScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
-            // Handle back navigation
+            Navigator.pop(context);
           },
         ),
         title: Column(

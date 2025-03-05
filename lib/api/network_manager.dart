@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
@@ -12,8 +14,18 @@ class NetworkManager {
       : dioManger = ApiClient().dio; // Get Dio from ApiClient
 
   Future<bool> isConnected() async {
-    final connectivityResult = await _connectivity.checkConnectivity();
-    return connectivityResult != ConnectivityResult.none;
+    final List<ConnectivityResult> connectivityResult = await Connectivity().checkConnectivity();
+
+    if (connectivityResult.any((result) => result == ConnectivityResult.wifi || result == ConnectivityResult.mobile)) {
+      // Check if internet is actually reachable
+      try {
+        final result = await InternetAddress.lookup('google.com');
+        return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+      } catch (e) {
+        return false; // No actual internet despite being connected
+      }
+    }
+    return false; // No network connection
   }
 
   Future<Response?> makeRequest(

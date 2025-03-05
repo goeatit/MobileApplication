@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:eatit/Screens/Auth/login_screen/screen/login_screen.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +18,7 @@ class _FirstTimeScreen extends State<FirstTimeScreen> {
   bool _next = true;
   final PageController _pageController = PageController(initialPage: 0);
   int _currentIndex = 0;
+  Timer? _timer;
   final List<String> _images = [
     "assets/images/first.png",
     "assets/images/second.png",
@@ -28,6 +31,34 @@ class _FirstTimeScreen extends State<FirstTimeScreen> {
     "Fast, Simple & Hassle-free",
   ];
   final List<String> subtitle = ["Booking", "Dining", "Payment"];
+
+  void _startAutoSwipe() {
+    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      if (_currentIndex < _images.length - 1) {
+        _currentIndex++;
+        _pageController.animateToPage(
+          _currentIndex,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+        );
+      } else {
+        _timer?.cancel(); // Stop auto swipe when the last page is reached
+      }
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _startAutoSwipe();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -121,25 +152,27 @@ class _FirstTimeScreen extends State<FirstTimeScreen> {
                       ),
                     ),
                     const SizedBox(height: 10),
-                    SizedBox(
-                      height: 50,
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.pushReplacementNamed(context, LoginScreeen.routeName);
-                        },
-                        style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                  15), // Set the border radius here
-                            ),
-                            backgroundColor: white),
-                        child: const Text(
-                          "Skip",
-                          style: TextStyle(color: blackBase),
+                    if (_currentIndex < _images.length - 1)
+                      SizedBox(
+                        height: 50,
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pushReplacementNamed(
+                                context, LoginScreeen.routeName);
+                          },
+                          style: ElevatedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                    15), // Set the border radius here
+                              ),
+                              backgroundColor: white),
+                          child: const Text(
+                            "Skip",
+                            style: TextStyle(color: blackBase),
+                          ),
                         ),
                       ),
-                    ),
                   ],
                 ),
               ),
