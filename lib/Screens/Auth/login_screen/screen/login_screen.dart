@@ -1,3 +1,5 @@
+import 'package:country_flags/country_flags.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:eatit/Screens/Auth/login_screen/service/auth_mobile_otp_service.dart';
 import 'package:eatit/Screens/Auth/login_screen/service/google_sign_in.dart';
 import 'package:eatit/Screens/Auth/verify_otp/screen/verify_otp.dart';
@@ -25,6 +27,25 @@ class _LoginScreen extends State<LoginScreeen> {
   Widget build(BuildContext context) {
     final GoogleLoginService _googleLoginService = GoogleLoginService();
     final OtpService _otpService = OtpService();
+    final List<Map<String, String>> countryCodes = [
+      {
+        "code": "+91",
+        "flag": "🇮🇳",
+      },
+      {
+        "code": "+966",
+        "flag": "🇸🇦",
+      },
+      {
+        "code": "+1",
+        "flag": "🇺🇸",
+      },
+      {
+        "code": "+44",
+        "flag": "🇬🇧",
+      },
+      {"code": "+971", "flag": "🇦🇪"},
+    ];
 
     final textTheme = Theme.of(context).textTheme;
     return Scaffold(
@@ -66,30 +87,54 @@ class _LoginScreen extends State<LoginScreeen> {
             ),
             const SizedBox(height: 20),
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 8),
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.grey),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 children: [
-                  DropdownButton<String>(
-                    value: selectedCountryCode,
-                    items: <String>['+91', '+1', '+44', '+61', '+81']
-                        .map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        selectedCountryCode = newValue!;
-                      });
-                    },
-                    underline: const SizedBox(), // Removes the default underline
+                  DropdownButtonHideUnderline(
+                    child: DropdownButton2<String>(
+                      value: selectedCountryCode,
+                      items:
+                          countryCodes.map<DropdownMenuItem<String>>((country) {
+                        return DropdownMenuItem<String>(
+                          value: country["code"],
+                          child: Row(
+                            children: [
+                              Text(country["flag"]!), // Display flag
+                              const SizedBox(width: 8),
+                              Text(country["code"]!), // Display country code
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          selectedCountryCode = newValue!;
+                        });
+                      },
+                      buttonStyleData: const ButtonStyleData(
+                        height: 36, // Reduce button height
+                        width: 100, // Reduce button width
+                        padding: EdgeInsets.zero, // Reduce padding
+                      ),
+                      dropdownStyleData: const DropdownStyleData(
+                        maxHeight:
+                            200, // Prevents dropdown from expanding too much
+                        offset: Offset(0, 10), // Push dropdown below the field
+                      ),
+                      iconStyleData: const IconStyleData(
+                        icon: Icon(Icons.keyboard_arrow_down),
+                      ),
+                      menuItemStyleData: const MenuItemStyleData(
+                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4), // Reduce padding
+                      ),
+                    ),
                   ),
-                  const VerticalDivider(color: Colors.grey),
+
+
                   Expanded(
                     child: TextField(
                       inputFormatters: [
