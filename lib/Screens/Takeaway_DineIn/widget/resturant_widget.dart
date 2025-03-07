@@ -35,17 +35,19 @@ class RestaurantWidget extends StatefulWidget {
 }
 
 class _RestaurantWidgetState extends State<RestaurantWidget> {
-
   void _openMap(dynamic latitude, dynamic longitude, {String? name}) async {
     Uri googleMapsUrl;
 
     if (name != null && name.isNotEmpty) {
       // Try searching by name near the location
-      final String encodedQuery = Uri.encodeComponent("$name near $latitude,$longitude");
-      googleMapsUrl = Uri.parse("https://www.google.com/maps/search/?api=1&query=$encodedQuery");
+      final String encodedQuery =
+          Uri.encodeComponent("$name near $latitude,$longitude");
+      googleMapsUrl = Uri.parse(
+          "https://www.google.com/maps/search/?api=1&query=$encodedQuery");
     } else {
       // Drop a pin at the location, Google Maps will automatically show the place name
-      googleMapsUrl = Uri.parse("https://www.google.com/maps?q=$latitude,$longitude");
+      googleMapsUrl =
+          Uri.parse("https://www.google.com/maps?q=$latitude,$longitude");
     }
 
     if (await canLaunchUrl(googleMapsUrl)) {
@@ -141,15 +143,17 @@ class _RestaurantWidgetState extends State<RestaurantWidget> {
                     bottom: 10,
                     left: 10,
                     child: Container(
+                      height: 35,
                       decoration: BoxDecoration(
                         gradient: mapLinearGradient,
                         borderRadius:
-                            BorderRadius.circular(8), // Adjust as needed
+                            BorderRadius.circular(20), // Adjust as needed
                       ),
                       child: ElevatedButton.icon(
                         onPressed: () {
                           if (widget.lat != null && widget.long != null) {
-                            _openMap(widget.lat, widget.long,name:widget.restaurantName);
+                            _openMap(widget.lat, widget.long,
+                                name: widget.restaurantName);
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
@@ -160,14 +164,17 @@ class _RestaurantWidgetState extends State<RestaurantWidget> {
                         },
                         label:
                             const Text("Map", style: TextStyle(fontSize: 12)),
-                        icon: const Icon(IconData(0xf8ca,
-                            fontFamily: "CupertinoIcons",
-                            fontPackage: "cupertino_icons")),
+                        icon: const Icon(
+                          IconData(0xf8ca,
+                              fontFamily: "CupertinoIcons",
+                              fontPackage: "cupertino_icons"),
+                          color: Colors.white,
+                        ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.transparent,
                           foregroundColor: Colors.white,
                           shadowColor: Colors.transparent,
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
                         ),
                       ),
                     )),

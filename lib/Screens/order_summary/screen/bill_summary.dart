@@ -78,7 +78,11 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                     Text(
                       widget.name,
                       style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold),
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        // Add textAlign property to center the text
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 5),
                     Container(

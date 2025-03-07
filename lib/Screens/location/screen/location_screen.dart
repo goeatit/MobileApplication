@@ -151,7 +151,12 @@ class _LocationScreenState extends State<LocationScreen> {
                   if (isLoading) const CircularProgressIndicator(),
                   const Text(
                     "Hang on! We will find restaurants for you.",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    "Enter the address or select on the map.",
+                    style: TextStyle(fontSize: 16),
                   ),
                   const SizedBox(height: 10),
                   TextField(
@@ -159,18 +164,23 @@ class _LocationScreenState extends State<LocationScreen> {
                     controller: _controller,
                     decoration: const InputDecoration(
                       labelText: 'Address',
-                      border: OutlineInputBorder(),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(
+                            Radius.circular(20)), // Added small border radius
+                      ),
                     ),
                   ),
                   const SizedBox(height: 20),
                   SizedBox(
                     width: double.infinity,
+                    height: 50,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                           backgroundColor: primaryColor),
                       onPressed: () {
                         if (!isLoading) {
-                          Navigator.pushReplacementNamed(context, NotificationScreen.routeName);
+                          Navigator.pushReplacementNamed(
+                              context, NotificationScreen.routeName);
                         } else {
                           requestLocationPermission();
                         }

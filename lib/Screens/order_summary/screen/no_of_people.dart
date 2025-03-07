@@ -116,7 +116,6 @@ class _SelectPeopleScreenState extends State<SelectPeopleScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-
                   TextField(
                     controller: _peopleController,
                     keyboardType: TextInputType.number,
@@ -156,7 +155,6 @@ class _SelectPeopleScreenState extends State<SelectPeopleScreen> {
                         errorText: errorMessage),
                   ),
                   const SizedBox(height: 20),
-
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primaryColor,
