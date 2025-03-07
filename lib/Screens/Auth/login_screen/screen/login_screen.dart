@@ -1,3 +1,5 @@
+import 'package:country_flags/country_flags.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:eatit/Screens/Auth/login_screen/service/auth_mobile_otp_service.dart';
 import 'package:eatit/Screens/Auth/login_screen/service/google_sign_in.dart';
 import 'package:eatit/Screens/Auth/verify_otp/screen/verify_otp.dart';
@@ -6,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:eatit/Screens/Auth/login_screen/service/facebook_sign_in.dart';
 
 class LoginScreeen extends StatefulWidget {
   static const routeName = "/login-screen";
@@ -24,7 +27,28 @@ class _LoginScreen extends State<LoginScreeen> {
   @override
   Widget build(BuildContext context) {
     final GoogleLoginService _googleLoginService = GoogleLoginService();
+    final FacebookSignInService _facebookSignInService =
+        FacebookSignInService();
     final OtpService _otpService = OtpService();
+    final List<Map<String, String>> countryCodes = [
+      {
+        "code": "+91",
+        "flag": "🇮🇳",
+      },
+      {
+        "code": "+966",
+        "flag": "🇸🇦",
+      },
+      {
+        "code": "+1",
+        "flag": "🇺🇸",
+      },
+      {
+        "code": "+44",
+        "flag": "🇬🇧",
+      },
+      {"code": "+971", "flag": "🇦🇪"},
+    ];
 
     final textTheme = Theme.of(context).textTheme;
     return Scaffold(
@@ -66,27 +90,30 @@ class _LoginScreen extends State<LoginScreeen> {
             ),
             const SizedBox(height: 20),
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Row(
-                spacing: 2, // Gap between dropdown and phone number field
                 children: [
                   Container(
-                    width: 84, // Fixed width for dropdown
-                    padding: EdgeInsets.fromLTRB(
-                        20, 0, 0, 0), // left, top, right, bottom
+                    width: 100, // Fixed width for dropdown
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.grey),
-                      borderRadius:
-                          BorderRadius.circular(15), // Updated border radius
+                      borderRadius: BorderRadius.circular(15),
                     ),
-                    child: Row(children: [
-                      DropdownButton<String>(
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton2<String>(
                         value: selectedCountryCode,
-                        items: <String>['+91', '+1', '+44', '+61', '+81']
-                            .map<DropdownMenuItem<String>>((String value) {
+                        items: countryCodes
+                            .map<DropdownMenuItem<String>>((country) {
                           return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
+                            value: country["code"],
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(country["flag"]!),
+                                const SizedBox(width: 4),
+                                Text(country["code"]!),
+                              ],
+                            ),
                           );
                         }).toList(),
                         onChanged: (String? newValue) {
@@ -94,18 +121,29 @@ class _LoginScreen extends State<LoginScreeen> {
                             selectedCountryCode = newValue!;
                           });
                         },
-                        underline:
-                            const SizedBox(), // Removes the default underline
+                        buttonStyleData: const ButtonStyleData(
+                          height: 50,
+                          padding: EdgeInsets.symmetric(horizontal: 6),
+                        ),
+                        dropdownStyleData: const DropdownStyleData(
+                          maxHeight: 200,
+                          offset: Offset(0, 10),
+                        ),
+                        iconStyleData: const IconStyleData(
+                          icon: Icon(Icons.keyboard_arrow_down),
+                        ),
+                        menuItemStyleData: const MenuItemStyleData(
+                          padding: EdgeInsets.symmetric(horizontal: 4),
+                        ),
                       ),
-                    ]),
+                    ),
                   ),
-                  SizedBox(width: 5), // Gap between elements
+                  const SizedBox(width: 10), // 10px gap
                   Expanded(
                     child: Container(
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.grey),
-                        borderRadius:
-                            BorderRadius.circular(15), // Updated border radius
+                        borderRadius: BorderRadius.circular(15),
                       ),
                       child: TextField(
                         inputFormatters: [
@@ -117,7 +155,7 @@ class _LoginScreen extends State<LoginScreeen> {
                           border: InputBorder.none,
                           hintText: 'Mobile Number',
                           contentPadding: EdgeInsets.symmetric(
-                              horizontal: 10), // Added padding for text
+                              horizontal: 10, vertical: 15),
                         ),
                         keyboardType: TextInputType.phone,
                       ),
@@ -237,15 +275,15 @@ class _LoginScreen extends State<LoginScreeen> {
             SizedBox(
               width: 250,
               child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, VerifyOtp.routeName);
+                onPressed: () async {
+                  await _facebookSignInService.signInWithFacebook(context);
                 },
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  backgroundColor: primaryColor, // Button color
+                  backgroundColor: primaryColor,
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,

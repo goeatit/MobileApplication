@@ -309,7 +309,16 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
-                                      "${dish?.restaurant.restaurantRating} ★ "),
+                                    "${dish?.restaurant.restaurantRating}",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Icon(
+                                    Icons.star, // or Icons.star_rate
+                                    color: Theme.of(context).primaryColor,
+                                    size: 15, // Adjust size as needed
+                                  ),
                                   const Text("Indian · Biryani · 2.3km"),
                                 ],
                               ),

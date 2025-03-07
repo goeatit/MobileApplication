@@ -19,7 +19,7 @@ class GoogleLoginService {
 
       // Fetch Google OAuth access token
       final GoogleSignInAuthentication googleAuth =
-      await googleUser.authentication;
+          await googleUser.authentication;
 
       final String? accessToken = googleAuth.accessToken;
       if (accessToken == null) {
@@ -42,23 +42,24 @@ class GoogleLoginService {
       }
 
       final userInfo = json.decode(userInfoResponse.body);
+      // print(userInfo);
 
       // Post user data to your backend API
-      final backendResponse = await http.post(
-        Uri.parse("https://api.eatitgo.in/api/auth/google/login"),
-        headers: {"Content-Type": "application/json"},
-        body: json.encode({
-          "email": userInfo["email"],
-          "name": userInfo["name"],
-          "avatarurl": userInfo["picture"],
-        }),
-      );
+      // final backendResponse = await http.post(
+      //   Uri.parse("https://api.eatitgo.in/api/auth/google/login"),
+      //   headers: {"Content-Type": "application/json"},
+      //   body: json.encode({
+      //     "email": userInfo["email"],
+      //     "name": userInfo["name"],
+      //     "avatarurl": userInfo["picture"],
+      //   }),
+      // );
+      //
+      // if (backendResponse.statusCode != 200) {
+      //   throw Exception("Backend login failed.");
+      // }
 
-      if (backendResponse.statusCode != 200) {
-        throw Exception("Backend login failed.");
-      }
-
-      final backendData = json.decode(backendResponse.body);
+      // final backendData = json.decode(backendResponse.body);
 
       // Store the token securely
       // await _secureStorage.write(key: "token", value: backendData["token"]);
@@ -72,7 +73,7 @@ class GoogleLoginService {
       );
 
       // Navigate or close modal
-      Navigator.pop(context);
+      // Navigator.pop(context);
     } catch (error) {
       print("Login failed: $error");
       await _googleSignIn.signOut();

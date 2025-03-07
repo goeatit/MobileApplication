@@ -3,6 +3,7 @@ import 'package:eatit/common/constants/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class RestaurantWidget extends StatefulWidget {
   final String imageUrl;
@@ -13,7 +14,8 @@ class RestaurantWidget extends StatefulWidget {
   final String location;
   final String? promotionText; // Make promotionText nullable
   final String? promoCode; // Make promoCode nullable
-
+  final dynamic lat; // Make lat nullable
+  final dynamic long; // Make long nullable
   const RestaurantWidget({
     super.key,
     required this.imageUrl,
@@ -24,6 +26,8 @@ class RestaurantWidget extends StatefulWidget {
     required this.location,
     this.promotionText, // Nullable
     this.promoCode, // Nullable
+    this.lat,
+    this.long,
   });
 
   @override
@@ -31,6 +35,28 @@ class RestaurantWidget extends StatefulWidget {
 }
 
 class _RestaurantWidgetState extends State<RestaurantWidget> {
+  void _openMap(dynamic latitude, dynamic longitude, {String? name}) async {
+    Uri googleMapsUrl;
+
+    if (name != null && name.isNotEmpty) {
+      // Try searching by name near the location
+      final String encodedQuery =
+          Uri.encodeComponent("$name near $latitude,$longitude");
+      googleMapsUrl = Uri.parse(
+          "https://www.google.com/maps/search/?api=1&query=$encodedQuery");
+    } else {
+      // Drop a pin at the location, Google Maps will automatically show the place name
+      googleMapsUrl =
+          Uri.parse("https://www.google.com/maps?q=$latitude,$longitude");
+    }
+
+    if (await canLaunchUrl(googleMapsUrl)) {
+      await launchUrl(googleMapsUrl);
+    } else {
+      throw 'Could not launch $googleMapsUrl';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return InkWell(
@@ -124,7 +150,18 @@ class _RestaurantWidgetState extends State<RestaurantWidget> {
                             BorderRadius.circular(20), // Adjust as needed
                       ),
                       child: ElevatedButton.icon(
-                        onPressed: () {},
+                        onPressed: () {
+                          if (widget.lat != null && widget.long != null) {
+                            _openMap(widget.lat, widget.long,
+                                name: widget.restaurantName);
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Location not found'),
+                              ),
+                            );
+                          }
+                        },
                         label:
                             const Text("Map", style: TextStyle(fontSize: 12)),
                         icon: const Icon(

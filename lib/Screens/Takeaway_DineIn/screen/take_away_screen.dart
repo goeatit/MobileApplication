@@ -41,7 +41,7 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
       city = sharedPreferences.getString("city");
       country = sharedPreferences.getString("country");
       // city = "Bengaluru";
-      // city="Bhubaneswar";
+      // city = "Bhubaneswar";
 
       final response =
           await apiRepository.fetchRestaurantByArea(city!, country!);
@@ -146,6 +146,8 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
                                     promoCode:
                                         "Happy10", // Update this if you have promo codes
                                     location: city!,
+                                    lat: restaurants[0].lat,
+                                    long: restaurants[0].long,
                                   ),
                                   Container(
                                     padding: const EdgeInsets.symmetric(
@@ -201,6 +203,8 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
                                         priceRange:
                                             "₹1200-₹1500 for two", // Update this if you have price range info
                                         rating: restaurant.ratings.toDouble(),
+                                        lat: restaurant.lat,
+                                        long: restaurant.long,
                                         // promotionText:
                                         //     "Promoted", // Update if you have promo data
                                         // promoCode:

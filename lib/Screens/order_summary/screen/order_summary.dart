@@ -1,3 +1,4 @@
+import 'package:eatit/common/constants/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 
@@ -35,7 +36,8 @@ class _OrderSummaryScreenState extends State<OrderSummaryScreen> {
         'email': 'bijeet123@gmail.com',
       },
       'theme': {
-        'color': '#FF9800'
+        'color': '#F8951D'
+
       },
     };
 
@@ -109,7 +111,7 @@ class _OrderSummaryScreenState extends State<OrderSummaryScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
+                  backgroundColor: primaryColor,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
