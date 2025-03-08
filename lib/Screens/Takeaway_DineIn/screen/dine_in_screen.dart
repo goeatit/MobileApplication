@@ -141,6 +141,8 @@ class _DineInScreen extends State<DineInScreen> {
                               promoCode:
                                   "Happy10", // Update this if you have promo codes
                               location: city!,
+                              lat: restaurants[0].lat,
+                              long: restaurants[0].long,
                             ),
                             Container(
                               padding:
@@ -194,6 +196,8 @@ class _DineInScreen extends State<DineInScreen> {
                                   priceRange:
                                       "Price Placeholder", // Update this if you have price range info
                                   rating: restaurant.ratings.toDouble(),
+                                  long: restaurant.long,
+                                  lat: restaurant.lat,
                                   // promotionText:
                                   //     "Promoted", // Update if you have promo data
                                   // promoCode:

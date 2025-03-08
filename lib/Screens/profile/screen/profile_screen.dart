@@ -72,7 +72,7 @@ class ProfileScreen extends StatelessWidget {
                           InkWell(
                             onTap: () {
                               Navigator.pushNamed(
-                                  context, EditProfileScreen.routeNAme);
+                                  context, EditProfileScreen.routeName);
                             },
                             child: const Text(
                               'Edit Profile',

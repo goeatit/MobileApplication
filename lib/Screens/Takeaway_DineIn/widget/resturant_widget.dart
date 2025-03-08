@@ -35,17 +35,21 @@ class RestaurantWidget extends StatefulWidget {
 }
 
 class _RestaurantWidgetState extends State<RestaurantWidget> {
-
   void _openMap(dynamic latitude, dynamic longitude, {String? name}) async {
     Uri googleMapsUrl;
-
-    if (name != null && name.isNotEmpty) {
+    if (latitude == null || longitude == null) {
+      googleMapsUrl =
+          Uri.parse("https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(name!)}");
+    } else if (name != null && name.isNotEmpty) {
       // Try searching by name near the location
-      final String encodedQuery = Uri.encodeComponent("$name near $latitude,$longitude");
-      googleMapsUrl = Uri.parse("https://www.google.com/maps/search/?api=1&query=$encodedQuery");
+      final String encodedQuery =
+          Uri.encodeComponent("$name near $latitude,$longitude");
+      googleMapsUrl = Uri.parse(
+          "https://www.google.com/maps/search/?api=1&query=$encodedQuery");
     } else {
       // Drop a pin at the location, Google Maps will automatically show the place name
-      googleMapsUrl = Uri.parse("https://www.google.com/maps?q=$latitude,$longitude");
+      googleMapsUrl =
+          Uri.parse("https://www.google.com/maps?q=$latitude,$longitude");
     }
 
     if (await canLaunchUrl(googleMapsUrl)) {
@@ -148,15 +152,8 @@ class _RestaurantWidgetState extends State<RestaurantWidget> {
                       ),
                       child: ElevatedButton.icon(
                         onPressed: () {
-                          if (widget.lat != null && widget.long != null) {
-                            _openMap(widget.lat, widget.long,name:widget.restaurantName);
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Location not found'),
-                              ),
-                            );
-                          }
+                          _openMap(widget.lat, widget.long,
+                              name: widget.restaurantName);
                         },
                         label:
                             const Text("Map", style: TextStyle(fontSize: 12)),

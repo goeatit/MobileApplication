@@ -22,6 +22,8 @@ class _LoginScreen extends State<LoginScreeen> {
   final TextEditingController phoneNumberController = TextEditingController();
   bool isContinueButton = true; // Flag to toggle button text
   bool isLoading = false; // Loading state
+  bool isGoogleLoading = false; // Track Google login state
+
 
   @override
   Widget build(BuildContext context) {
@@ -46,6 +48,20 @@ class _LoginScreen extends State<LoginScreeen> {
       },
       {"code": "+971", "flag": "🇦🇪"},
     ];
+
+    Future<void> _handleGoogleLogin(BuildContext context) async {
+      setState(() {
+        isGoogleLoading = true; // Show loading overlay
+      });
+
+      try {
+        await _googleLoginService.loginWithGoogle(context);
+      } finally {
+        setState(() {
+          isGoogleLoading = false; // Hide loading overlay
+        });
+      }
+    }
 
     final textTheme = Theme.of(context).textTheme;
     return Scaffold(
@@ -129,12 +145,11 @@ class _LoginScreen extends State<LoginScreeen> {
                         icon: Icon(Icons.keyboard_arrow_down),
                       ),
                       menuItemStyleData: const MenuItemStyleData(
-                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4), // Reduce padding
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4), // Reduce padding
                       ),
                     ),
                   ),
-
-
                   Expanded(
                     child: TextField(
                       inputFormatters: [
@@ -196,7 +211,7 @@ class _LoginScreen extends State<LoginScreeen> {
                 ),
                 child: isLoading
                     ? const CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation(Colors.white),
+                        valueColor: AlwaysStoppedAnimation(primaryColor),
                       )
                     : const Text(
                         "Send OTP",
@@ -223,10 +238,9 @@ class _LoginScreen extends State<LoginScreeen> {
             SizedBox(
               width: 250,
               child: ElevatedButton(
-                onPressed: () async {
-                  await _googleLoginService.loginWithGoogle(context);
-                  // Add your button functionality here
-                },
+                onPressed: isGoogleLoading
+                    ? null // Disable button while loading
+                    : () => _handleGoogleLogin(context),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
@@ -234,26 +248,30 @@ class _LoginScreen extends State<LoginScreeen> {
                   ),
                   backgroundColor: primaryColor, // Button color
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Image.asset(
-                      "assets/images/google.png",
-                      height: 30,
-                      width: 30,
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.only(left: 13),
-                      child: Text(
-                        "Login with Google",
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white),
+                child: isGoogleLoading
+                    ? const CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation(primaryColor),
+                      )
+                    : Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Image.asset(
+                            "assets/images/google.png",
+                            height: 30,
+                            width: 30,
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.only(left: 13),
+                            child: Text(
+                              "Login with Google",
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
               ),
             ),
             const SizedBox(height: 20),

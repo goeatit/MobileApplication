@@ -1,10 +1,15 @@
 import 'dart:async';
 import 'package:eatit/Screens/Auth/login_screen/service/auth_mobile_otp_service.dart';
+import 'package:eatit/Screens/CompleteYourProfile/Screen/Complete_your_profile_screen.dart';
 import 'package:eatit/Screens/location/screen/location_screen.dart';
 import 'package:eatit/common/constants/colors.dart';
+import 'package:eatit/models/user_model.dart';
+import 'package:eatit/provider/order_type_provider.dart';
+import 'package:eatit/provider/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pinput/pinput.dart';
+import 'package:provider/provider.dart';
 
 class VerifyOtp extends StatefulWidget {
   static const routeName = "/otp-screen";
@@ -28,6 +33,7 @@ class _VerifyOtpState extends State<VerifyOtp> {
   String message = "";
   bool messageColor = false;
   bool _isLoading = false;
+  UserResponse? user;
 
   @override
   void initState() {
@@ -70,9 +76,13 @@ class _VerifyOtpState extends State<VerifyOtp> {
     });
     var isVerified = await _otpService.verifyOtp(
         widget.countryCode, widget.phoneNumber, _otpController.text, context);
-
+    user = Provider.of<UserModelProvider>(context, listen: false).userModel;
     if (isVerified) {
-      Navigator.pushReplacementNamed(context, LocationScreen.routeName);
+      if(user?.useremail==null||user?.name==null){
+        Navigator.pushReplacementNamed(context, CreateAccountScreen.routeName);
+      }else {
+        Navigator.pushReplacementNamed(context, LocationScreen.routeName);
+      }
     } else {
       setState(() {
         messageColor = false;
