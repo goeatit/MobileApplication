@@ -256,13 +256,13 @@ class _HomePage extends State<HomePage> {
                                 bottomLeft: Radius.circular(4),
                                 bottomRight: Radius.circular(4),
                               ),
-                              child: LinearProgressIndicator(
-                                value: value,
-                                minHeight: 3.5,
-                                valueColor: const AlwaysStoppedAnimation(
-                                    primaryColorVariant),
-                                backgroundColor: white,
-                              ),
+                              // child: LinearProgressIndicator(
+                              //   value: value,
+                              //   minHeight: 3.5,
+                              //   valueColor: const AlwaysStoppedAnimation(
+                              //       primaryColorVariant),
+                              //   backgroundColor: white,
+                              // ),
                             );
                           },
                         ),

@@ -86,22 +86,24 @@ class ProfileScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 8),
                           InkWell(
-                              onTap: () {
-                                Navigator.pushNamed(
-                                    context, EditProfileScreen.routeNAme);
-                              },
-                              child: const Text(
-                                'Edit Profile',
-                                style: TextStyle(
-                                  color: primaryColor,
-                                  fontWeight: FontWeight.bold,
-                                  decoration: TextDecoration.underline,
-                                  decorationColor: primaryColor,
-                                  decorationThickness:
-                                      2, // Optional: adjust thickness as needed
-                                  decorationStyle: TextDecorationStyle.solid,
-                                ),
-                              ))
+                            onTap: () {
+                              Navigator.pushNamed(
+                                  context, EditProfileScreen.routeName);
+                            },
+                            child: const Text(
+                              'Edit Profile',
+                              style: TextStyle(
+                                color: primaryColor,
+                                fontWeight: FontWeight.bold,
+                                decoration: TextDecoration.underline,
+                                decorationColor: primaryColor,
+                                decorationThickness:
+                                    2, // Optional: adjust thickness as needed
+                                decorationStyle: TextDecorationStyle.solid,
+                              ),
+                              textAlign: TextAlign.left,
+                            ),
+                          )
                         ],
                       );
                     })),
@@ -115,7 +117,7 @@ class ProfileScreen extends StatelessWidget {
               children: [
                 Expanded(
                   child: OptionCard(
-                    icon: Icons.checklist,
+                    icon: Icons.checklist_outlined,
                     color: Color(0xFF417C45),
                     text: 'My Bookings',
                   ),
@@ -133,7 +135,7 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 16),
             // Contact Support
             const OptionCard(
-              icon: Icons.help_outline,
+              icon: Icons.help_outline_rounded,
               color: Colors.blue,
               text: 'Contact Support',
             ),
