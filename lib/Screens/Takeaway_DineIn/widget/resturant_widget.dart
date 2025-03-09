@@ -37,8 +37,10 @@ class RestaurantWidget extends StatefulWidget {
 class _RestaurantWidgetState extends State<RestaurantWidget> {
   void _openMap(dynamic latitude, dynamic longitude, {String? name}) async {
     Uri googleMapsUrl;
-
-    if (name != null && name.isNotEmpty) {
+    if (latitude == null || longitude == null) {
+      googleMapsUrl =
+          Uri.parse("https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(name!)}");
+    } else if (name != null && name.isNotEmpty) {
       // Try searching by name near the location
       final String encodedQuery =
           Uri.encodeComponent("$name near $latitude,$longitude");
@@ -161,6 +163,8 @@ class _RestaurantWidgetState extends State<RestaurantWidget> {
                               ),
                             );
                           }
+                          _openMap(widget.lat, widget.long,
+                              name: widget.restaurantName);
                         },
                         label:
                             const Text("Map", style: TextStyle(fontSize: 12)),
