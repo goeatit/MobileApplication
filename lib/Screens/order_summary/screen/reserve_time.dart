@@ -18,7 +18,6 @@ class _ReserveTimeState extends State<ReserveTime> {
     "01:00PM",
     "01:30PM",
     "02:00PM",
-
   ];
   String? selectedTime; // To track the selected time slot
 
@@ -28,25 +27,54 @@ class _ReserveTimeState extends State<ReserveTime> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+        leading: Container(
+          margin: const EdgeInsets.only(left: 5),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            shape: BoxShape.circle,
+          ),
+          child: IconButton(
+            constraints: const BoxConstraints(
+              minWidth: 30,
+              minHeight: 30,
+            ),
+            icon: Container(
+              child: Stack(
+                children: [
+                  Positioned(
+                    left: 2,
+                    top: 2,
+                    child: Icon(
+                      Icons.arrow_back_ios_new,
+                      size: 22,
+                      color: Colors.black.withOpacity(0.3),
+                    ),
+                  ),
+                  const Icon(
+                    Icons.arrow_back_ios_new,
+                    size: 22,
+                    color: Colors.black87,
+                  ),
+                ],
+              ),
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
         ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(height: 8),
-            LinearProgressIndicator(
-              value: 0.6,
+        title: ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: SizedBox(
+            height: 8,
+            child: LinearProgressIndicator(
+              value: 0.8,
               backgroundColor: Colors.grey.shade300,
               color: Colors.black,
-              minHeight: 4,
             ),
-          ],
+          ),
         ),
-        centerTitle: true,
+        centerTitle: false,
       ),
       body: Column(
         children: [
@@ -75,23 +103,29 @@ class _ReserveTimeState extends State<ReserveTime> {
                           });
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 12, horizontal: 20),
-                          decoration: BoxDecoration(
-                            color: selectedTime == time
-                                ? Colors.green.shade100
-                                : Colors.white,
-                            border: Border.all(color: Colors.black),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            time,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 10, horizontal: 26),
+                            decoration: BoxDecoration(
+                              color: selectedTime == time
+                                  ? Colors.green.shade100
+                                  : Colors.white,
+                              border: Border.all(
+                                color: selectedTime == time
+                                    ? const Color(0xFF139456)
+                                    : Colors.black,
+                              ),
+                              borderRadius: BorderRadius.circular(20),
                             ),
-                          ),
-                        ),
+                            child: Text(
+                              time,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: selectedTime == time
+                                    ? const Color(0xFF139456)
+                                    : Colors.black,
+                              ),
+                            )),
                       );
                     }).toList(),
                   ),
@@ -111,7 +145,8 @@ class _ReserveTimeState extends State<ReserveTime> {
                     onPressed: selectedTime != null
                         ? () {
                             print("Reserved time: $selectedTime");
-                            Navigator.pushNamed(context, OrderSummaryScreen.routeName);
+                            Navigator.pushNamed(
+                                context, OrderSummaryScreen.routeName);
                           }
                         : null,
                     child: const Text(

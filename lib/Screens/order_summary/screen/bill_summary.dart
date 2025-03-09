@@ -54,11 +54,41 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+        leading: Container(
+          margin: const EdgeInsets.only(left: 5),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            shape: BoxShape.circle,
+          ),
+          child: IconButton(
+            constraints: const BoxConstraints(
+              minWidth: 30,
+              minHeight: 30,
+            ),
+            icon: Container(
+              child: Stack(
+                children: [
+                  Positioned(
+                    left: 2,
+                    top: 2,
+                    child: Icon(
+                      Icons.arrow_back_ios_new,
+                      size: 22,
+                      color: Colors.black.withOpacity(0.3),
+                    ),
+                  ),
+                  const Icon(
+                    Icons.arrow_back_ios_new,
+                    size: 22,
+                    color: Colors.black87,
+                  ),
+                ],
+              ),
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
         ),
       ),
       body: isLoading
@@ -115,6 +145,18 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                     const SizedBox(height: 10),
                     Container(
                       padding: const EdgeInsets.all(16.0),
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.all(
+                            Radius.circular(12)), // Added border radius
+                        boxShadow: [
+                          BoxShadow(
+                            color: Color(0x0D000000),
+                            offset: Offset(0, 2.15),
+                            blurRadius: 21.46,
+                          ),
+                        ],
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -128,14 +170,25 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                                 children: [
                                   Expanded(
                                     flex: 2,
-                                    child: Text(item.dish.dishId.dishName,
-                                        overflow: TextOverflow.ellipsis),
+                                    child: Text(
+                                      item.dish.dishId.dishName,
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                          color: Colors.grey),
+                                    ),
                                   ),
                                   Expanded(
                                     flex: 1,
                                     child: Text(
                                       item.quantity.toString(),
                                       textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                          color: Colors.grey),
                                     ),
                                   ),
                                   Expanded(
@@ -143,12 +196,16 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                                     child: Text(
                                       "₹${item.dish.resturantDishPrice * item.quantity}",
                                       textAlign: TextAlign.right,
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                          color: Colors.grey),
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                          const Divider(thickness: 1),
+                          const SizedBox(height: 20),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -180,6 +237,8 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                         ],
                       ),
                     ),
+                    const SizedBox(height: 30),
+                    const Text("Tip Something", style: TextStyle(fontSize: 20)),
                     const SizedBox(height: 20),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(

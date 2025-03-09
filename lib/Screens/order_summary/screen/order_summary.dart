@@ -10,6 +10,30 @@ class OrderSummaryScreen extends StatefulWidget {
   State<OrderSummaryScreen> createState() => _OrderSummaryScreenState();
 }
 
+class DashedLinePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    double dashWidth = 15;
+    double dashSpace = 10;
+    double startX = 0;
+    final paint = Paint()
+      ..color = const Color(0xFFD4D4D4)
+      ..strokeWidth = 1;
+
+    while (startX < size.width) {
+      canvas.drawLine(
+        Offset(startX, 0),
+        Offset(startX + dashWidth, 0),
+        paint,
+      );
+      startX += dashWidth + dashSpace;
+    }
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
+}
+
 class _OrderSummaryScreenState extends State<OrderSummaryScreen> {
   late Razorpay _razorpay;
 
@@ -35,10 +59,7 @@ class _OrderSummaryScreenState extends State<OrderSummaryScreen> {
         'contact': '+12 3456 7890',
         'email': 'bijeet123@gmail.com',
       },
-      'theme': {
-        'color': '#F8951D'
-
-      },
+      'theme': {'color': '#F8951D'},
     };
 
     try {
@@ -74,14 +95,52 @@ class _OrderSummaryScreenState extends State<OrderSummaryScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+        leading: Container(
+          margin: const EdgeInsets.only(left: 5),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            shape: BoxShape.circle,
+          ),
+          child: IconButton(
+            constraints: const BoxConstraints(
+              minWidth: 30,
+              minHeight: 30,
+            ),
+            icon: Container(
+              child: Stack(
+                children: [
+                  Positioned(
+                    left: 2,
+                    top: 2,
+                    child: Icon(
+                      Icons.arrow_back_ios_new,
+                      size: 22,
+                      color: Colors.black.withOpacity(0.3),
+                    ),
+                  ),
+                  const Icon(
+                    Icons.arrow_back_ios_new,
+                    size: 22,
+                    color: Colors.black87,
+                  ),
+                ],
+              ),
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
         ),
-        title: LinearProgressIndicator(
-          value: 0.8,
-          backgroundColor: Colors.grey.shade300,
-          color: Colors.black,
+        title: ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: SizedBox(
+            height: 8,
+            child: LinearProgressIndicator(
+              value: 1.0,
+              backgroundColor: Colors.grey.shade300,
+              color: Colors.black,
+            ),
+          ),
         ),
         centerTitle: false,
       ),
@@ -97,15 +156,38 @@ class _OrderSummaryScreenState extends State<OrderSummaryScreen> {
             ),
             const SizedBox(height: 16),
             _buildInfoRow("Name", "Bijeet Nath", isBold: true),
+            const Divider(
+              color: Color(0xFFD4D4D4),
+            ),
             _buildInfoRow("Phone Number", "+12 3456 7890", isBold: true),
+            const Divider(
+              color: Color(0xFFD4D4D4),
+            ),
             _buildInfoRow("Email", "bijeet123@gmail.com", isBold: true),
+            const Divider(
+              color: Color(0xFFD4D4D4),
+            ),
             _buildInfoRow("Date", "20 July 2025", isBold: true),
+            const Divider(
+              color: Color(0xFFD4D4D4),
+            ),
             _buildInfoRow("Time", "01:30PM", isBold: true),
+            const Divider(
+              color: Color(0xFFD4D4D4),
+            ),
             _buildInfoRow("Number of People", "2 People", isBold: true),
-            const Divider(),
-            _buildInfoRow("Subtotal", "\$206.45", isBold: true, isRightAligned: true),
+
+            const SizedBox(height: 80), // Add some spacing
+            // Dashed divider for subtotal section
+            CustomPaint(
+              size: const Size(double.infinity, 30),
+              painter: DashedLinePainter(),
+            ),
+            _buildInfoRow("Subtotal", "\$206.45",
+                isBold: true, isRightAligned: true),
             _buildInfoRow("Tax", "\$20.6", isRightAligned: true),
-            _buildInfoRow("Grand Total", "\$227.05", isBold: true, isRightAligned: true),
+            _buildInfoRow("Grand Total", "\$227.05",
+                isBold: true, isRightAligned: true),
             const Spacer(),
             SizedBox(
               width: double.infinity,
@@ -114,7 +196,7 @@ class _OrderSummaryScreenState extends State<OrderSummaryScreen> {
                   backgroundColor: primaryColor,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(20),
                   ),
                 ),
                 onPressed: _openRazorpay,
@@ -130,11 +212,14 @@ class _OrderSummaryScreenState extends State<OrderSummaryScreen> {
     );
   }
 
-  Widget _buildInfoRow(String title, String value, {bool isBold = false, bool isRightAligned = false}) {
+  Widget _buildInfoRow(String title, String value,
+      {bool isBold = false, bool isRightAligned = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
-        mainAxisAlignment: isRightAligned ? MainAxisAlignment.spaceBetween : MainAxisAlignment.start,
+        mainAxisAlignment: isRightAligned
+            ? MainAxisAlignment.spaceBetween
+            : MainAxisAlignment.start,
         children: [
           Expanded(
             child: Text(
