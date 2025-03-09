@@ -225,10 +225,26 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                         ],
                                       ),
                                       child: IconButton(
-                                        icon: const Icon(
-                                          Icons.arrow_back_ios_new,
-                                          size: 20,
-                                          color: Colors.black87,
+                                        icon: Container(
+                                          child: Stack(
+                                            children: [
+                                              Positioned(
+                                                left: 2,
+                                                top: 2,
+                                                child: Icon(
+                                                  Icons.arrow_back_ios_new,
+                                                  size: 22,
+                                                  color: Colors.black
+                                                      .withOpacity(0.3),
+                                                ),
+                                              ),
+                                              const Icon(
+                                                Icons.arrow_back_ios_new,
+                                                size: 22,
+                                                color: Colors.black87,
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                         onPressed: () {
                                           Navigator.pop(context);
@@ -310,7 +326,7 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                 children: [
                                   Text(
                                     "${dish?.restaurant.restaurantRating}",
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -319,7 +335,10 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                     color: Theme.of(context).primaryColor,
                                     size: 15, // Adjust size as needed
                                   ),
-                                  const Text("Indian · Biryani · 2.3km"),
+                                  const Text(" | Indian . Biryani | 2.3km "),
+                                  const Icon(
+                                    Icons.arrow_right_outlined,
+                                  )
                                 ],
                               ),
                             ],
@@ -395,7 +414,7 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                 ),
                               ],
                               borderRadius: BorderRadius.circular(
-                                  8), // Optional: Rounded corners
+                                  20), // Optional: Rounded corners
                             ),
                             child: TextField(
                               controller: _searchController,

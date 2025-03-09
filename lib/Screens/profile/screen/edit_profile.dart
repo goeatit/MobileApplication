@@ -43,10 +43,25 @@ class _EditProfileScreen extends State<EditProfileScreen> {
                     minWidth: 30,
                     minHeight: 30,
                   ),
-                  icon: const Icon(
-                    Icons.arrow_back_ios_new,
-                    size: 22,
-                    color: Colors.black87,
+                  icon: Container(
+                    child: Stack(
+                      children: [
+                        Positioned(
+                          left: 2,
+                          top: 2,
+                          child: Icon(
+                            Icons.arrow_back_ios_new,
+                            size: 22,
+                            color: Colors.black.withOpacity(0.3),
+                          ),
+                        ),
+                        const Icon(
+                          Icons.arrow_back_ios_new,
+                          size: 22,
+                          color: Colors.black87,
+                        ),
+                      ],
+                    ),
                   ),
                   onPressed: () {
                     Navigator.pop(context);
@@ -152,52 +167,6 @@ class _EditProfileScreen extends State<EditProfileScreen> {
     );
   }
 
-  const ProfileInputField({
-    Key? key,
-    required this.label,
-    required this.icon,
-    required this.value,
-    required this.onEdit,
-    this.isDropdown = false,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(color: Colors.grey, fontSize: 14),
-        ),
-        const SizedBox(height: 8),
-        GestureDetector(
-          onTap: onEdit,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey.shade300),
-            ),
-            child: Row(
-              children: [
-                Icon(icon, color: Colors.grey),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Text(
-                    value,
-                    style: const TextStyle(fontSize: 16, color: Colors.black),
-                  ),
-                ),
-                if (isDropdown)
-                  const Icon(Icons.arrow_drop_down, color: Colors.grey)
-                else
-                  GestureDetector(
-                    onTap: onEdit,
-                    child: const Icon(Icons.edit_outlined, color: primaryColor),
-                  ),
-              ],
   // Date Picker function
   Future<void> _selectDate(BuildContext context) async {
     DateTime? pickedDate = await showDatePicker(
