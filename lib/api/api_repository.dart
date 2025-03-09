@@ -52,4 +52,43 @@ class ApiRepository {
       });
     });
   }
+
+  Future<Response?> googleLogin(
+      String email, String name, String avatarurl) async {
+    final endpoint = ApiEndpoints.googleLogin;
+    return await networkManager.makeRequest(() {
+      return networkManager.dioManger.post(endpoint,
+          data: {"email": email, "name": name, "avatarurl": avatarurl});
+    });
+  }
+
+  Future<Response?> sendOtpEmail(String email) async {
+    final endpoint = ApiEndpoints.sendOtpEmail;
+    return await networkManager.makeRequest(() {
+      return networkManager.dioManger.post(endpoint, data: {"email": email});
+    });
+  }
+
+  Future<Response?> verifyOtpEmail(String email, String otp) async {
+    final endpoint = ApiEndpoints.verifyOtpEmail;
+    return await networkManager.makeRequest(() {
+      return networkManager.dioManger
+          .post(endpoint, data: {"email": email, "code": otp});
+    });
+  }
+
+  Future<Response?> completeYourProfile(String name, String email, String? dob,
+      String? gender, String countryCode, String phoneNumber) async {
+    final endPoint = ApiEndpoints.completeYourProfile;
+    return await networkManager.makeRequest(() {
+      return networkManager.dioManger.post(endPoint, data: {
+        "name": name,
+        "phoneNumber": phoneNumber,
+        "countryCode": countryCode,
+        "gender": gender,
+        "dateOfBirth": dob,
+        "email": email
+      });
+    });
+  }
 }

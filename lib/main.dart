@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:eatit/Screens/Auth/login_screen/screen/login_screen.dart';
 import 'package:eatit/Screens/Auth/verify_otp/screen/verify_otp.dart';
+import 'package:eatit/Screens/CompleteYourProfile/Screen/Complete_your_profile_screen.dart';
 import 'package:eatit/Screens/Takeaway_DineIn//screen/singe_restaurant_screen.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/widget/bottom_cart.dart';
 import 'package:eatit/Screens/first_time_screen/screen/first_time_screen.dart';
