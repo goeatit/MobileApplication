@@ -238,3 +238,78 @@ class RestaurantAddress {
     };
   }
 }
+
+class CurrentData {
+  String restaurantId;
+  String restaurantName;
+  bool forceClose;
+  int restaurantWaitingTime;
+  String restaurantTime;
+  List<OrderdDish> orderDish; // Changed from single object to List
+
+  CurrentData({
+    required this.restaurantId,
+    required this.restaurantName,
+    required this.forceClose,
+    required this.restaurantWaitingTime,
+    required this.restaurantTime,
+    required this.orderDish,
+  });
+
+  factory CurrentData.fromJson(Map<String, dynamic> json) {
+    return CurrentData(
+      restaurantId: json['restaurantId'],
+      restaurantName: json['restaurantName'],
+      forceClose: json['forceClose'],
+      restaurantWaitingTime: json['restaurantWaitingTime'],
+      restaurantTime: json['restaurantTime'],
+      orderDish: (json['orderdDish'] as List<dynamic>) // Convert list of maps to list of OrderdDish
+          .map((dish) => OrderdDish.fromJson(dish))
+          .toList(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'restaurantId': restaurantId,
+      'restaurantName': restaurantName,
+      'forceClose': forceClose,
+      'restaurantWaitingTime': restaurantWaitingTime,
+      'restaurantTime': restaurantTime,
+      'orderDish': orderDish.map((dish) => dish.toJson()).toList(), // Convert list to JSON
+    };
+  }
+}
+
+class OrderdDish {
+  String dishId;
+  String dishName;
+  int dishPrice;
+  bool available;
+
+  OrderdDish({
+    required this.dishId,
+    required this.dishName,
+    required this.dishPrice,
+    required this.available,
+  });
+
+  factory OrderdDish.fromJson(Map<String, dynamic> json) {
+    return OrderdDish(
+      dishId: json['_id'],
+      dishName: json['dishName'],
+      dishPrice: json['dishPrice'],
+      available: json['available'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'dishId': dishId,
+      'dishName': dishName,
+      'dishPrice': dishPrice,
+      'available': available,
+    };
+  }
+}
+
