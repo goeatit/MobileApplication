@@ -47,6 +47,7 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
       page = SingleRestaurantScreen(
         name: args['name']!,
         location: args['location']!,
+        id: args['id']!,
       );
       break;
 
@@ -57,7 +58,7 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
     case BillSummaryScreen.routeName:
       final args = routeSettings.arguments as Map<String, String>;
       page =
-          BillSummaryScreen(name: args['name']!, orderType: args['orderType']!);
+          BillSummaryScreen(name: args['name']!, orderType: args['orderType']!, id: args['id']!,);
       break;
 
     case SelectPeopleScreen.routeName:
