@@ -148,6 +148,7 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
                                     location: city!,
                                     lat: restaurants[0].lat,
                                     long: restaurants[0].long,
+                                    id: restaurants[0].id,
                                   ),
                                   Container(
                                     padding: const EdgeInsets.symmetric(
@@ -205,6 +206,7 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
                                         rating: restaurant.ratings.toDouble(),
                                         lat: restaurant.lat,
                                         long: restaurant.long,
+                                        id: restaurant.id,
                                         // promotionText:
                                         //     "Promoted", // Update if you have promo data
                                         // promoCode:

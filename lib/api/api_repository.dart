@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:eatit/api/api_endpoint.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:eatit/models/cart_items.dart';
 import 'network_manager.dart';
 
 class ApiRepository {
@@ -88,6 +88,58 @@ class ApiRepository {
         "gender": gender,
         "dateOfBirth": dob,
         "email": email
+      });
+    });
+  }
+
+  Future<Response?> fetchCurrentData(
+      String id, String name, List<CartItem> cartItems) async {
+    final endpoint = ApiEndpoints.fetchCurrentData(id, name);
+    return await networkManager.makeRequest(() {
+      return networkManager.dioManger.post(endpoint, data: {
+        'dishIdToBeOrderd': cartItems.map((e) => e.dish.id).toList(),
+      });
+    });
+  }
+
+  Future<Response?> createOrder(
+      String id,
+      String orderType,
+      String name,
+      String pickupTime,
+      String noOfPeople,
+      String totalAmount,
+      List<CartItem> cartItems) async {
+    final endpoint = ApiEndpoints.createOrder(orderType);
+    return await networkManager.makeRequest(() {
+      return networkManager.dioManger.post(endpoint, data: {
+        'restaurantId': id,
+        'restaurantName': name,
+        'pickupTime': pickupTime,
+        if (noOfPeople != "") "Dinein": noOfPeople,
+        'subTotal': double.parse(totalAmount),
+        'items': cartItems.map((e) {
+          return {
+            '_id': e.id,
+            'quantity': e.quantity,
+            'name': e.dish.dishId.dishName,
+            'price': e.dish.resturantDishPrice,
+            'restaurantName': e.restaurantName,
+          };
+        }).toList(),
+      });
+    });
+  }
+
+  Future<Response?> verifyPayment(String paymentId, String orderId,
+      String signature, String orderCreationId) async {
+    final endpoint = ApiEndpoints.verifyPayment;
+    return await networkManager.makeRequest(() {
+      return networkManager.dioManger.post(endpoint, data: {
+        'razorpay_payment_id': paymentId,
+        'razorpay_order_id': orderId,
+        'razorpay_signature': signature,
+        'orderCreationId': orderCreationId
       });
     });
   }
