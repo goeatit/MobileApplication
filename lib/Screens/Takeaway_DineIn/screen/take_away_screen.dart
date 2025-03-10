@@ -40,7 +40,7 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
           await SharedPreferences.getInstance();
       city = sharedPreferences.getString("city");
       country = sharedPreferences.getString("country");
-      city = "Bengaluru";
+      // city = "Bengaluru";
       // city = "Bhubaneswar";
 
       final response =
@@ -149,7 +149,6 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
                                     lat: restaurants[0].lat,
                                     long: restaurants[0].long,
                                     id: restaurants[0].id,
-
                                   ),
                                   Container(
                                     padding: const EdgeInsets.symmetric(
