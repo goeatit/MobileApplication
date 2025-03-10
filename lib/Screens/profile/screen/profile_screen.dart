@@ -22,13 +22,29 @@ class ProfileScreen extends StatelessWidget {
             style: TextStyle(color: Colors.black),
           ),
           actions: [
-            IconButton(
-              icon: const Icon(IconData(0xf0347, fontFamily: 'MaterialIcons'),
-                  color: Colors.black),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            )
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  constraints: const BoxConstraints(
+                    minWidth: 30,
+                    minHeight: 30,
+                  ),
+                  icon: const Icon(
+                    Icons.close,
+                    size: 22,
+                    color: Colors.black87,
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
+              ),
+            ),
           ]),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -79,7 +95,13 @@ class ProfileScreen extends StatelessWidget {
                               style: TextStyle(
                                 color: primaryColor,
                                 fontWeight: FontWeight.bold,
+                                decoration: TextDecoration.underline,
+                                decorationColor: primaryColor,
+                                decorationThickness:
+                                    2, // Optional: adjust thickness as needed
+                                decorationStyle: TextDecorationStyle.solid,
                               ),
+                              textAlign: TextAlign.left,
                             ),
                           )
                         ],
@@ -95,16 +117,16 @@ class ProfileScreen extends StatelessWidget {
               children: [
                 Expanded(
                   child: OptionCard(
-                    icon: Icons.bookmark,
-                    color: Colors.green,
+                    icon: Icons.checklist_outlined,
+                    color: Color(0xFF417C45),
                     text: 'My Bookings',
                   ),
                 ),
                 SizedBox(width: 4),
                 Expanded(
                   child: OptionCard(
-                    icon: Icons.folder,
-                    color: Colors.teal,
+                    icon: Icons.bookmark_border,
+                    color: Color(0xFF417C71),
                     text: 'Collection',
                   ),
                 ),
@@ -113,7 +135,7 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 16),
             // Contact Support
             const OptionCard(
-              icon: Icons.help,
+              icon: Icons.help_outline_rounded,
               color: Colors.blue,
               text: 'Contact Support',
             ),

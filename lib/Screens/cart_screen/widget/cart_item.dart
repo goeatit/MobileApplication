@@ -14,6 +14,7 @@ class CartItemWidget extends StatelessWidget {
     required this.imageUrl,
     required this.items,
     required this.instructions,
+    required Icon icon,
   });
 
   @override

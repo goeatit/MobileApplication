@@ -180,24 +180,9 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
 
     return Scaffold(
         appBar: AppBar(
-          backgroundColor: _isVisible
-              ? Colors.black.withOpacity(0.3)
-              : null, // Change color based on _isVisible
-
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.map),
-              onPressed: () {
-                // Handle Map Button
-              },
-            ),
-          ],
+          toolbarHeight: 10,
+          backgroundColor: _isVisible ? Colors.black.withOpacity(0.3) : null,
+          automaticallyImplyLeading: false, // This will remove the back arrow
         ),
         body: isLoading
             ? const Center(child: CircularProgressIndicator())
@@ -207,18 +192,128 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Restaurant Info
                         Padding(
                           padding: const EdgeInsets.all(10.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              SizedBox(
-                                width: double.infinity,
-                                height: 200,
-                                child: Image.asset(
-                                  "assets/images/restaurant.png",
-                                ),
+                              Stack(
+                                children: [
+                                  // Restaurant Image
+                                  SizedBox(
+                                    width: double.infinity,
+                                    height: 200,
+                                    child: Image.asset(
+                                      "assets/images/restaurant.png",
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                  // Back Button
+                                  Positioned(
+                                    top: 10,
+                                    left: 10,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color:
+                                                Colors.black.withOpacity(0.2),
+                                            spreadRadius: 1,
+                                            blurRadius: 3,
+                                            offset: const Offset(0, 1),
+                                          ),
+                                        ],
+                                      ),
+                                      child: IconButton(
+                                        icon: Container(
+                                          child: Stack(
+                                            children: [
+                                              Positioned(
+                                                left: 2,
+                                                top: 2,
+                                                child: Icon(
+                                                  Icons.arrow_back_ios_new,
+                                                  size: 22,
+                                                  color: Colors.black
+                                                      .withOpacity(0.3),
+                                                ),
+                                              ),
+                                              const Icon(
+                                                Icons.arrow_back_ios_new,
+                                                size: 22,
+                                                color: Colors.black87,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                  // Bookmark Button
+                                  Positioned(
+                                    top: 10,
+                                    right: 10,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color:
+                                                Colors.black.withOpacity(0.2),
+                                            spreadRadius: 1,
+                                            blurRadius: 3,
+                                            offset: const Offset(0, 1),
+                                          ),
+                                        ],
+                                      ),
+                                      child: IconButton(
+                                        icon: const Icon(
+                                          Icons.bookmark_border,
+                                          size: 20,
+                                          color: Colors.black87,
+                                        ),
+                                        onPressed: () {
+                                          // Add bookmark functionality here
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                  Positioned(
+                                      bottom: 10,
+                                      right: 10,
+                                      child: Container(
+                                        height: 35,
+                                        decoration: BoxDecoration(
+                                          gradient: mapLinearGradient,
+                                          borderRadius: BorderRadius.circular(
+                                              20), // Adjust as needed
+                                        ),
+                                        child: ElevatedButton.icon(
+                                          onPressed: () {},
+                                          label: const Text("Map",
+                                              style: TextStyle(fontSize: 12)),
+                                          icon: const Icon(
+                                            IconData(0xf8ca,
+                                                fontFamily: "CupertinoIcons",
+                                                fontPackage: "cupertino_icons"),
+                                            color: Colors.white,
+                                          ),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.transparent,
+                                            foregroundColor: Colors.white,
+                                            shadowColor: Colors.transparent,
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 20),
+                                          ),
+                                        ),
+                                      )),
+                                ],
                               ),
                               Text(
                                 widget.name,
@@ -232,8 +327,20 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
-                                      "${dish?.restaurant.restaurantRating} ★ "),
-                                  const Text("Indian · Biryani · 2.3km"),
+                                    "${dish?.restaurant.restaurantRating}",
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Icon(
+                                    Icons.star, // or Icons.star_rate
+                                    color: Theme.of(context).primaryColor,
+                                    size: 15, // Adjust size as needed
+                                  ),
+                                  const Text(" | Indian . Biryani | 2.3km "),
+                                  const Icon(
+                                    Icons.arrow_right_outlined,
+                                  )
                                 ],
                               ),
                             ],
@@ -309,7 +416,7 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                 ),
                               ],
                               borderRadius: BorderRadius.circular(
-                                  8), // Optional: Rounded corners
+                                  20), // Optional: Rounded corners
                             ),
                             child: TextField(
                               controller: _searchController,
