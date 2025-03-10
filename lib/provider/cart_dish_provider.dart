@@ -108,14 +108,17 @@ class CartProvider extends ChangeNotifier {
         if (cartItems[index].quantity > 1) {
           cartItems[index].quantity--;
         } else {
+          // Remove the item if quantity becomes 0
           cartItems.removeAt(index);
-        }
-        if (cartItems.isEmpty) {
-          _restaurantCarts[id]?.remove(orderType);
 
-          // If the restaurant has no order types left, remove the restaurant
-          if (_restaurantCarts[id]?.isEmpty ?? false) {
-            _restaurantCarts.remove(id);
+          // If this was the last item in the order type, remove the order type
+          if (cartItems.isEmpty) {
+            _restaurantCarts[id]?.remove(orderType);
+
+            // If this was the last order type for the restaurant, remove the restaurant
+            if (_restaurantCarts[id]?.isEmpty ?? false) {
+              _restaurantCarts.remove(id);
+            }
           }
         }
 
@@ -129,6 +132,17 @@ class CartProvider extends ChangeNotifier {
     final cartItems = _restaurantCarts[id]?[orderType];
     if (cartItems != null) {
       cartItems.removeWhere((item) => item.id == cartItemId);
+
+      // Clean up empty lists
+      if (cartItems.isEmpty) {
+        _restaurantCarts[id]?.remove(orderType);
+
+        // If the restaurant has no order types left, remove the restaurant
+        if (_restaurantCarts[id]?.isEmpty ?? false) {
+          _restaurantCarts.remove(id);
+        }
+      }
+
       saveCartToStorage(); // Save changes to storage
       notifyListeners();
     }
@@ -170,6 +184,11 @@ class CartProvider extends ChangeNotifier {
     return 0; // Return 0 if no items found for the given restaurant and order type
   }
 
+  bool hasRestaurantItems(String id) {
+    return _restaurantCarts.containsKey(id) &&
+        _restaurantCarts[id]!.values.any((items) => items.isNotEmpty);
+  }
+
   void updateItemPrice(String restaurantId, String dishId, int newPrice) {
     _restaurantCarts.forEach((id, orderTypes) {
       if (id == restaurantId) {
@@ -187,23 +206,32 @@ class CartProvider extends ChangeNotifier {
   }
 
   void removeItem(String restaurantId, String dishId) {
-    _restaurantCarts.forEach((id, orderTypes) {
-      if (id == restaurantId) {
-        orderTypes.forEach((orderType, cartItems) {
-          cartItems.removeWhere((item) => item.dish.id == dishId);
+    // Create a list of entries to remove to avoid concurrent modification
+    List<String> orderTypesToRemove = [];
 
-          // Clean up empty lists
-          if (cartItems.isEmpty) {
-            _restaurantCarts[id]?.remove(orderType);
+    if (_restaurantCarts.containsKey(restaurantId)) {
+      var orderTypes = _restaurantCarts[restaurantId]!;
 
-            // If the restaurant has no order types left, remove the restaurant
-            if (_restaurantCarts[id]?.isEmpty ?? false) {
-              _restaurantCarts.remove(id);
-            }
-          }
-        });
+      orderTypes.forEach((orderType, cartItems) {
+        cartItems.removeWhere((item) => item.dish.id == dishId);
+
+        // If this order type is now empty, mark it for removal
+        if (cartItems.isEmpty) {
+          orderTypesToRemove.add(orderType);
+        }
+      });
+
+      // Remove empty order types
+      for (var orderType in orderTypesToRemove) {
+        _restaurantCarts[restaurantId]?.remove(orderType);
       }
-    });
+
+      // If the restaurant has no order types left, remove the restaurant
+      if (_restaurantCarts[restaurantId]?.isEmpty ?? false) {
+        _restaurantCarts.remove(restaurantId);
+      }
+    }
+
     saveCartToStorage();
     notifyListeners();
   }
