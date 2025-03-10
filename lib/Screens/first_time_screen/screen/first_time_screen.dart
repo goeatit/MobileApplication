@@ -106,7 +106,7 @@ class _FirstTimeScreen extends State<FirstTimeScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               SizedBox(
-                height: 450,
+                height: 500,
                 width: double.infinity,
                 child: PageView.builder(
                   controller: _pageController,

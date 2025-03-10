@@ -58,7 +58,6 @@ class _OrderSummaryScreenState extends State<OrderSummaryScreen> {
     _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
   }
 
-
   void _openRazorpay(String orderId) {
     try {
       // Get order details from provider
@@ -307,7 +306,6 @@ class _OrderSummaryScreenState extends State<OrderSummaryScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     // Access the providers
     final orderProvider = Provider.of<OrderProvider>(context);
     final userProvider = Provider.of<UserModelProvider>(context);
@@ -322,57 +320,59 @@ class _OrderSummaryScreenState extends State<OrderSummaryScreen> {
       return '₹${amount.toStringAsFixed(2)}';
     }
 
-   return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: Container(
-          margin: const EdgeInsets.only(left: 5),
-          decoration: BoxDecoration(
-            color: Colors.grey.shade200,
-            shape: BoxShape.circle,
-          ),
-          child: IconButton(
-            constraints: const BoxConstraints(
-              minWidth: 30,
-              minHeight: 30,
-            ),
-            icon: Container(
-              child: Stack(
-                children: [
-                  Positioned(
-                    left: 2,
-                    top: 2,
-                    child: Icon(
-                      Icons.arrow_back_ios_new,
-                      size: 22,
-                      color: Colors.black.withOpacity(0.3),
-                    ),
+    return Stack(
+      children: [
+        Scaffold(
+          appBar: AppBar(
+            backgroundColor: Colors.white,
+            elevation: 0,
+            leading: Container(
+              margin: const EdgeInsets.only(left: 5),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade200,
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                constraints: const BoxConstraints(
+                  minWidth: 30,
+                  minHeight: 30,
+                ),
+                icon: Container(
+                  child: Stack(
+                    children: [
+                      Positioned(
+                        left: 2,
+                        top: 2,
+                        child: Icon(
+                          Icons.arrow_back_ios_new,
+                          size: 22,
+                          color: Colors.black.withOpacity(0.3),
+                        ),
+                      ),
+                      const Icon(
+                        Icons.arrow_back_ios_new,
+                        size: 22,
+                        color: Colors.black87,
+                      ),
+                    ],
                   ),
-                  const Icon(
-                    Icons.arrow_back_ios_new,
-                    size: 22,
-                    color: Colors.black87,
-                  ),
-                ],
+                ),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
               ),
             ),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
-        ),
-        title: ClipRRect(
-          borderRadius: BorderRadius.circular(10),
-          child: SizedBox(
-            height: 8,
-            child: LinearProgressIndicator(
-              value: 1.0,
-              backgroundColor: Colors.grey.shade300,
-              color: Colors.black,
+            title: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: SizedBox(
+                height: 8,
+                child: LinearProgressIndicator(
+                  value: 1.0,
+                  backgroundColor: Colors.grey.shade300,
+                  color: Colors.black,
+                ),
+              ),
             ),
-          ),
-        ),
             centerTitle: false,
           ),
           backgroundColor: Colors.white,
@@ -409,12 +409,12 @@ class _OrderSummaryScreenState extends State<OrderSummaryScreen> {
                       "${orderProvider.numberOfPeople} People",
                       isBold: true),
 
- const SizedBox(height: 80), // Add some spacing
-            // Dashed divider for subtotal section
-            CustomPaint(
-              size: const Size(double.infinity, 30),
-              painter: DashedLinePainter(),
-            ),
+                const SizedBox(height: 80), // Add some spacing
+                // Dashed divider for subtotal section
+                CustomPaint(
+                  size: const Size(double.infinity, 30),
+                  painter: DashedLinePainter(),
+                ),
                 // Order Totals
                 _buildInfoRow(
                     "Subtotal", formatCurrency(orderProvider.subTotal),
@@ -451,28 +451,30 @@ class _OrderSummaryScreenState extends State<OrderSummaryScreen> {
         ),
         // Payment verification loading overlay
         if (_isVerifyingPayment)
-          Container(
-            color: Colors.black.withOpacity(0.5),
-            child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const CircularProgressIndicator(color: Colors.white),
-                  const SizedBox(height: 20),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
+          Positioned.fill(
+            child: Container(
+              color: Colors.black.withOpacity(0.5),
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const CircularProgressIndicator(color: Colors.white),
+                    const SizedBox(height: 20),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
+                        "Verifying payment...",
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
                     ),
-                    child: const Text(
-                      "Verifying payment...",
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -498,6 +500,7 @@ class _OrderSummaryScreenState extends State<OrderSummaryScreen> {
     ];
     return months[month - 1];
   }
+
   Widget _buildInfoRow(String title, String value,
       {bool isBold = false, bool isRightAligned = false}) {
     return Padding(

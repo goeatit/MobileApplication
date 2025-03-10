@@ -25,7 +25,6 @@ class _LoginScreen extends State<LoginScreeen> {
   bool isLoading = false; // Loading state
   bool isGoogleLoading = false; // Track Google login state
 
-
   @override
   Widget build(BuildContext context) {
     final GoogleLoginService _googleLoginService = GoogleLoginService();
@@ -110,46 +109,85 @@ class _LoginScreen extends State<LoginScreeen> {
               child: Row(
                 children: [
                   Container(
-                    width: 100, // Fixed width for dropdown
+                    width: 95, // Reduced width for dropdown (was 120)
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.grey),
                       borderRadius: BorderRadius.circular(15),
                     ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton2<String>(
-                        value: selectedCountryCode,
-                        items: countryCodes
-                            .map<DropdownMenuItem<String>>((country) {
-                          return DropdownMenuItem<String>(
-                            value: country["code"],
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(country["flag"]!),
-                                const SizedBox(width: 4),
-                                Text(country["code"]!),
-                              ],
+                    child: Material(
+                      color: Colors.transparent,
+                      type: MaterialType.transparency,
+                      child: InkWell(
+                        splashFactory: NoSplash.splashFactory,
+                        highlightColor: Colors.transparent,
+                        onTap: () {},
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton2<String>(
+                            value: selectedCountryCode,
+                            items: countryCodes
+                                .map<DropdownMenuItem<String>>((country) {
+                              return DropdownMenuItem<String>(
+                                value: country["code"],
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(country["flag"]!),
+                                    const SizedBox(width: 2),
+                                    Text(country["code"]!),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: (String? newValue) {
+                              setState(() {
+                                selectedCountryCode = newValue!;
+                              });
+                            },
+                            customButton: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 15),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(
+                                        countryCodes.firstWhere((element) =>
+                                            element["code"] ==
+                                            selectedCountryCode)["flag"]!,
+                                      ),
+                                      const SizedBox(width: 2),
+                                      Text(selectedCountryCode),
+                                    ],
+                                  ),
+                                  const Icon(Icons.keyboard_arrow_down,
+                                      size: 18),
+                                ],
+                              ),
                             ),
-                          );
-                        }).toList(),
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            selectedCountryCode = newValue!;
-                          });
-                        },
-                        buttonStyleData: const ButtonStyleData(
-                          height: 50,
-                          padding: EdgeInsets.symmetric(horizontal: 6),
-                        ),
-                        dropdownStyleData: const DropdownStyleData(
-                          maxHeight: 200,
-                          offset: Offset(0, 10),
-                        ),
-                        iconStyleData: const IconStyleData(
-                          icon: Icon(Icons.keyboard_arrow_down),
-                        ),
-                        menuItemStyleData: const MenuItemStyleData(
-                          padding: EdgeInsets.symmetric(horizontal: 4),
+                            buttonStyleData: const ButtonStyleData(
+                              padding: EdgeInsets.symmetric(horizontal: 2),
+                              overlayColor:
+                                  WidgetStatePropertyAll(Colors.transparent),
+                            ),
+                            dropdownStyleData: const DropdownStyleData(
+                              maxHeight: 200,
+                              width: 90,
+                              offset: Offset(0, 10),
+                            ),
+                            iconStyleData: const IconStyleData(
+                              icon: Icon(Icons.keyboard_arrow_down, size: 16),
+                            ),
+                            menuItemStyleData: const MenuItemStyleData(
+                              height: 40,
+                              padding: EdgeInsets.symmetric(horizontal: 2),
+                              overlayColor:
+                                  WidgetStatePropertyAll(Colors.transparent),
+                            ),
+                          ),
                         ),
                       ),
                     ),
