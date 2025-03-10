@@ -183,32 +183,27 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
                                     ),
                                   ),
                                   ListView.builder(
-                                    shrinkWrap:
-                                        true, // Ensures the ListView takes only the space it needs
+                                    shrinkWrap: true,
                                     physics:
-                                        const NeverScrollableScrollPhysics(), // Prevent scroll conflict with SingleChildScrollView
+                                        const NeverScrollableScrollPhysics(),
                                     itemCount: restaurants.length > 1
                                         ? restaurants.length - 1
                                         : 0,
                                     itemBuilder: (context, index) {
                                       final restaurant = restaurants[index + 1];
+                                      // Calculate image index (1-4) using modulo to cycle through images
+                                      final imageIndex = (index % 9) + 1;
                                       return RestaurantWidget(
                                         imageUrl:
-                                            'assets/images/restaurant.png',
+                                            'assets/images/restaurant$imageIndex.png',
                                         restaurantName:
                                             restaurant.restaurantName,
                                         location: city!,
-                                        cuisineType:
-                                            "Indian • Biryani", // Update this if you have a field for cuisine
-                                        priceRange:
-                                            "₹1200-₹1500 for two", // Update this if you have price range info
+                                        cuisineType: "Indian • Biryani",
+                                        priceRange: "₹1200-₹1500 for two",
                                         rating: restaurant.ratings.toDouble(),
-                                        lat: restaurant.lat,
                                         long: restaurant.long,
-                                        // promotionText:
-                                        //     "Promoted", // Update if you have promo data
-                                        // promoCode:
-                                        //     "Promo Placeholder", // Update this if you have promo codes
+                                        lat: restaurant.lat,
                                       );
                                     },
                                   ),
