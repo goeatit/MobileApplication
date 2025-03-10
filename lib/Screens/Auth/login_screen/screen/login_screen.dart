@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:eatit/Screens/Auth/login_screen/service/facebook_sign_in.dart';
 
 class LoginScreeen extends StatefulWidget {
   static const routeName = "/login-screen";
@@ -28,6 +29,8 @@ class _LoginScreen extends State<LoginScreeen> {
   @override
   Widget build(BuildContext context) {
     final GoogleLoginService _googleLoginService = GoogleLoginService();
+    final FacebookSignInService _facebookSignInService =
+        FacebookSignInService();
     final OtpService _otpService = OtpService();
     final List<Map<String, String>> countryCodes = [
       {
@@ -104,70 +107,82 @@ class _LoginScreen extends State<LoginScreeen> {
             const SizedBox(height: 20),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey),
-                borderRadius: BorderRadius.circular(8),
-              ),
               child: Row(
                 children: [
-                  DropdownButtonHideUnderline(
-                    child: DropdownButton2<String>(
-                      value: selectedCountryCode,
-                      items:
-                          countryCodes.map<DropdownMenuItem<String>>((country) {
-                        return DropdownMenuItem<String>(
-                          value: country["code"],
-                          child: Row(
-                            children: [
-                              Text(country["flag"]!), // Display flag
-                              const SizedBox(width: 8),
-                              Text(country["code"]!), // Display country code
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          selectedCountryCode = newValue!;
-                        });
-                      },
-                      buttonStyleData: const ButtonStyleData(
-                        height: 36, // Reduce button height
-                        width: 100, // Reduce button width
-                        padding: EdgeInsets.zero, // Reduce padding
-                      ),
-                      dropdownStyleData: const DropdownStyleData(
-                        maxHeight:
-                            200, // Prevents dropdown from expanding too much
-                        offset: Offset(0, 10), // Push dropdown below the field
-                      ),
-                      iconStyleData: const IconStyleData(
-                        icon: Icon(Icons.keyboard_arrow_down),
-                      ),
-                      menuItemStyleData: const MenuItemStyleData(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4), // Reduce padding
+                  Container(
+                    width: 100, // Fixed width for dropdown
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton2<String>(
+                        value: selectedCountryCode,
+                        items: countryCodes
+                            .map<DropdownMenuItem<String>>((country) {
+                          return DropdownMenuItem<String>(
+                            value: country["code"],
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(country["flag"]!),
+                                const SizedBox(width: 4),
+                                Text(country["code"]!),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            selectedCountryCode = newValue!;
+                          });
+                        },
+                        buttonStyleData: const ButtonStyleData(
+                          height: 50,
+                          padding: EdgeInsets.symmetric(horizontal: 6),
+                        ),
+                        dropdownStyleData: const DropdownStyleData(
+                          maxHeight: 200,
+                          offset: Offset(0, 10),
+                        ),
+                        iconStyleData: const IconStyleData(
+                          icon: Icon(Icons.keyboard_arrow_down),
+                        ),
+                        menuItemStyleData: const MenuItemStyleData(
+                          padding: EdgeInsets.symmetric(horizontal: 4),
+                        ),
                       ),
                     ),
                   ),
+                  const SizedBox(width: 10), // 10px gap
+
                   Expanded(
-                    child: TextField(
-                      inputFormatters: [
-                        LengthLimitingTextInputFormatter(10),
-                        FilteringTextInputFormatter.digitsOnly
-                      ],
-                      controller: phoneNumberController,
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        hintText: 'Mobile Number',
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(15),
                       ),
-                      keyboardType: TextInputType.phone,
+                      child: TextField(
+                        inputFormatters: [
+                          LengthLimitingTextInputFormatter(10),
+                          FilteringTextInputFormatter.digitsOnly
+                        ],
+                        controller: phoneNumberController,
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          hintText: 'Mobile Number',
+                          contentPadding: EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 15),
+                        ),
+                        keyboardType: TextInputType.phone,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+
+            const SizedBox(height: 70),
             SizedBox(
               width: 250,
               child: ElevatedButton(
@@ -226,7 +241,7 @@ class _LoginScreen extends State<LoginScreeen> {
             // login with another way.
             // another way
             const SizedBox(
-              height: 60,
+              height: 120,
             ),
             const Center(
                 child: Text(
@@ -280,15 +295,15 @@ class _LoginScreen extends State<LoginScreeen> {
             SizedBox(
               width: 250,
               child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, VerifyOtp.routeName);
+                onPressed: () async {
+                  await _facebookSignInService.signInWithFacebook(context);
                 },
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  backgroundColor: primaryColor, // Button color
+                  backgroundColor: primaryColor,
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,

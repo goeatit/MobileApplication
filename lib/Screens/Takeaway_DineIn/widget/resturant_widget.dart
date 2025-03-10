@@ -148,26 +148,40 @@ class _RestaurantWidgetState extends State<RestaurantWidget> {
                     bottom: 10,
                     left: 10,
                     child: Container(
+                      height: 35,
                       decoration: BoxDecoration(
                         gradient: mapLinearGradient,
                         borderRadius:
-                            BorderRadius.circular(8), // Adjust as needed
+                            BorderRadius.circular(20), // Adjust as needed
                       ),
                       child: ElevatedButton.icon(
                         onPressed: () {
+                          if (widget.lat != null && widget.long != null) {
+                            _openMap(widget.lat, widget.long,
+                                name: widget.restaurantName);
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Location not found'),
+                              ),
+                            );
+                          }
                           _openMap(widget.lat, widget.long,
                               name: widget.restaurantName);
                         },
                         label:
                             const Text("Map", style: TextStyle(fontSize: 12)),
-                        icon: const Icon(IconData(0xf8ca,
-                            fontFamily: "CupertinoIcons",
-                            fontPackage: "cupertino_icons")),
+                        icon: const Icon(
+                          IconData(0xf8ca,
+                              fontFamily: "CupertinoIcons",
+                              fontPackage: "cupertino_icons"),
+                          color: Colors.white,
+                        ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.transparent,
                           foregroundColor: Colors.white,
                           shadowColor: Colors.transparent,
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
                         ),
                       ),
                     )),

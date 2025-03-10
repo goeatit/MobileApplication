@@ -16,6 +16,30 @@ class OrderSummaryScreen extends StatefulWidget {
   State<OrderSummaryScreen> createState() => _OrderSummaryScreenState();
 }
 
+class DashedLinePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    double dashWidth = 15;
+    double dashSpace = 10;
+    double startX = 0;
+    final paint = Paint()
+      ..color = const Color(0xFFD4D4D4)
+      ..strokeWidth = 1;
+
+    while (startX < size.width) {
+      canvas.drawLine(
+        Offset(startX, 0),
+        Offset(startX + dashWidth, 0),
+        paint,
+      );
+      startX += dashWidth + dashSpace;
+    }
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
+}
+
 class _OrderSummaryScreenState extends State<OrderSummaryScreen> {
   late Razorpay _razorpay;
   final restaurantService = RestaurantService();
@@ -33,6 +57,7 @@ class _OrderSummaryScreenState extends State<OrderSummaryScreen> {
     _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
     _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
   }
+
 
   void _openRazorpay(String orderId) {
     try {
@@ -282,6 +307,7 @@ class _OrderSummaryScreenState extends State<OrderSummaryScreen> {
 
   @override
   Widget build(BuildContext context) {
+
     // Access the providers
     final orderProvider = Provider.of<OrderProvider>(context);
     final userProvider = Provider.of<UserModelProvider>(context);
@@ -296,21 +322,57 @@ class _OrderSummaryScreenState extends State<OrderSummaryScreen> {
       return '₹${amount.toStringAsFixed(2)}';
     }
 
-    return Stack(
-      children: [
-        Scaffold(
-          appBar: AppBar(
-            backgroundColor: Colors.white,
-            elevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.black),
-              onPressed: () => Navigator.pop(context),
+   return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: Container(
+          margin: const EdgeInsets.only(left: 5),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            shape: BoxShape.circle,
+          ),
+          child: IconButton(
+            constraints: const BoxConstraints(
+              minWidth: 30,
+              minHeight: 30,
             ),
-            title: LinearProgressIndicator(
-              value: 0.8,
+            icon: Container(
+              child: Stack(
+                children: [
+                  Positioned(
+                    left: 2,
+                    top: 2,
+                    child: Icon(
+                      Icons.arrow_back_ios_new,
+                      size: 22,
+                      color: Colors.black.withOpacity(0.3),
+                    ),
+                  ),
+                  const Icon(
+                    Icons.arrow_back_ios_new,
+                    size: 22,
+                    color: Colors.black87,
+                  ),
+                ],
+              ),
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+        ),
+        title: ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: SizedBox(
+            height: 8,
+            child: LinearProgressIndicator(
+              value: 1.0,
               backgroundColor: Colors.grey.shade300,
               color: Colors.black,
             ),
+          ),
+        ),
             centerTitle: false,
           ),
           backgroundColor: Colors.white,
@@ -347,8 +409,12 @@ class _OrderSummaryScreenState extends State<OrderSummaryScreen> {
                       "${orderProvider.numberOfPeople} People",
                       isBold: true),
 
-                const Divider(),
-
+ const SizedBox(height: 80), // Add some spacing
+            // Dashed divider for subtotal section
+            CustomPaint(
+              size: const Size(double.infinity, 30),
+              painter: DashedLinePainter(),
+            ),
                 // Order Totals
                 _buildInfoRow(
                     "Subtotal", formatCurrency(orderProvider.subTotal),
@@ -432,7 +498,6 @@ class _OrderSummaryScreenState extends State<OrderSummaryScreen> {
     ];
     return months[month - 1];
   }
-
   Widget _buildInfoRow(String title, String value,
       {bool isBold = false, bool isRightAligned = false}) {
     return Padding(

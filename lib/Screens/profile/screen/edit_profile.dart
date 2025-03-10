@@ -23,22 +23,53 @@ class _EditProfileScreen extends State<EditProfileScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: const Text(
-          'Profile',
-          style: TextStyle(color: Colors.black),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.close, color: Colors.black),
-            onPressed: () {
-              Navigator.pop(context);
-            },
+          automaticallyImplyLeading: false,
+          backgroundColor: Colors.white,
+          elevation: 0,
+          title: const Text(
+            'Profile',
+            style: TextStyle(color: Colors.black),
           ),
-        ],
-      ),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  constraints: const BoxConstraints(
+                    minWidth: 30,
+                    minHeight: 30,
+                  ),
+                  icon: Container(
+                    child: Stack(
+                      children: [
+                        Positioned(
+                          left: 2,
+                          top: 2,
+                          child: Icon(
+                            Icons.arrow_back_ios_new,
+                            size: 22,
+                            color: Colors.black.withOpacity(0.3),
+                          ),
+                        ),
+                        const Icon(
+                          Icons.arrow_back_ios_new,
+                          size: 22,
+                          color: Colors.black87,
+                        ),
+                      ],
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
+              ),
+            ),
+          ]),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -50,22 +81,26 @@ class _EditProfileScreen extends State<EditProfileScreen> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    const CircleAvatar(
-                      radius: 40,
-                      backgroundColor: Colors.orange,
-                      child: Icon(Icons.person, size: 40, color: Colors.white),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      user?.name ?? "User",
-                      style: const TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
-                  ],
+              child: SizedBox(
+                width: double.infinity,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      const CircleAvatar(
+                        radius: 40,
+                        backgroundColor: Colors.orange,
+                        child:
+                            Icon(Icons.person, size: 40, color: Colors.white),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        user?.name ?? "User",
+                        style: const TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

@@ -36,25 +36,54 @@ class _SelectPeopleScreenState extends State<SelectPeopleScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+        leading: Container(
+          margin: const EdgeInsets.only(left: 5),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            shape: BoxShape.circle,
+          ),
+          child: IconButton(
+            constraints: const BoxConstraints(
+              minWidth: 30,
+              minHeight: 30,
+            ),
+            icon: Container(
+              child: Stack(
+                children: [
+                  Positioned(
+                    left: 2,
+                    top: 2,
+                    child: Icon(
+                      Icons.arrow_back_ios_new,
+                      size: 22,
+                      color: Colors.black.withOpacity(0.3),
+                    ),
+                  ),
+                  const Icon(
+                    Icons.arrow_back_ios_new,
+                    size: 22,
+                    color: Colors.black87,
+                  ),
+                ],
+              ),
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
         ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(height: 8),
-            LinearProgressIndicator(
-              value: 0.3, // Update this value to represent the current progress
+        title: ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: SizedBox(
+            height: 8,
+            child: LinearProgressIndicator(
+              value: 0.5,
               backgroundColor: Colors.grey.shade300,
               color: Colors.black,
-              minHeight: 4,
             ),
-          ],
+          ),
         ),
-        centerTitle: true,
+        centerTitle: false,
       ),
       body: Column(
         children: [
@@ -75,6 +104,23 @@ class _SelectPeopleScreenState extends State<SelectPeopleScreen> {
                     runSpacing: 12,
                     children: List.generate(4, (index) {
                       int people = index + 1;
+
+                      // Function to get appropriate icon based on number of people
+                      IconData getPersonIcon(int count) {
+                        switch (count) {
+                          case 1:
+                            return Icons.person_outline;
+                          case 2:
+                            return Icons.people_outline;
+                          case 3:
+                            return Icons.groups_3_outlined;
+                          case 4:
+                            return Icons.group_add_outlined;
+                          default:
+                            return Icons.person_outline;
+                        }
+                      }
+
                       return GestureDetector(
                         onTap: () {
                           setState(() {
@@ -86,24 +132,37 @@ class _SelectPeopleScreenState extends State<SelectPeopleScreen> {
                         },
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                              vertical: 12, horizontal: 20),
+                              vertical: 10, horizontal: 25),
                           decoration: BoxDecoration(
                             color: selectedPeople == people
-                                ? Colors.green.shade100
+                                ? const Color(0xFF139456).withOpacity(0.3)
                                 : Colors.white,
-                            border: Border.all(color: Colors.black),
+                            border: Border.all(
+                              color: selectedPeople == people
+                                  ? const Color(0xFF139456)
+                                  : Colors.black,
+                            ),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.person, size: 20),
+                              Icon(
+                                getPersonIcon(people),
+                                size: 24,
+                                color: selectedPeople == people
+                                    ? const Color(0xFF139456)
+                                    : Colors.black,
+                              ),
                               const SizedBox(width: 6),
                               Text(
                                 "$people ${people > 1 ? 'People' : 'Person'}",
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
+                                  color: selectedPeople == people
+                                      ? const Color(0xFF139456)
+                                      : Colors.black,
                                 ),
                               ),
                             ],
@@ -117,7 +176,7 @@ class _SelectPeopleScreenState extends State<SelectPeopleScreen> {
                   Text(
                     "More than five people?",
                     style: TextStyle(
-                      color: Colors.grey.shade600,
+                      color: Colors.grey.shade500,
                       fontSize: 16,
                     ),
                   ),
@@ -150,12 +209,14 @@ class _SelectPeopleScreenState extends State<SelectPeopleScreen> {
                         hintText: "Enter no. of People",
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(20),
-                          borderSide: const BorderSide(color: Colors.grey),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFE8E8EA),
+                          ),
                         ),
                         filled: true,
                         fillColor: Colors.white,
                         contentPadding: const EdgeInsets.symmetric(
-                          vertical: 15,
+                          vertical: 5,
                           horizontal: 20,
                         ),
                         errorText: errorMessage),

@@ -193,11 +193,29 @@ class _SearchScreenState extends State<SearchScreen> {
                       Row(
                         children: [
                           const SizedBox(width: 16),
-                          IconButton(
-                            icon: const Icon(Icons.close, color: Colors.black),
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 8.0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade200,
+                                shape: BoxShape.circle,
+                              ),
+                              child: IconButton(
+                                constraints: const BoxConstraints(
+                                  minWidth: 30,
+                                  minHeight: 30,
+                                ),
+                                icon: const Icon(
+                                  Icons.close,
+                                  size: 22,
+                                  color: Colors.black87,
+                                ),
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                              ),
+                            ),
                           ),
                         ],
                         // ),
@@ -212,16 +230,53 @@ class _SearchScreenState extends State<SearchScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextField(
-                decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.search, color: primaryColor),
-                  hintText: "Search food or restaurant...",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide.none,
-                  ),
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  color: Colors.white,
+                  boxShadow: const [
+                    BoxShadow(
+                      color:
+                          Color(0x0D000000), // This is equivalent to #0000000D
+                      blurRadius: 20,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
                 ),
-                onChanged: onSearchChanged,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        decoration: InputDecoration(
+                          prefixIcon:
+                              const Icon(Icons.search, color: primaryColor),
+                          hintText: "Search food or restaurant...",
+                          hintStyle: const TextStyle(color: Colors.grey),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                        ),
+                        onChanged: onSearchChanged,
+                      ),
+                    ),
+                    Container(
+                      margin: const EdgeInsets.only(right: 8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF4F4F4F),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.tune, color: white),
+                        onPressed: () {
+                          // Add your filter functionality here
+                        },
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 16),
               if (isLoading) const Center(child: CircularProgressIndicator()),
@@ -316,13 +371,11 @@ class _SearchScreenState extends State<SearchScreen> {
                                         ],
                                       ),
                                       const SizedBox(height: 4),
-                                      Text("",
-                                          style: const TextStyle(
-                                              color: Colors.grey)),
+                                      const Text("",
+                                          style: TextStyle(color: Colors.grey)),
                                       const SizedBox(height: 4),
-                                      Text("200",
-                                          style: const TextStyle(
-                                              color: Colors.grey)),
+                                      const Text("200",
+                                          style: TextStyle(color: Colors.grey)),
                                     ],
                                   ),
                                 ),
@@ -418,13 +471,11 @@ class _SearchScreenState extends State<SearchScreen> {
                                       ],
                                     ),
                                     const SizedBox(height: 4),
-                                    Text("",
-                                        style: const TextStyle(
-                                            color: Colors.grey)),
+                                    const Text("",
+                                        style: TextStyle(color: Colors.grey)),
                                     const SizedBox(height: 4),
-                                    Text("200",
-                                        style: const TextStyle(
-                                            color: Colors.grey)),
+                                    const Text("200",
+                                        style: TextStyle(color: Colors.grey)),
                                   ],
                                 ),
                               ),

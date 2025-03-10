@@ -9,7 +9,9 @@ import 'package:eatit/provider/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pinput/pinput.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
+
 
 class VerifyOtp extends StatefulWidget {
   static const routeName = "/otp-screen";
@@ -33,7 +35,9 @@ class _VerifyOtpState extends State<VerifyOtp> {
   String message = "";
   bool messageColor = false;
   bool _isLoading = false;
+  bool? isVerificationSuccess;
   UserResponse? user;
+
 
   @override
   void initState() {
@@ -76,6 +80,15 @@ class _VerifyOtpState extends State<VerifyOtp> {
     });
     var isVerified = await _otpService.verifyOtp(
         widget.countryCode, widget.phoneNumber, _otpController.text, context);
+
+    setState(() {
+      isVerificationSuccess = isVerified; // Set the verification status
+      messageColor = isVerified;
+      message = isVerified ? "Validation Success" : "Validation Failed";
+      _isLoading = false;
+    });
+
+    
     user = Provider.of<UserModelProvider>(context, listen: false).userModel;
     if (isVerified) {
       if(user?.useremail==null||user?.name==null){
@@ -85,10 +98,9 @@ class _VerifyOtpState extends State<VerifyOtp> {
       }
     } else {
       setState(() {
-        messageColor = false;
-        message = "Invalid OTP. Please try again.";
         _isLoading = false;
       });
+
     }
   }
 
@@ -145,7 +157,16 @@ class _VerifyOtpState extends State<VerifyOtp> {
                         ),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey),
+                          border: Border.all(
+                            // Change border color based on verification status
+                            color: isVerificationSuccess == null
+                                ? Colors.grey
+                                : isVerificationSuccess!
+                                    ? Colors.green
+                                    : Colors.red,
+                            width:
+                                1, // Make border slightly thicker for better visibility
+                          ),
                         ),
                       ),
                       focusedPinTheme: PinTheme(
@@ -153,7 +174,15 @@ class _VerifyOtpState extends State<VerifyOtp> {
                         height: 64,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: primaryColor),
+                          border: Border.all(
+                            // Change focused border color based on verification status
+                            color: isVerificationSuccess == null
+                                ? primaryColor
+                                : isVerificationSuccess!
+                                    ? Colors.green
+                                    : Colors.red,
+                            width: 2,
+                          ),
                         ),
                         textStyle: const TextStyle(
                           fontSize: 20,
@@ -166,56 +195,92 @@ class _VerifyOtpState extends State<VerifyOtp> {
                         height: 64,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.red),
+                          border: Border.all(
+                            color: Colors.red,
+                            width: 2,
+                          ),
                         ),
                       ),
                     ),
                   ),
                   const SizedBox(height: 10),
                   Padding(
-                    padding: const EdgeInsets.only(left: 40),
-                    child: Text(
-                      message,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: messageColor ? Colors.green : Colors.red,
-                      ),
+                    padding: const EdgeInsets.only(left: 60),
+                    child: Row(
+                      children: [
+                        if (message.isNotEmpty)
+                          Icon(
+                            messageColor
+                                ? CupertinoIcons.checkmark_shield
+                                : CupertinoIcons.xmark_shield,
+                            color: messageColor ? Colors.green : Colors.red,
+                            size: 16,
+                          ),
+                        const SizedBox(width: 4),
+                        Text(
+                          message,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: messageColor ? Colors.green : Colors.red,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 60),
+                  const SizedBox(height: 70),
                   Center(
                     child: SizedBox(
-                      height: 50,
-                      width: 150,
+                      height: 53,
+                      width: 210,
                       child: ElevatedButton(
                         onPressed: _isButtonEnabled ? _verifyOtp : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor:
                               _isButtonEnabled ? primaryColor : Colors.grey,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(20),
                           ),
                         ),
                         child: const Text("Continue"),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 30),
                   Center(
-                    child: InkWell(
-                      onTap: () {
-                        if (_secondsRemaining == 0) {
-                          Navigator.pop(context);
-                        }
-                      },
-                      child: Text(
-                        _secondsRemaining > 0
-                            ? "We can send it again in $_secondsRemaining seconds"
-                            : "Resend Code",
-                        style: const TextStyle(color: Colors.black),
-                      ),
+                    child: Column(
+                      children: [
+                        if (_secondsRemaining > 0)
+                          Text(
+                            "We can send it again in $_secondsRemaining seconds",
+                            style: const TextStyle(color: Colors.black),
+                          )
+                        else
+                          Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: const Color(
+                                    0xFFE5E5E5), // Neutrals200 color
+                                width: 1,
+                              ),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.pop(context);
+                              },
+                              child: const Padding(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 75, vertical: 15),
+                                child: Text(
+                                  "Resent OTP",
+                                  style: TextStyle(color: Colors.black),
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
-                  ),
+                  )
                 ],
               ),
             ),
