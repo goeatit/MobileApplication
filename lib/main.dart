@@ -17,6 +17,7 @@ import 'package:eatit/Screens/profile/screen/profile_screen.dart';
 import 'package:eatit/Screens/search/screen/search_screen.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/provider/cart_dish_provider.dart';
+import 'package:eatit/provider/order_provider.dart';
 import 'package:eatit/provider/order_type_provider.dart';
 import 'package:eatit/provider/user_provider.dart';
 import 'package:eatit/routes/main_router.dart';
@@ -35,7 +36,8 @@ void main() async {
     providers: [
       ChangeNotifierProvider(create: (context) => CartProvider()),
       ChangeNotifierProvider(create: (context) => OrderTypeProvider()),
-      ChangeNotifierProvider(create: (context) => UserModelProvider())
+      ChangeNotifierProvider(create: (context) => UserModelProvider()),
+      ChangeNotifierProvider(create: (context) => OrderProvider()),
     ],
     child: const MyApp(),
   ));

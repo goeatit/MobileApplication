@@ -1,10 +1,13 @@
 import 'package:eatit/Screens/order_summary/screen/reserve_time.dart';
 import 'package:eatit/common/constants/colors.dart';
+import 'package:eatit/provider/order_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 
 class SelectPeopleScreen extends StatefulWidget {
   static const routeName = '/select-no-of-people';
+
   const SelectPeopleScreen({super.key});
 
   @override
@@ -26,6 +29,9 @@ class _SelectPeopleScreenState extends State<SelectPeopleScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Access the OrderProvider
+    final orderProvider = Provider.of<OrderProvider>(context);
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -232,8 +238,14 @@ class _SelectPeopleScreenState extends State<SelectPeopleScreen> {
                             final people = _peopleController.text.isNotEmpty
                                 ? _peopleController.text
                                 : selectedPeople.toString();
-                            Navigator.pushNamed(context, ReserveTime.routeName);
-                            // print("Reserved for $people people");
+
+                            // Update the order provider with number of people
+                            orderProvider.setNumberOfPeople(people);
+
+                            Navigator.pushNamed(
+                              context,
+                              ReserveTime.routeName,
+                            );
                           }
                         : null,
                     child: const Text(
