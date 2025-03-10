@@ -437,7 +437,6 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
           ),
         ),
       ),
-
       body: isCheckingConditions
           ? Center(
               child: Column(
@@ -465,59 +464,59 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                           backgroundImage:
                               AssetImage('assets/images/restaurant.png'),
                         ),
-                       const SizedBox(height: 10),
-                    Text(
-                      widget.name,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        // Add textAlign property to center the text
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 5),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 5, vertical: 5),
-                      child: Container(
-                          height: 35,
-                          width: 100,
-                          decoration: BoxDecoration(
-                            color: neutrals100,
-                            borderRadius: BorderRadius.circular(24),
+                        const SizedBox(height: 10),
+                        Text(
+                          widget.name,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            // Add textAlign property to center the text
                           ),
-                          child: Center(
-                            child: Text(
-                              widget.orderType,
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black
-                                  // selectedIndex == 0 ? Colors.black : Colors.grey,
-                                  ),
-                            ),
-                          )),
-                    ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      "Bill Summary",
-                      style:
-                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 5),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 5, vertical: 5),
+                          child: Container(
+                              height: 35,
+                              width: 100,
+                              decoration: BoxDecoration(
+                                color: neutrals100,
+                                borderRadius: BorderRadius.circular(24),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  widget.orderType,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black
+                                      // selectedIndex == 0 ? Colors.black : Colors.grey,
+                                      ),
+                                ),
+                              )),
+                        ),
+                        const SizedBox(height: 20),
+                        const Text(
+                          "Bill Summary",
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold),
+                        ),
                         const SizedBox(height: 10),
                         Container(
                           padding: const EdgeInsets.all(16.0),
                           decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.all(
-                            Radius.circular(12)), // Added border radius
-                        boxShadow: [
-                          BoxShadow(
-                            color: Color(0x0D000000),
-                            offset: Offset(0, 2.15),
-                            blurRadius: 21.46,
+                            color: Colors.white,
+                            borderRadius: BorderRadius.all(
+                                Radius.circular(12)), // Added border radius
+                            boxShadow: [
+                              BoxShadow(
+                                color: Color(0x0D000000),
+                                offset: Offset(0, 2.15),
+                                blurRadius: 21.46,
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -531,15 +530,15 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                                     children: [
                                       Expanded(
                                         flex: 2,
-                                        child: Text(item.dish.dishId.dishName,
-                                                   overflow: TextOverflow.ellipsis,
-                                      maxLines: 1,
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                          color: Colors.grey),
-                                    ),
-                                                   
+                                        child: Text(
+                                          item.dish.dishId.dishName,
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 1,
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                              color: Colors.grey),
+                                        ),
                                       ),
                                       Expanded(
                                         flex: 1,
@@ -547,9 +546,9 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                                           item.quantity.toString(),
                                           textAlign: TextAlign.center,
                                           style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                          color: Colors.grey),
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                              color: Colors.grey),
                                         ),
                                       ),
                                       Expanded(
@@ -558,15 +557,15 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                                           "₹${item.dish.resturantDishPrice * item.quantity}",
                                           textAlign: TextAlign.right,
                                           style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                          color: Colors.grey),
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                              color: Colors.grey),
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
-                          const SizedBox(height: 20),
+                              const SizedBox(height: 20),
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
@@ -602,6 +601,9 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                             ],
                           ),
                         ),
+                        const SizedBox(height: 30),
+                        const Text("Tip Something",
+                            style: TextStyle(fontSize: 20)),
                         const SizedBox(height: 20),
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
@@ -626,19 +628,7 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                             "Continue",
                             style: TextStyle(fontSize: 16, color: Colors.white),
                           ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 30),
-                    const Text("Tip Something", style: TextStyle(fontSize: 20)),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-
-                        ),
+                        )
                       ],
                     ),
                   ),

@@ -175,18 +175,7 @@ class _ReserveTimeState extends State<ReserveTime> {
                                 });
                               },
                         child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 10, horizontal: 26),
-                            decoration: BoxDecoration(
-                              color: selectedTime == time
-                                  ? Colors.green.shade100
-                                  : Colors.white,
-                              border: Border.all(
-                                color: selectedTime == time
-                                    ? const Color(0xFF139456)
-                                    : Colors.black,
-                              ),
-                              borderRadius: BorderRadius.circular(20),
+
                           padding: const EdgeInsets.symmetric(
                               vertical: 12, horizontal: 20),
                           decoration: BoxDecoration(
@@ -204,13 +193,7 @@ class _ReserveTimeState extends State<ReserveTime> {
                                     ),
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: Text(
-                            time,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: isClosedSlot ? Colors.grey : Colors.black,
-                            ),
+
                             child: Text(
                               time,
                               style: TextStyle(
