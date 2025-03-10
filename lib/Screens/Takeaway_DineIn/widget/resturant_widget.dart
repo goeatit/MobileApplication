@@ -10,6 +10,7 @@ class RestaurantWidget extends StatefulWidget {
   final String restaurantName;
   final String cuisineType;
   final String priceRange;
+  final String id;
   final double rating;
   final String location;
   final String? promotionText; // Make promotionText nullable
@@ -28,6 +29,7 @@ class RestaurantWidget extends StatefulWidget {
     this.promoCode, // Nullable
     this.lat,
     this.long,
+    required this.id,
   });
 
   @override
@@ -38,8 +40,8 @@ class _RestaurantWidgetState extends State<RestaurantWidget> {
   void _openMap(dynamic latitude, dynamic longitude, {String? name}) async {
     Uri googleMapsUrl;
     if (latitude == null || longitude == null) {
-      googleMapsUrl =
-          Uri.parse("https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(name!)}");
+      googleMapsUrl = Uri.parse(
+          "https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(name!)}");
     } else if (name != null && name.isNotEmpty) {
       // Try searching by name near the location
       final String encodedQuery =
@@ -67,6 +69,7 @@ class _RestaurantWidgetState extends State<RestaurantWidget> {
             arguments: {
               'name': widget.restaurantName,
               'location': widget.location,
+              'id': widget.id
             });
       },
       child: Card(

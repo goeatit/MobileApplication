@@ -16,14 +16,15 @@ class CartPage extends StatelessWidget {
     // Flatten the cart items into a list of all items from Take-away and Dine-in order types
     List<CartItemWithDetails> allCartItems = [];
 
-    items.forEach((restaurantName, orderTypes) {
+    items.forEach((id, orderTypes) {
       orderTypes.forEach((orderType, cartItems) {
         if (cartItems.isNotEmpty) {
           // Group all items for a single order type (Take-away or Dine-in) into one CartItemWithDetails
           allCartItems.add(CartItemWithDetails(
             cartItem: cartItems
                 .first, // Just a placeholder for CartItem, you can use any item from the list
-            restaurantName: restaurantName,
+            restaurantName: cartItems.first.restaurantName,
+            id: id,
             orderType: orderType,
             allItems: cartItems, // Pass all items of the same order type
           ));
@@ -44,7 +45,8 @@ class CartPage extends StatelessWidget {
                       Navigator.pushNamed(context, BillSummaryScreen.routeName,
                           arguments: {
                             'name': cartItemWithDetails.restaurantName,
-                            'orderType': cartItemWithDetails.orderType
+                            'orderType': cartItemWithDetails.orderType,
+                            'id': cartItemWithDetails.id
                           });
                     },
                     splashColor: Colors.transparent,
@@ -74,12 +76,13 @@ class CartItemWithDetails {
   final CartItem cartItem;
   final String restaurantName;
   final String orderType;
+  final String id;
   final List<CartItem> allItems; // All items for the same order type
 
-  CartItemWithDetails({
-    required this.cartItem,
-    required this.restaurantName,
-    required this.orderType,
-    required this.allItems,
-  });
+  CartItemWithDetails(
+      {required this.cartItem,
+      required this.restaurantName,
+      required this.orderType,
+      required this.allItems,
+      required this.id});
 }

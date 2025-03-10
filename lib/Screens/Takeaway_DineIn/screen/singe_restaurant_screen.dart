@@ -18,11 +18,13 @@ class SingleRestaurantScreen extends StatefulWidget {
   static const routeName = "/single-restaurant-screen";
   final String name;
   final String location;
+  final String id;
 
   const SingleRestaurantScreen({
     super.key,
     required this.name,
     required this.location,
+    required this.id,
   });
 
   @override
@@ -412,7 +414,7 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                                               .watch<
                                                                   CartProvider>()
                                                               .getQuantity(
-                                                                  widget.name,
+                                                                  widget.id,
                                                                   orderType,
                                                                   dish.id)),
                                                           // Default to 0 if cartItem.quantity is null
@@ -434,7 +436,7 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                                                 quantity: 1);
                                                             cartProvider
                                                                 .addToCart(
-                                                                    widget.name,
+                                                                    widget.id,
                                                                     orderType,
                                                                     cartITem);
                                                           },
@@ -443,7 +445,7 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                                                 .read<
                                                                     CartProvider>()
                                                                 .incrementQuantity(
-                                                                    widget.name,
+                                                                    widget.id,
                                                                     orderType,
                                                                     dish.id);
                                                           },
@@ -452,7 +454,7 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                                                 .read<
                                                                     CartProvider>()
                                                                 .decrementQuantity(
-                                                                    widget.name,
+                                                                    widget.id,
                                                                     orderType,
                                                                     dish.id);
                                                           },
@@ -480,7 +482,7 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                       String orderType = stored == 0 ? "Dine-in" : "Take-away";
                       int totalCount = ctx
                           .watch<CartProvider>()
-                          .getTotalUniqueItems(widget.name, orderType);
+                          .getTotalUniqueItems(widget.id, orderType);
 
                       return totalCount > 0
                           ? Padding(
@@ -542,10 +544,10 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                       return FoodItemBottomSheet(
                                         name: selectedDish!.dishId.dishName,
                                         imageUrl: '',
-                                        calories: '120',
+                                        calories: '120 Cal',
                                         quantity: ctx
                                             .watch<CartProvider>()
-                                            .getQuantity(widget.name, orderType,
+                                            .getQuantity(widget.id, orderType,
                                                 selectedDish!.id),
                                         onAddToCart: () {
                                           final cartProvider =
@@ -559,18 +561,18 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                               dish: selectedDish!,
                                               quantity: 1);
                                           cartProvider.addToCart(
-                                              widget.name, orderType, cartITem);
+                                              widget.id, orderType, cartITem);
                                         },
                                         onIncrement: () {
                                           ctx
                                               .read<CartProvider>()
-                                              .incrementQuantity(widget.name,
+                                              .incrementQuantity(widget.id,
                                                   orderType, selectedDish!.id);
                                         },
                                         onDecrement: () {
                                           ctx
                                               .read<CartProvider>()
-                                              .decrementQuantity(widget.name,
+                                              .decrementQuantity(widget.id,
                                                   orderType, selectedDish!.id);
                                         },
                                         categories:

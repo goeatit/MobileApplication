@@ -6,11 +6,12 @@ import 'package:eatit/models/cart_items.dart';
 class CartProvider extends ChangeNotifier {
   final Map<String, Map<String, List<CartItem>>> _restaurantCarts = {};
 
-  Map<String, Map<String, List<CartItem>>> get restaurantCarts => _restaurantCarts;
+  Map<String, Map<String, List<CartItem>>> get restaurantCarts =>
+      _restaurantCarts;
 
   double get totalPrice {
     double total = 0.0;
-    _restaurantCarts.forEach((restaurantName, orderTypes) {
+    _restaurantCarts.forEach((id, orderTypes) {
       orderTypes.forEach((orderType, cartItems) {
         for (var item in cartItems) {
           total += item.dish.resturantDishPrice * item.quantity;
@@ -28,7 +29,8 @@ class CartProvider extends ChangeNotifier {
       return MapEntry(
         restaurant,
         orderTypes.map((orderType, items) {
-          return MapEntry(orderType, items.map((item) => item.toMap()).toList());
+          return MapEntry(
+              orderType, items.map((item) => item.toMap()).toList());
         }),
       );
     }));
@@ -49,7 +51,7 @@ class CartProvider extends ChangeNotifier {
       _restaurantCarts.clear();
       decodedCart.forEach((restaurant, orderTypes) {
         _restaurantCarts[restaurant] = (orderTypes as Map<String, dynamic>).map(
-              (orderType, items) {
+          (orderType, items) {
             return MapEntry(
               orderType,
               (items as List<dynamic>)
@@ -63,35 +65,31 @@ class CartProvider extends ChangeNotifier {
     }
   }
 
-  void addToCart(String restaurantName, String orderType, CartItem item) {
-    if (!_restaurantCarts.containsKey(restaurantName)) {
-      print("no resturant name");
-      _restaurantCarts[restaurantName] = {};
+  void addToCart(String id, String orderType, CartItem item) {
+    if (!_restaurantCarts.containsKey(id)) {
+      _restaurantCarts[id] = {};
     }
 
-    if (!_restaurantCarts[restaurantName]!.containsKey(orderType)) {
-      print("order type");
-      _restaurantCarts[restaurantName]![orderType] = [];
+    if (!_restaurantCarts[id]!.containsKey(orderType)) {
+      _restaurantCarts[id]![orderType] = [];
     }
 
-    final existingIndex = _restaurantCarts[restaurantName]![orderType]!
+    final existingIndex = _restaurantCarts[id]![orderType]!
         .indexWhere((cartItem) => cartItem.id == item.id);
 
     if (existingIndex >= 0) {
-      print("order Present");
-      _restaurantCarts[restaurantName]![orderType]![existingIndex].quantity +=
+      _restaurantCarts[id]![orderType]![existingIndex].quantity +=
           item.quantity;
     } else {
-      print("item not present");
-      _restaurantCarts[restaurantName]![orderType]!.add(item);
+      _restaurantCarts[id]![orderType]!.add(item);
     }
 
     saveCartToStorage(); // Save changes to storage
     notifyListeners();
   }
 
-  void incrementQuantity(String restaurantName, String orderType, String cartItemId) {
-    final cartItems = _restaurantCarts[restaurantName]?[orderType];
+  void incrementQuantity(String id, String orderType, String cartItemId) {
+    final cartItems = _restaurantCarts[id]?[orderType];
     if (cartItems != null) {
       final index = cartItems.indexWhere((item) => item.id == cartItemId);
       if (index >= 0) {
@@ -102,8 +100,8 @@ class CartProvider extends ChangeNotifier {
     }
   }
 
-  void decrementQuantity(String restaurantName, String orderType, String cartItemId) {
-    final cartItems = _restaurantCarts[restaurantName]?[orderType];
+  void decrementQuantity(String id, String orderType, String cartItemId) {
+    final cartItems = _restaurantCarts[id]?[orderType];
     if (cartItems != null) {
       final index = cartItems.indexWhere((item) => item.id == cartItemId);
       if (index >= 0) {
@@ -113,11 +111,11 @@ class CartProvider extends ChangeNotifier {
           cartItems.removeAt(index);
         }
         if (cartItems.isEmpty) {
-          _restaurantCarts[restaurantName]?.remove(orderType);
+          _restaurantCarts[id]?.remove(orderType);
 
           // If the restaurant has no order types left, remove the restaurant
-          if (_restaurantCarts[restaurantName]?.isEmpty ?? false) {
-            _restaurantCarts.remove(restaurantName);
+          if (_restaurantCarts[id]?.isEmpty ?? false) {
+            _restaurantCarts.remove(id);
           }
         }
 
@@ -127,8 +125,8 @@ class CartProvider extends ChangeNotifier {
     }
   }
 
-  void removeFromCart(String restaurantName, String orderType, String cartItemId) {
-    final cartItems = _restaurantCarts[restaurantName]?[orderType];
+  void removeFromCart(String id, String orderType, String cartItemId) {
+    final cartItems = _restaurantCarts[id]?[orderType];
     if (cartItems != null) {
       cartItems.removeWhere((item) => item.id == cartItemId);
       saveCartToStorage(); // Save changes to storage
@@ -136,17 +134,17 @@ class CartProvider extends ChangeNotifier {
     }
   }
 
-  void clearCart(String restaurantName, String orderType) {
-    _restaurantCarts[restaurantName]?.remove(orderType);
-    if (_restaurantCarts[restaurantName]?.isEmpty ?? false) {
-      _restaurantCarts.remove(restaurantName);
+  void clearCart(String id, String orderType) {
+    _restaurantCarts[id]?.remove(orderType);
+    if (_restaurantCarts[id]?.isEmpty ?? false) {
+      _restaurantCarts.remove(id);
     }
     saveCartToStorage(); // Save changes to storage
     notifyListeners();
   }
 
-  int getQuantity(String restaurantName, String orderType, String cartItemId) {
-    final cartItems = _restaurantCarts[restaurantName]?[orderType];
+  int getQuantity(String id, String orderType, String cartItemId) {
+    final cartItems = _restaurantCarts[id]?[orderType];
     if (cartItems != null) {
       final index = cartItems.indexWhere((item) => item.id == cartItemId);
       if (index >= 0) {
@@ -155,19 +153,58 @@ class CartProvider extends ChangeNotifier {
     }
     return 0; // Return 0 if the item is not found
   }
-  List<CartItem> getItemsByOrderTypeAndRestaurant(String restaurantName, String orderType) {
-    if (_restaurantCarts.containsKey(restaurantName) &&
-        _restaurantCarts[restaurantName]!.containsKey(orderType)) {
-      return _restaurantCarts[restaurantName]![orderType]!;
+
+  List<CartItem> getItemsByOrderTypeAndRestaurant(String id, String orderType) {
+    if (_restaurantCarts.containsKey(id) &&
+        _restaurantCarts[id]!.containsKey(orderType)) {
+      return _restaurantCarts[id]![orderType]!;
     }
     return []; // Return an empty list if no items found for the specified restaurant and orderType
   }
-  int getTotalUniqueItems(String restaurantName, String orderType) {
-    if (_restaurantCarts.containsKey(restaurantName) &&
-        _restaurantCarts[restaurantName]!.containsKey(orderType)) {
-      return _restaurantCarts[restaurantName]![orderType]!.length;
+
+  int getTotalUniqueItems(String id, String orderType) {
+    if (_restaurantCarts.containsKey(id) &&
+        _restaurantCarts[id]!.containsKey(orderType)) {
+      return _restaurantCarts[id]![orderType]!.length;
     }
     return 0; // Return 0 if no items found for the given restaurant and order type
   }
 
+  void updateItemPrice(String restaurantId, String dishId, int newPrice) {
+    _restaurantCarts.forEach((id, orderTypes) {
+      if (id == restaurantId) {
+        orderTypes.forEach((orderType, cartItems) {
+          for (var item in cartItems) {
+            if (item.dish.id == dishId) {
+              item.dish.resturantDishPrice = newPrice;
+            }
+          }
+        });
+      }
+    });
+    saveCartToStorage();
+    notifyListeners();
+  }
+
+  void removeItem(String restaurantId, String dishId) {
+    _restaurantCarts.forEach((id, orderTypes) {
+      if (id == restaurantId) {
+        orderTypes.forEach((orderType, cartItems) {
+          cartItems.removeWhere((item) => item.dish.id == dishId);
+
+          // Clean up empty lists
+          if (cartItems.isEmpty) {
+            _restaurantCarts[id]?.remove(orderType);
+
+            // If the restaurant has no order types left, remove the restaurant
+            if (_restaurantCarts[id]?.isEmpty ?? false) {
+              _restaurantCarts.remove(id);
+            }
+          }
+        });
+      }
+    });
+    saveCartToStorage();
+    notifyListeners();
+  }
 }

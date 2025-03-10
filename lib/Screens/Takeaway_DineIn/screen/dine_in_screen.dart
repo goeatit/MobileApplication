@@ -143,6 +143,7 @@ class _DineInScreen extends State<DineInScreen> {
                               location: city!,
                               lat: restaurants[0].lat,
                               long: restaurants[0].long,
+                              id: restaurants[0].id,
                             ),
                             Container(
                               padding:
@@ -198,6 +199,7 @@ class _DineInScreen extends State<DineInScreen> {
                                   rating: restaurant.ratings.toDouble(),
                                   long: restaurant.long,
                                   lat: restaurant.lat,
+                                  id: restaurant.id,
                                   // promotionText:
                                   //     "Promoted", // Update if you have promo data
                                   // promoCode:

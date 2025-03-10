@@ -1,9 +1,13 @@
 import 'package:eatit/Screens/order_summary/screen/order_summary.dart';
+import 'package:eatit/Screens/order_summary/service/time_slot_generater.dart';
 import 'package:eatit/common/constants/colors.dart';
+import 'package:eatit/provider/order_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class ReserveTime extends StatefulWidget {
   static const routeName = '/reserve-time';
+
   const ReserveTime({super.key});
 
   @override
@@ -11,19 +15,82 @@ class ReserveTime extends StatefulWidget {
 }
 
 class _ReserveTimeState extends State<ReserveTime> {
-  List<String> timeSlots = [
-    "11:30AM",
-    "12:00PM",
-    "12:30PM",
-    "01:00PM",
-    "01:30PM",
-    "02:00PM",
-
-  ];
+  List<String> timeSlots = [];
   String? selectedTime; // To track the selected time slot
+  final TimeSlotGenerator timeSlotGenerator = TimeSlotGenerator();
+  bool allSlotsClosed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Generate time slots based on restaurant time and waiting time
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      generateTimeSlots();
+    });
+  }
+
+  void generateTimeSlots() {
+    // Get data from OrderProvider
+    final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+    final restaurantTime = orderProvider.restaurantTime;
+    final restaurantWaitingTime = orderProvider.restaurantWaitingTime;
+    var slots = timeSlotGenerator.generateTimeSlots(
+        restaurantWaitingTime, restaurantTime);
+
+    // Check if all slots are closed
+    bool allClosed = slots.every((slot) => slot == "Closed");
+
+    setState(() {
+      timeSlots = slots;
+      allSlotsClosed = allClosed;
+    });
+
+    // Show popup if all slots are closed
+    if (allClosed) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showRestaurantClosedDialog();
+      });
+    }
+  }
+
+  void _showRestaurantClosedDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return PopScope(
+            canPop: false,
+            child: AlertDialog(
+              title: const Text('Restaurant Closed'),
+              content: const Text(
+                'Sorry, this restaurant is currently closed. Please try again later or choose another restaurant.',
+                style: TextStyle(fontSize: 16),
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop(); // Go back to previous screen
+                  },
+                  child: const Text(
+                    'OK',
+                    style: TextStyle(color: primaryColor, fontSize: 16),
+                  ),
+                ),
+              ],
+            ));
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Access the OrderProvider
+    final orderProvider = Provider.of<OrderProvider>(context);
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -68,27 +135,35 @@ class _ReserveTimeState extends State<ReserveTime> {
                     spacing: 12,
                     runSpacing: 12,
                     children: timeSlots.map((time) {
+                      bool isClosedSlot = time == "Closed";
                       return GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            selectedTime = time;
-                          });
-                        },
+                        onTap: isClosedSlot
+                            ? null
+                            : () {
+                                setState(() {
+                                  selectedTime = time;
+                                });
+                              },
                         child: Container(
                           padding: const EdgeInsets.symmetric(
                               vertical: 12, horizontal: 20),
                           decoration: BoxDecoration(
                             color: selectedTime == time
                                 ? Colors.green.shade100
-                                : Colors.white,
-                            border: Border.all(color: Colors.black),
+                                : isClosedSlot
+                                    ? Colors.grey.shade200
+                                    : Colors.white,
+                            border: Border.all(
+                                color:
+                                    isClosedSlot ? Colors.grey : Colors.black),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
                             time,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
+                              color: isClosedSlot ? Colors.grey : Colors.black,
                             ),
                           ),
                         ),
@@ -110,8 +185,11 @@ class _ReserveTimeState extends State<ReserveTime> {
                     ),
                     onPressed: selectedTime != null
                         ? () {
-                            print("Reserved time: $selectedTime");
-                            Navigator.pushNamed(context, OrderSummaryScreen.routeName);
+                            // Update the order provider with selected time
+                            orderProvider.setSelectedTime(selectedTime!);
+
+                            Navigator.pushNamed(
+                                context, OrderSummaryScreen.routeName);
                           }
                         : null,
                     child: const Text(
