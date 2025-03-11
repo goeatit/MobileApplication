@@ -117,8 +117,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
               const Text(
                 'Always know the status of your order',
                 style: TextStyle(
-                  fontFamily: 'Nunito Sans',
-                  fontSize: 24,
+                  fontSize: 28,
                   fontWeight: FontWeight.w700,
                   height: 1.2,
                   color: Color(0xFF1D1929),
@@ -128,7 +127,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
               const Text(
                 'Push notifications are used to provide updates on your order. You can change this.',
                 style: TextStyle(
-                  fontFamily: 'Nunito Sans',
                   fontSize: 16,
                   fontWeight: FontWeight.w400,
                   height: 1.4,
@@ -144,7 +142,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryColor,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25),
+                      borderRadius: BorderRadius.circular(20),
                     ),
                   ),
                   child: const Text(
@@ -166,7 +164,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Color(0xFFE5E5E5)),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25),
+                      borderRadius: BorderRadius.circular(20),
                     ),
                   ),
                   child: const Text(

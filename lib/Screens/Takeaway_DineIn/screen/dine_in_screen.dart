@@ -61,7 +61,8 @@ class _DineInScreen extends State<DineInScreen> {
       }
     } catch (e) {
       setState(() {
-        errorMessage = "Error: $e";
+        // errorMessage = "Error: $e";
+        errorMessage = "We are expanding soon in your city.";
         isLoading = false;
       });
     }

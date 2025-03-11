@@ -75,41 +75,69 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(
             seedColor: const Color.fromARGB(255, 159, 92, 92)),
         useMaterial3: true,
+        // Define default font family
+        fontFamily: "Nunito Sans", // Or your preferred font
         textTheme: TextTheme(
-          displayLarge: displayTextStyle,
-          displayMedium: displayTextStyle.copyWith(
+          displayLarge: GoogleFonts.nunitoSans(
+            fontWeight: FontWeight.w800,
+            fontSize: 22,
+            color: darkBlack,
+          ),
+          displayMedium: GoogleFonts.nunitoSans(
+            fontWeight: FontWeight.w800,
             fontSize: 20,
+            color: darkBlack,
           ),
-          displaySmall: displayTextStyle.copyWith(
+          displaySmall: GoogleFonts.nunitoSans(
+            fontWeight: FontWeight.w800,
             fontSize: 18,
+            color: darkBlack,
           ),
-          titleLarge: titleTextStyle,
-          titleMedium: titleTextStyle.copyWith(
+          titleLarge: GoogleFonts.nunitoSans(
+            fontWeight: FontWeight.w700,
+            fontSize: 20,
+            color: darkBlack,
+          ),
+          titleMedium: GoogleFonts.nunitoSans(
             fontWeight: FontWeight.w700,
             fontSize: 18,
+            color: darkBlack,
           ),
-          titleSmall: titleTextStyle.copyWith(
+          titleSmall: GoogleFonts.nunitoSans(
             fontWeight: FontWeight.w600,
             fontSize: 16,
+            color: darkBlack,
           ),
-          labelLarge: labelTextStyle,
-          labelMedium: labelTextStyle.copyWith(
+          labelLarge: GoogleFonts.nunitoSans(
+            fontWeight: FontWeight.w600,
+            fontSize: 18,
+            color: darkBlack,
+          ),
+          labelMedium: GoogleFonts.nunitoSans(
             fontWeight: FontWeight.w500,
             fontSize: 16,
+            color: darkBlack,
           ),
-          labelSmall: labelTextStyle.copyWith(
+          labelSmall: GoogleFonts.nunitoSans(
             fontWeight: FontWeight.w500,
-            letterSpacing: 0,
             fontSize: 14,
+            letterSpacing: 0,
+            color: darkBlack,
           ),
-          bodyLarge: bodyTextStyle,
-          bodyMedium: bodyTextStyle.copyWith(
+          bodyLarge: GoogleFonts.nunitoSans(
+            fontWeight: FontWeight.w400,
+            fontSize: 18,
+            color: darkBlack,
+          ),
+          bodyMedium: GoogleFonts.nunitoSans(
             fontWeight: FontWeight.w300,
             fontSize: 16,
+            color: darkBlack,
           ),
-          bodySmall: bodyTextStyle.copyWith(
+          bodySmall: GoogleFonts.nunitoSans(
             fontWeight: FontWeight.w200,
             fontSize: 14,
+            color: darkBlack,
           ),
         ),
         primarySwatch: primarySwatch,
