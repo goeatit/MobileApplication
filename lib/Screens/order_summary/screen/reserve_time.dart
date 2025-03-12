@@ -15,7 +15,6 @@ class ReserveTime extends StatefulWidget {
 }
 
 class _ReserveTimeState extends State<ReserveTime> {
-
   List<String> timeSlots = [];
   String? selectedTime; // To track the selected time slot
   final TimeSlotGenerator timeSlotGenerator = TimeSlotGenerator();
@@ -175,6 +174,7 @@ class _ReserveTimeState extends State<ReserveTime> {
                                 });
                               },
                         child: Container(
+
 
                           padding: const EdgeInsets.symmetric(
                               vertical: 12, horizontal: 20),
