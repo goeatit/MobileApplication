@@ -12,7 +12,6 @@ import 'package:pinput/pinput.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 
-
 class VerifyOtp extends StatefulWidget {
   static const routeName = "/otp-screen";
 
@@ -37,7 +36,6 @@ class _VerifyOtpState extends State<VerifyOtp> {
   bool _isLoading = false;
   bool? isVerificationSuccess;
   UserResponse? user;
-
 
   @override
   void initState() {
@@ -78,29 +76,29 @@ class _VerifyOtpState extends State<VerifyOtp> {
     setState(() {
       _isLoading = true;
     });
+
     var isVerified = await _otpService.verifyOtp(
         widget.countryCode, widget.phoneNumber, _otpController.text, context);
 
     setState(() {
-      isVerificationSuccess = isVerified; // Set the verification status
+      isVerificationSuccess = isVerified;
       messageColor = isVerified;
       message = isVerified ? "Validation Success" : "Validation Failed";
       _isLoading = false;
     });
 
-    
-    user = Provider.of<UserModelProvider>(context, listen: false).userModel;
     if (isVerified) {
-      if(user?.useremail==null||user?.name==null){
+      // Add delay to show success state before navigation
+      await Future.delayed(const Duration(milliseconds: 1500));
+
+      user = Provider.of<UserModelProvider>(context, listen: false).userModel;
+      if (!mounted) return; // Check if widget is still mounted
+
+      if (user?.useremail == null || user?.name == null) {
         Navigator.pushReplacementNamed(context, CreateAccountScreen.routeName);
-      }else {
+      } else {
         Navigator.pushReplacementNamed(context, LocationScreen.routeName);
       }
-    } else {
-      setState(() {
-        _isLoading = false;
-      });
-
     }
   }
 
@@ -110,13 +108,26 @@ class _VerifyOtpState extends State<VerifyOtp> {
 
     return Scaffold(
         appBar: AppBar(
-          title: Text(
-            "Back",
-            style:
-                textTheme.labelMedium?.copyWith(fontSize: 20, color: blackBase),
+          leading: Row(
+            children: [
+              const SizedBox(width: 15), // Add some padding from the left edge
+              const Icon(
+                Icons.arrow_back_ios_new,
+                color: Color(0xFF999999),
+                size: 15,
+              ),
+              const SizedBox(width: 5), // 5px gap between icon and text
+              Text(
+                "Back",
+                style: textTheme.labelMedium?.copyWith(
+                  fontSize: 20,
+                  color: const Color(0xFF999999),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
           ),
-          centerTitle: false,
-          leading: const Icon(Icons.arrow_back_ios_new, color: blackBase),
+          leadingWidth: 100, // Adjust this value based on your content width
           backgroundColor: white,
           elevation: 0,
         ),
@@ -130,79 +141,97 @@ class _VerifyOtpState extends State<VerifyOtp> {
                   const SizedBox(height: 30),
                   const Text(
                     "Log In",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 24,
+                      color: Color(0xFF1D1929),
+                    ),
                   ),
                   const SizedBox(height: 10),
                   const Text(
                     "Enter the 4 digit code that has been sent to your registered number.",
                     textAlign: TextAlign.left,
-                    style: TextStyle(fontSize: 14),
+                    style: TextStyle(
+                        fontSize: 16,
+                        color: Color(0xFF1D1929),
+                        fontWeight: FontWeight.w500),
                   ),
                   const SizedBox(height: 20),
                   Center(
-                    child: Pinput(
-                      controller: _otpController,
-                      length: 4,
-                      onCompleted: (value) {
-                        _verifyOtp();
-                      },
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      defaultPinTheme: PinTheme(
-                        width: 64,
-                        height: 64,
-                        textStyle: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: blackBase,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            // Change border color based on verification status
-                            color: isVerificationSuccess == null
-                                ? Colors.grey
-                                : isVerificationSuccess!
-                                    ? Colors.green
-                                    : Colors.red,
-                            width:
-                                1, // Make border slightly thicker for better visibility
-                          ),
-                        ),
+                      child: // Replace the existing Pinput widget with this updated version
+                          Pinput(
+                    controller: _otpController,
+                    length: 4,
+                    onCompleted: (value) {
+                      _verifyOtp();
+                    },
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    defaultPinTheme: PinTheme(
+                      width: 64,
+                      height: 64,
+                      textStyle: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: blackBase,
                       ),
-                      focusedPinTheme: PinTheme(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            // Change focused border color based on verification status
-                            color: isVerificationSuccess == null
-                                ? primaryColor
-                                : isVerificationSuccess!
-                                    ? Colors.green
-                                    : Colors.red,
-                            width: 2,
-                          ),
-                        ),
-                        textStyle: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: blackBase,
-                        ),
-                      ),
-                      errorPinTheme: PinTheme(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: Colors.red,
-                            width: 2,
-                          ),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isVerificationSuccess == null
+                              ? const Color(
+                                  0xFFE5E5E5) // Gray color when no verification attempt
+                              : isVerificationSuccess!
+                                  ? const Color(
+                                      0xFF1BD27A) // Green color for success
+                                  : const Color(
+                                      0xFFC80A0B), // Red color for failure
+                          width: 1,
                         ),
                       ),
                     ),
-                  ),
+                    focusedPinTheme: PinTheme(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isVerificationSuccess == null
+                              ? primaryColor // Default focus color
+                              : isVerificationSuccess!
+                                  ? const Color(
+                                      0xFF1BD27A) // Green color for success
+                                  : const Color(
+                                      0xFFC80A0B), // Red color for failure
+                          width: 2,
+                        ),
+                      ),
+                      textStyle: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: blackBase,
+                      ),
+                    ),
+                    errorPinTheme: PinTheme(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFFC80A0B),
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                    onChanged: (value) {
+                      // Reset verification status when user starts typing new OTP
+                      if (isVerificationSuccess != null) {
+                        setState(() {
+                          isVerificationSuccess = null;
+                          message = "";
+                        });
+                      }
+                    },
+                  )),
                   const SizedBox(height: 10),
                   Padding(
                     padding: const EdgeInsets.only(left: 60),
@@ -231,17 +260,23 @@ class _VerifyOtpState extends State<VerifyOtp> {
                   Center(
                     child: SizedBox(
                       height: 53,
-                      width: 210,
+                      width: 200,
                       child: ElevatedButton(
                         onPressed: _isButtonEnabled ? _verifyOtp : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor:
-                              _isButtonEnabled ? primaryColor : Colors.grey,
+                              _isButtonEnabled ? primaryColor : Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
                           ),
                         ),
-                        child: const Text("Continue"),
+                        child: const Text(
+                          "Continue",
+                          style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white),
+                        ),
                       ),
                     ),
                   ),
@@ -270,10 +305,13 @@ class _VerifyOtpState extends State<VerifyOtp> {
                               },
                               child: const Padding(
                                 padding: EdgeInsets.symmetric(
-                                    horizontal: 75, vertical: 15),
+                                    horizontal: 60, vertical: 15),
                                 child: Text(
                                   "Resent OTP",
-                                  style: TextStyle(color: Colors.black),
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      color: Color(0xFF1D1929),
+                                      fontWeight: FontWeight.w500),
                                 ),
                               ),
                             ),
