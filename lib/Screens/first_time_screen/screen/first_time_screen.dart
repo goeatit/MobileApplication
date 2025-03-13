@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:eatit/Screens/Auth/login_screen/screen/login_screen.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 class FirstTimeScreen extends StatefulWidget {
   static const routeName = "/first-time-screen";
@@ -19,6 +18,9 @@ class _FirstTimeScreen extends State<FirstTimeScreen> {
   final PageController _pageController = PageController(initialPage: 0);
   int _currentIndex = 0;
   Timer? _timer;
+  Map<int, double> _indicatorFillProgress = {};
+  Timer? _fillTimer;
+
   final List<String> _images = [
     "assets/images/first.png",
     "assets/images/second.png",
@@ -36,7 +38,13 @@ class _FirstTimeScreen extends State<FirstTimeScreen> {
     "Get delicious food delivered right at your doorstep at zero cost.",
     "Get delicious food delivered right at your doorstep at zero cost.",
   ];
+  // Modify the _buildIndicator method
   Widget _buildIndicator(int index) {
+    if (!_indicatorFillProgress.containsKey(index)) {
+      _indicatorFillProgress[index] = 0.0;
+      _startFillAnimation(index);
+    }
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(3, (i) {
@@ -45,7 +53,29 @@ class _FirstTimeScreen extends State<FirstTimeScreen> {
         Color color;
 
         if (i == index) {
-          color = const Color(0xFFFDDCB4); // Active index color
+          // Create gradient effect for active indicator
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Container(
+              width: width,
+              height: height,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(47),
+                gradient: LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  stops: [
+                    _indicatorFillProgress[index]!,
+                    _indicatorFillProgress[index]!
+                  ],
+                  colors: const [
+                    Color(0xFFF8951D), // Filling color
+                    Color(0xFFFDDCB4), // Background color
+                  ],
+                ),
+              ),
+            ),
+          );
         } else if (i < index) {
           color = const Color(0xFFF8951D); // Previous index color
         } else {
@@ -67,6 +97,28 @@ class _FirstTimeScreen extends State<FirstTimeScreen> {
     );
   }
 
+// Add this method to handle the filling animation
+  void _startFillAnimation(int index) {
+    _fillTimer?.cancel();
+    _indicatorFillProgress[index] = 0.0;
+
+    _fillTimer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
+      if (_indicatorFillProgress[index]! < 1.0) {
+        setState(() {
+          _indicatorFillProgress[index] = _indicatorFillProgress[index]! + 0.01;
+        });
+      } else {
+        timer.cancel();
+        if (index < _images.length - 1) {
+          _pageController.nextPage(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
+        }
+      }
+    });
+  }
+
   void _startAutoSwipe() {
     _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
       if (_currentIndex < _images.length - 1) {
@@ -86,11 +138,13 @@ class _FirstTimeScreen extends State<FirstTimeScreen> {
   void initState() {
     super.initState();
     _startAutoSwipe();
+    _startFillAnimation(0);
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _fillTimer?.cancel();
     _pageController.dispose();
     super.dispose();
   }
@@ -113,6 +167,7 @@ class _FirstTimeScreen extends State<FirstTimeScreen> {
                   onPageChanged: (index) {
                     setState(() {
                       _currentIndex = index;
+                      _startFillAnimation(index);
                     });
                   },
                   itemCount: _images.length,
