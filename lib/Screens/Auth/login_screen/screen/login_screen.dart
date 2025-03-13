@@ -29,7 +29,7 @@ class _LoginScreen extends State<LoginScreeen> {
   Widget build(BuildContext context) {
     final GoogleLoginService _googleLoginService = GoogleLoginService();
     final FacebookSignInService _facebookSignInService =
-        FacebookSignInService();
+    FacebookSignInService();
     final OtpService _otpService = OtpService();
     final List<Map<String, String>> countryCodes = [
       {
@@ -68,74 +68,103 @@ class _LoginScreen extends State<LoginScreeen> {
     final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          "Back",
-          style:
-              textTheme.labelMedium?.copyWith(fontSize: 20, color: blackBase),
+        leading: Row(
+          children: [
+            const SizedBox(width: 15), // Add some padding from the left edge
+            const Icon(
+              Icons.arrow_back_ios_new,
+              color: Color(0xFF999999),
+              size: 15,
+            ),
+            const SizedBox(width: 5), // 5px gap between icon and text
+            Text(
+              "Back",
+              style: textTheme.labelMedium?.copyWith(
+                fontSize: 20,
+                color: const Color(0xFF999999),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
         ),
-        centerTitle: false,
-        leading: const Icon(
-          Icons.arrow_back_ios_new,
-          color: blackBase,
-        ),
+        leadingWidth: 100, // Adjust this value based on your content width
         backgroundColor: white,
         elevation: 0,
       ),
       body: SingleChildScrollView(
           child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(height: 30),
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                "Log In",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-              ),
-            ),
-            const SizedBox(height: 10),
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                "Enter your mobile number. We will send a\nconfirmation code to your number.",
-                style: TextStyle(fontSize: 14),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Row(
-                children: [
-                  Container(
-                    width: 105, // Reduced width for dropdown (was 120)
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
-                      borderRadius: BorderRadius.circular(15),
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(height: 20),
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "Log In",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 24,
+                      color: Color(0xFF1D1929),
                     ),
-                    child: Material(
-                      color: Colors.transparent,
-                      type: MaterialType.transparency,
-                      child: InkWell(
-                        splashFactory: NoSplash.splashFactory,
-                        highlightColor: Colors.transparent,
-                        onTap: () {},
+                  ),
+                ),
+                const SizedBox(height: 10),
+                const Align(
+                  alignment: Alignment.topLeft,
+                  child: Text(
+                    "Enter your mobile number. We will send a confirmation code to your number.",
+                    style: TextStyle(
+                        fontSize: 16,
+                        color: Color(0xFF1D1929),
+                        fontWeight: FontWeight.w500),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 1),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 84,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey),
+                          borderRadius: BorderRadius.circular(15),
+                        ),
                         child: DropdownButtonHideUnderline(
                           child: DropdownButton2<String>(
+                            isExpanded:
+                            true, // Add this to help with width management
                             value: selectedCountryCode,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w400,
+                              color: Color(0xFF1D1929),
+                            ),
                             items: countryCodes
                                 .map<DropdownMenuItem<String>>((country) {
                               return DropdownMenuItem<String>(
                                 value: country["code"],
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(country["flag"]!),
-                                    const SizedBox(width: 2),
-                                    Text(country["code"]!),
-                                  ],
+                                child: FittedBox(
+                                  // Wrap with FittedBox to ensure content fits
+                                  fit: BoxFit.scaleDown,
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        country["flag"]!,
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 5), // Minimal spacing
+                                      Text(
+                                        country["code"]!,
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               );
                             }).toList(),
@@ -144,230 +173,217 @@ class _LoginScreen extends State<LoginScreeen> {
                                 selectedCountryCode = newValue!;
                               });
                             },
-                            customButton: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 15),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Text(
-                                        countryCodes.firstWhere((element) =>
-                                            element["code"] ==
-                                            selectedCountryCode)["flag"]!,
-                                      ),
-                                      const SizedBox(width: 2),
-                                      Text(selectedCountryCode),
-                                    ],
-                                  ),
-                                  const Icon(Icons.keyboard_arrow_down,
-                                      size: 18),
-                                ],
-                              ),
-                            ),
                             buttonStyleData: const ButtonStyleData(
-                              padding: EdgeInsets.symmetric(horizontal: 2),
-                              overlayColor:
-                                  WidgetStatePropertyAll(Colors.transparent),
+                              height: 47,
+                              padding: EdgeInsets.zero,
+                              width: 84, // Match container width
                             ),
                             dropdownStyleData: const DropdownStyleData(
                               maxHeight: 200,
-                              width: 90,
                               offset: Offset(0, 10),
+                              width: 84, // Match container width
                             ),
                             iconStyleData: const IconStyleData(
-                              icon: Icon(Icons.keyboard_arrow_down, size: 16),
+                              icon: Icon(
+                                Icons.keyboard_arrow_down,
+                                size: 23,
+                              ),
+                              iconSize: 16,
+                              iconEnabledColor: Color(0xFF1D1929),
+                              //iconPadding: EdgeInsets.only(right: 4), // Reduce icon padding
                             ),
                             menuItemStyleData: const MenuItemStyleData(
+                              padding: EdgeInsets.symmetric(horizontal: 5),
                               height: 40,
-                              padding: EdgeInsets.symmetric(horizontal: 2),
-                              overlayColor:
-                                  WidgetStatePropertyAll(Colors.transparent),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(width: 10), // 10px gap
+                      const SizedBox(width: 8), // 10px gap
 
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey),
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: TextField(
-                        inputFormatters: [
-                          LengthLimitingTextInputFormatter(10),
-                          FilteringTextInputFormatter.digitsOnly
-                        ],
-                        controller: phoneNumberController,
-                        decoration: const InputDecoration(
-                          border: InputBorder.none,
-                          hintText: 'Mobile Number',
-                          contentPadding: EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 15),
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: TextField(
+                            inputFormatters: [
+                              LengthLimitingTextInputFormatter(10),
+                              FilteringTextInputFormatter.digitsOnly
+                            ],
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF1D1929),
+                            ),
+                            controller: phoneNumberController,
+                            decoration: const InputDecoration(
+                              border: InputBorder.none,
+                              hintText: 'Mobile Number',
+                              contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 10),
+                            ),
+                            keyboardType: TextInputType.phone,
+                          ),
                         ),
-                        keyboardType: TextInputType.phone,
                       ),
-                    ),
+                    ],
                   ),
-                ],
-              ),
-            ),
+                ),
 
-            const SizedBox(height: 70),
-            SizedBox(
-              width: 250,
-              child: ElevatedButton(
-                onPressed: isLoading
-                    ? null
-                    : () async {
-                        if (_checkNumber(phoneNumberController.text) == true) {
-                          // Step 2: Send OTP on "Send OTP" click
-                          setState(() {
-                            isLoading = true;
-                          });
-                          bool otpSent = await _otpService.sendOtp(
-                            selectedCountryCode,
-                            phoneNumberController.text,
+                const SizedBox(height: 70),
+                SizedBox(
+                  width: 200,
+                  child: ElevatedButton(
+                    onPressed: isLoading
+                        ? null
+                        : () async {
+                      if (_checkNumber(phoneNumberController.text) == true) {
+                        // Step 2: Send OTP on "Send OTP" click
+                        setState(() {
+                          isLoading = true;
+                        });
+                        bool otpSent = await _otpService.sendOtp(
+                          selectedCountryCode,
+                          phoneNumberController.text,
+                        );
+                        setState(() {
+                          isLoading = false;
+                        });
+                        if (otpSent) {
+                          Navigator.pushNamed(context, VerifyOtp.routeName,
+                              arguments: {
+                                'countryCode': selectedCountryCode,
+                                'phoneNumber': phoneNumberController.text
+                              });
+                        } else {
+                          Fluttertoast.showToast(
+                            msg: "Failed to send OTP. Please try again.",
+                            toastLength: Toast.LENGTH_SHORT,
+                            gravity: ToastGravity.CENTER,
+                            backgroundColor: Colors.red,
                           );
-                          setState(() {
-                            isLoading = false;
-                          });
-                          if (otpSent) {
-                            Navigator.pushNamed(context, VerifyOtp.routeName,
-                                arguments: {
-                                  'countryCode': selectedCountryCode,
-                                  'phoneNumber': phoneNumberController.text
-                                });
-                          } else {
-                            Fluttertoast.showToast(
-                              msg: "Failed to send OTP. Please try again.",
-                              toastLength: Toast.LENGTH_SHORT,
-                              gravity: ToastGravity.CENTER,
-                              backgroundColor: Colors.red,
-                            );
-                          }
                         }
-                      },
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      backgroundColor: const Color(0xFFF8951D),
+                    ),
+                    child: isLoading
+                        ? const CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation(Color(0xFFF8951D)),
+                    )
+                        : const Text(
+                      "Send OTP",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
-                  backgroundColor: primaryColor,
                 ),
-                child: isLoading
-                    ? const CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation(primaryColor),
-                      )
-                    : const Text(
-                        "Send OTP",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                // login with another way.
+                // another way
+                const SizedBox(
+                  height: 120,
+                ),
+                const Center(
+                    child: Text(
+                      "or log in via social networks",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF1D1929),
+                      ),
+                    )),
+                const SizedBox(height: 10),
+                // Drawable Button
+                SizedBox(
+                  width: 200,
+                  child: ElevatedButton(
+                    onPressed: isGoogleLoading
+                        ? null // Disable button while loading
+                        : () => _handleGoogleLogin(context),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      backgroundColor: Color(0xFFF8951D), // Button color
+                    ),
+                    child: isGoogleLoading
+                        ? const CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation(Color(0xFFF8951D)),
+                    )
+                        : Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.asset(
+                          "assets/images/google.png",
+                          height: 30,
+                          width: 30,
                         ),
-                      ),
-              ),
-            ),
-            // login with another way.
-            // another way
-            const SizedBox(
-              height: 120,
-            ),
-            const Center(
-                child: Text(
-              "Or login with via social networks",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            )),
-            const SizedBox(height: 10),
-            // Drawable Button
-            SizedBox(
-              width: 250,
-              child: ElevatedButton(
-                onPressed: isGoogleLoading
-                    ? null // Disable button while loading
-                    : () => _handleGoogleLogin(context),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+                        const Padding(
+                          padding: EdgeInsets.only(left: 3),
+                          child: Text(
+                            "Login with Google",
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  backgroundColor: primaryColor, // Button color
                 ),
-                child: isGoogleLoading
-                    ? const CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation(primaryColor),
-                      )
-                    : Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Image.asset(
-                            "assets/images/google.png",
-                            height: 30,
-                            width: 30,
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.only(left: 13),
-                            child: Text(
-                              "Login with Google",
-                              style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white),
-                            ),
-                          ),
-                        ],
-                      ),
-              ),
-            ),
-            const SizedBox(height: 20),
+                const SizedBox(height: 20),
 
-            // Drawable Button
-            SizedBox(
-              width: 250,
-              child: ElevatedButton(
-                onPressed: () async {
-                  await _facebookSignInService.signInWithFacebook(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  backgroundColor: primaryColor,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Image.asset(
-                      "assets/images/facebook.png",
-                      height: 30,
-                      width: 33,
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.only(left: 13),
-                      child: Text(
-                        "Login with Facebook",
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white),
+                // Drawable Button
+                SizedBox(
+                  width: 200,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      await _facebookSignInService.signInWithFacebook(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
                       ),
+                      backgroundColor: Color(0xFFF8951D),
                     ),
-                  ],
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.asset(
+                          "assets/images/facebook.png",
+                          height: 30,
+                          width: 30,
+                        ),
+                        const Padding(
+                          padding: EdgeInsets.only(left: 3),
+                          child: Text(
+                            "Login with Facebook",
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
-      )),
+          )),
     );
   }
 

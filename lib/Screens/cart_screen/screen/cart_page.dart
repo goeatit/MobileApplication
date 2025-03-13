@@ -7,38 +7,80 @@ import 'package:eatit/provider/cart_dish_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class CartPage extends StatelessWidget {
+class CartPage extends StatefulWidget {
   static const routeName = "/cart-page";
   const CartPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final items = context.watch<CartProvider>().restaurantCarts;
-    // Flatten the cart items into a list of all items from Take-away and Dine-in order types
-    List<CartItemWithDetails> allCartItems = [];
+  State<CartPage> createState() => CartPageState();
+}
+
+class CartPageState extends State<CartPage> {
+  final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
+  List<CartItemWithDetails> _cartItems = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _updateCartItems();
+  }
+
+  void _updateCartItems() {
+    final items = context.read<CartProvider>().restaurantCarts;
+    _cartItems = [];
 
     items.forEach((id, orderTypes) {
       orderTypes.forEach((orderType, cartItems) {
         if (cartItems.isNotEmpty) {
-          // Group all items for a single order type (Take-away or Dine-in) into one CartItemWithDetails
-          allCartItems.add(CartItemWithDetails(
-            cartItem: cartItems
-                .first, // Just a placeholder for CartItem, you can use any item from the list
+          _cartItems.add(CartItemWithDetails(
+            cartItem: cartItems.first,
             restaurantName: cartItems.first.restaurantName,
             id: id,
             orderType: orderType,
-            allItems: cartItems, // Pass all items of the same order type
+            allItems: cartItems,
           ));
         }
       });
     });
+  }
 
+  void removeItem(int index) {
+    final removedItem = _cartItems[index];
+    _cartItems.removeAt(index);
+    _listKey.currentState?.removeItem(
+      index,
+      (context, animation) => SlideTransition(
+        position: animation.drive(
+          Tween<Offset>(
+            begin: const Offset(-1.0, 0.0),
+            end: Offset.zero,
+          ).chain(CurveTween(curve: Curves.easeInOutCubic)),
+        ),
+        child: CartItemWidget(
+          restaurantName: removedItem.restaurantName,
+          orderType: removedItem.orderType,
+          imageUrl: 'https://via.placeholder.com/100',
+          items: removedItem.allItems
+              .map((itm) => '${itm.quantity} x ${itm.dish.dishId.dishName}')
+              .toList(),
+          instructions: 'Make one of them spicy',
+          icon: const Icon(Icons.remove),
+          restaurantId: removedItem.id,
+          allItems: removedItem.allItems,
+          index: index,
+        ),
+      ),
+      duration: const Duration(milliseconds: 600),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // Header Container
             Container(
               padding: const EdgeInsets.all(1),
               child: Row(
@@ -69,39 +111,50 @@ class CartPage extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 16), // Spacing between header and list
-            // Cart Items List
+            const SizedBox(height: 16),
             Expanded(
-              child: items.isNotEmpty
-                  ? ListView.builder(
-                      itemCount: allCartItems.length,
-                      itemBuilder: (ctx, resIndex) {
-                        final cartItemWithDetails = allCartItems[resIndex];
-
-                        return InkWell(
-                          onTap: () {
-                            Navigator.pushNamed(
-                                context, BillSummaryScreen.routeName,
+              child: _cartItems.isNotEmpty
+                  ? AnimatedList(
+                      key: _listKey,
+                      initialItemCount: _cartItems.length,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemBuilder: (context, index, animation) {
+                        final cartItemWithDetails = _cartItems[index];
+                        return SlideTransition(
+                          position: animation.drive(
+                            Tween<Offset>(
+                              begin: const Offset(-1.0, 0.0),
+                              end: Offset.zero,
+                            ).chain(CurveTween(curve: Curves.easeInOutCubic)),
+                          ),
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.pushNamed(
+                                context,
+                                BillSummaryScreen.routeName,
                                 arguments: {
                                   'name': cartItemWithDetails.restaurantName,
                                   'orderType': cartItemWithDetails.orderType,
                                   'id': cartItemWithDetails.id,
-                                });
-                          },
-                          splashColor: Colors.transparent,
-                          highlightColor: Colors.transparent,
-                          child: CartItemWidget(
-                            restaurantName: cartItemWithDetails.restaurantName,
-                            orderType: cartItemWithDetails.orderType,
-                            imageUrl:
-                                'https://via.placeholder.com/100', // Replace with actual image
-                            items: cartItemWithDetails.allItems
-                                .map((itm) =>
-                                    '${itm.quantity} x ${itm.dish.dishId.dishName}')
-                                .toList(),
-                            instructions: 'Make one of them spicy',
-                            icon: const Icon(
-                              Icons.remove,
+                                },
+                              );
+                            },
+                            splashColor: Colors.transparent,
+                            highlightColor: Colors.transparent,
+                            child: CartItemWidget(
+                              restaurantName:
+                                  cartItemWithDetails.restaurantName,
+                              orderType: cartItemWithDetails.orderType,
+                              imageUrl: 'https://via.placeholder.com/100',
+                              items: cartItemWithDetails.allItems
+                                  .map((itm) =>
+                                      '${itm.quantity} x ${itm.dish.dishId.dishName}')
+                                  .toList(),
+                              instructions: 'Make one of them spicy',
+                              icon: const Icon(Icons.remove),
+                              restaurantId: cartItemWithDetails.id,
+                              allItems: cartItemWithDetails.allItems,
+                              index: index,
                             ),
                           ),
                         );
@@ -123,12 +176,13 @@ class CartItemWithDetails {
   final String restaurantName;
   final String orderType;
   final String id;
-  final List<CartItem> allItems; // All items for the same order type
+  final List<CartItem> allItems;
 
-  CartItemWithDetails(
-      {required this.cartItem,
-      required this.restaurantName,
-      required this.orderType,
-      required this.allItems,
-      required this.id});
+  CartItemWithDetails({
+    required this.cartItem,
+    required this.restaurantName,
+    required this.orderType,
+    required this.allItems,
+    required this.id,
+  });
 }
