@@ -309,7 +309,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                 'name': item.restaurantName.toString(),
                                 'location':
                                     item.restaurantAddress.city.toString(),
-                                'id':item.id.toString(),
+                                'id': item.id.toString(),
                               });
                         },
                         child: SizedBox(

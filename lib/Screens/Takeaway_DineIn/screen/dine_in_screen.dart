@@ -61,7 +61,8 @@ class _DineInScreen extends State<DineInScreen> {
       }
     } catch (e) {
       setState(() {
-        errorMessage = "Error: $e";
+        // errorMessage = "Error: $e";
+        errorMessage = "We are expanding soon in your city.";
         isLoading = false;
       });
     }
@@ -179,23 +180,22 @@ class _DineInScreen extends State<DineInScreen> {
                               ),
                             ),
                             ListView.builder(
-                              shrinkWrap:
-                                  true, // Ensures the ListView takes only the space it needs
-                              physics:
-                                  const NeverScrollableScrollPhysics(), // Prevent scroll conflict with SingleChildScrollView
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
                               itemCount: restaurants.length > 1
                                   ? restaurants.length - 1
                                   : 0,
                               itemBuilder: (context, index) {
                                 final restaurant = restaurants[index + 1];
+                                // Calculate image index (1-4) using modulo to cycle through images
+                                final imageIndex = (index % 9) + 1;
                                 return RestaurantWidget(
-                                  imageUrl: 'assets/images/restaurant.png',
+                                  imageUrl:
+                                      'assets/images/restaurant$imageIndex.png',
                                   restaurantName: restaurant.restaurantName,
                                   location: city!,
-                                  cuisineType:
-                                      "Indian • Biryani", // Update this if you have a field for cuisine
-                                  priceRange:
-                                      "₹1200-₹1500 for two", // Update this if you have price range info
+                                  cuisineType: "Indian • Biryani",
+                                  priceRange: "₹1200-₹1500 for two",
                                   rating: restaurant.ratings.toDouble(),
                                   long: restaurant.long,
                                   lat: restaurant.lat,
