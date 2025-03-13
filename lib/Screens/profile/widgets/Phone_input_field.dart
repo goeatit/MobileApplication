@@ -14,6 +14,7 @@ class ProfileInputField extends StatefulWidget {
   final bool isDatePicker;
   final bool isEmail;
   final Function(bool)? editPressed; // Function returning bool
+  final Function(bool)? isLoading;
 
   const ProfileInputField({
     super.key,
@@ -27,6 +28,7 @@ class ProfileInputField extends StatefulWidget {
     this.isDatePicker = false,
     this.isEmail = false,
     this.editPressed,
+    this.isLoading,
   });
 
   @override
@@ -42,6 +44,7 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
   bool _isVerifying = false;
   String _selectedCountryCode = '+91';
   String _newValue = '';
+  String initValue ="";
   EditProfileSerevice editProfileSerevice = EditProfileSerevice();
 
   @override
@@ -49,6 +52,7 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
     super.initState();
     _controller = TextEditingController(text: widget.value);
     _otpController = TextEditingController();
+    initValue=widget.value;
   }
 
   @override
@@ -61,10 +65,12 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
   void _toggleEdit() {
     if (widget.editIcon) {
       if (_isEditing) {
+        FocusScope.of(context).unfocus();
         // User is confirming the edit
         if (_controller.text != widget.value && _controller.text.isNotEmpty) {
           _newValue = _controller.text;
           if (widget.isEmail) {
+            widget.isLoading?.call(true);
             _sendOtp();
           } else {
             // For non-email fields, just notify parent of change
@@ -95,14 +101,16 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
   void _sendOtp() async {
     try {
       if (widget.isEmail) {
+        widget.isLoading?.call(true);
         bool success =
             await editProfileSerevice.sendEmailOtp(_newValue, context);
         if (success) {
-          widget.editPressed?.call(false);
           setState(() {
             _isEditing = false;
             _showOtp = true;
             _isOtpSent = true;
+            initValue = _newValue;
+            _controller.text = _newValue;
           });
 
           ScaffoldMessenger.of(context).showSnackBar(
@@ -121,6 +129,7 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
             ),
           );
         }
+        widget.isLoading?.call(false);
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -130,6 +139,7 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
           duration: const Duration(seconds: 2),
         ),
       );
+      widget.isLoading?.call(false);
     }
   }
 
@@ -159,6 +169,7 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
 
         if (isVerified) {
           widget.onSave(_newValue);
+          widget.editPressed?.call(false);
           setState(() {
             _showOtp = false;
             _isVerifying = false;
@@ -286,7 +297,7 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
                             ),
                           )
                         : Text(
-                            widget.value,
+                            _isOtpSent ? _newValue : initValue,
                             style: const TextStyle(
                               fontSize: 16,
                               color: Colors.black,
@@ -330,6 +341,7 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
           ),
           const SizedBox(height: 8),
           Column(
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Pinput(
                 controller: _otpController,

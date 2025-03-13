@@ -20,6 +20,8 @@ class _EditProfileScreen extends State<EditProfileScreen> {
   String? _selectGender;
   String? dob;
   bool _hasChanges = false;
+  bool _isEditing = false;
+  bool _isloading = false;
   Map<String, String?> _changes = {};
 
   final List<String> genderItems = ['Male', 'Female'];
@@ -33,6 +35,10 @@ class _EditProfileScreen extends State<EditProfileScreen> {
 
   Future<void> _saveChanges() async {
     try {
+      setState(() {
+        _isloading = true; // Show loader when starting to save
+      });
+
       final editProfileService = EditProfileSerevice();
       bool success =
           await editProfileService.saveProfileChanges(_changes, context);
@@ -64,14 +70,15 @@ class _EditProfileScreen extends State<EditProfileScreen> {
             backgroundColor: Colors.green,
           ),
         );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to save changes'),
-            backgroundColor: Colors.red,
-          ),
-        );
       }
+      // else {
+      //   ScaffoldMessenger.of(context).showSnackBar(
+      //     const SnackBar(
+      //       content: Text('Failed to save changes'),
+      //       backgroundColor: Colors.red,
+      //     ),
+      //   );
+      // }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -79,261 +86,307 @@ class _EditProfileScreen extends State<EditProfileScreen> {
           backgroundColor: Colors.red,
         ),
       );
+    } finally {
+      setState(() {
+        _isloading = false; // Hide loader after saving (success or failure)
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     UserResponse? user = context.watch<UserModelProvider>().userModel;
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: const Text(
-          'Profile',
-          style: TextStyle(color: Colors.black),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.grey.shade200,
-                shape: BoxShape.circle,
-              ),
-              child: IconButton(
-                constraints: const BoxConstraints(
-                  minWidth: 30,
-                  minHeight: 30,
-                ),
-                icon: Container(
-                  child: Stack(
-                    children: [
-                      Positioned(
-                        left: 2,
-                        top: 2,
-                        child: Icon(
-                          Icons.arrow_back_ios_new,
-                          size: 22,
-                          color: Colors.black.withOpacity(0.3),
-                        ),
-                      ),
-                      const Icon(
-                        Icons.arrow_back_ios_new,
-                        size: 22,
-                        color: Colors.black87,
-                      ),
-                    ],
+    return Stack(
+      children: [
+        Scaffold(
+          appBar: AppBar(
+            automaticallyImplyLeading: false,
+            backgroundColor: Colors.white,
+            elevation: 0,
+            title: const Text(
+              'Profile',
+              style: TextStyle(color: Colors.black),
+            ),
+            actions: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    shape: BoxShape.circle,
                   ),
-                ),
-                onPressed: () {
-                  if (_hasChanges) {
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('Unsaved Changes'),
-                        content:
-                            const Text('Do you want to discard your changes?'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text('Cancel'),
+                  child: IconButton(
+                    constraints: const BoxConstraints(
+                      minWidth: 30,
+                      minHeight: 30,
+                    ),
+                    icon: Container(
+                      child: Stack(
+                        children: [
+                          Positioned(
+                            left: 2,
+                            top: 2,
+                            child: Icon(
+                              Icons.arrow_back_ios_new,
+                              size: 22,
+                              color: Colors.black.withOpacity(0.3),
+                            ),
                           ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context); // Close dialog
-                              Navigator.pop(context); // Go back
-                            },
-                            child: const Text('Discard'),
+                          const Icon(
+                            Icons.arrow_back_ios_new,
+                            size: 22,
+                            color: Colors.black87,
                           ),
                         ],
                       ),
-                    );
-                  } else {
-                    Navigator.pop(context);
-                  }
-                },
+                    ),
+                    onPressed: () {
+                      if (_hasChanges) {
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Unsaved Changes'),
+                            content: const Text(
+                                'Do you want to discard your changes?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context); // Close dialog
+                                  Navigator.pop(context); // Go back
+                                },
+                                child: const Text('Discard'),
+                              ),
+                            ],
+                          ),
+                        );
+                      } else {
+                        Navigator.pop(context);
+                      }
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Profile Picture and Name
+                Card(
+                  elevation: 3,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          const CircleAvatar(
+                            radius: 40,
+                            backgroundColor: primaryColor,
+                            child: Icon(Icons.person,
+                                size: 40, color: Colors.white),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            user?.name ?? "User",
+                            style: const TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Date of Birth
+                ProfileInputField(
+                  label: 'Date of Birth',
+                  icon: Icons.calendar_today,
+                  value: (user?.dob != null && user!.dob.isNotEmpty)
+                      ? user.dob
+                      : (dob ?? 'Tap to enter'),
+                  onSave: (String value) {
+                    if (user?.dob == null) {
+                      _handleFieldChange('dob', value);
+                      _selectDate(context);
+                    }
+                  },
+                  editIcon: false,
+                  isDatePicker: true,
+                ),
+                const SizedBox(height: 16),
+
+                // Gender
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Gender',
+                      style: TextStyle(color: Colors.grey, fontSize: 14),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: IntrinsicHeight(
+                        child: Row(
+                          children: [
+                            const Icon(Icons.person_outline,
+                                color: Colors.grey),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: user?.gender == null
+                                  ? DropdownButtonHideUnderline(
+                                      child: DropdownButton2<String>(
+                                        hint: Text(
+                                          'Select Gender',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: Theme.of(context).hintColor,
+                                          ),
+                                        ),
+                                        items: genderItems
+                                            .map((item) =>
+                                                DropdownMenuItem<String>(
+                                                  value: item,
+                                                  child: Text(
+                                                    item,
+                                                    style: const TextStyle(
+                                                      fontSize: 16,
+                                                    ),
+                                                  ),
+                                                ))
+                                            .toList(),
+                                        value: _selectGender,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            _selectGender = value;
+                                            _handleFieldChange('gender', value);
+                                          });
+                                        },
+                                        buttonStyleData: const ButtonStyleData(
+                                          padding: EdgeInsets.symmetric(
+                                              horizontal: 0),
+                                          height: 40,
+                                        ),
+                                        menuItemStyleData:
+                                            const MenuItemStyleData(
+                                          height: 40,
+                                        ),
+                                      ),
+                                    )
+                                  : Text(
+                                      user?.gender ?? '',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.black,
+                                        height: 1.0,
+                                      ),
+                                    ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                // Email
+                ProfileInputField(
+                  label: 'Email',
+                  icon: Icons.email_outlined,
+                  value: user?.useremail ?? '',
+                  editIcon: user?.loginThrough == "phoneNumber",
+                  isEmail: true,
+                  onSave: (String value) {
+                    if (value != user?.useremail) {
+                      _handleFieldChange('email', value);
+                    }
+                  },
+                  editPressed: (bool value) {
+                    setState(() {
+                      _isEditing = value;
+                    });
+                  },
+                  isLoading: (bool value) {
+                    setState(() {
+                      _isloading = value;
+                    });
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Phone Number
+                ProfileInputField(
+                  label: 'Phone Number',
+                  icon: Icons.send_to_mobile,
+                  value: user?.phoneNumber ?? '',
+                  editIcon: user?.loginThrough == "google",
+                  isPhone: true,
+                  onSave: (String value) {
+                    if (value != user?.phoneNumber) {
+                      _handleFieldChange('phone', value);
+                    }
+                  },
+                  editPressed: (bool value) {
+                    setState(() {
+                      _isEditing = value;
+                    });
+                  },
+                  isLoading: (bool value) {
+                    setState(() {
+                      _isloading = value;
+                    });
+                  },
+                ),
+
+                const SizedBox(height: 25),
+
+                if (_hasChanges && !_isEditing)
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _saveChanges,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryColor,
+                      ),
+                      child: const Text(
+                        'Save',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                    ),
+                  )
+              ],
+            ),
+          ),
+        ),
+        if (_isloading)
+          Container(
+            color: Colors.black.withOpacity(0.3),
+            child: const Center(
+              child: CircularProgressIndicator(
+                color: primaryColor,
               ),
             ),
           ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Profile Picture and Name
-            Card(
-              elevation: 3,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: SizedBox(
-                width: double.infinity,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      const CircleAvatar(
-                        radius: 40,
-                        backgroundColor: primaryColor,
-                        child:
-                            Icon(Icons.person, size: 40, color: Colors.white),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        user?.name ?? "User",
-                        style: const TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Date of Birth
-            ProfileInputField(
-              label: 'Date of Birth',
-              icon: Icons.calendar_today,
-              value: (user?.dob != null && user!.dob.isNotEmpty)
-                  ? user.dob
-                  : (dob ?? 'Tap to enter'),
-              onSave: (String value) {
-                if (user?.dob == null) {
-                  _handleFieldChange('dob', value);
-                  _selectDate(context);
-                }
-              },
-              editIcon: false,
-              isDatePicker: true,
-            ),
-            const SizedBox(height: 16),
-
-            // Gender
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Gender',
-                  style: TextStyle(color: Colors.grey, fontSize: 14),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey.shade300),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.person_outline, color: Colors.grey),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: user?.gender == null
-                            ? DropdownButtonHideUnderline(
-                                child: DropdownButton2<String>(
-                                  hint: Text(
-                                    'Select Gender',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Theme.of(context).hintColor,
-                                    ),
-                                  ),
-                                  items: genderItems
-                                      .map((item) => DropdownMenuItem<String>(
-                                            value: item,
-                                            child: Text(
-                                              item,
-                                              style: const TextStyle(
-                                                fontSize: 16,
-                                              ),
-                                            ),
-                                          ))
-                                      .toList(),
-                                  value: _selectGender,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _selectGender = value;
-                                      _handleFieldChange('gender', value);
-                                    });
-                                  },
-                                  buttonStyleData: const ButtonStyleData(
-                                    padding:
-                                        EdgeInsets.symmetric(horizontal: 0),
-                                    height: 40,
-                                  ),
-                                  menuItemStyleData: const MenuItemStyleData(
-                                    height: 40,
-                                  ),
-                                ),
-                              )
-                            : Text(
-                                user?.gender ?? '',
-                                style: const TextStyle(
-                                    fontSize: 16, color: Colors.black),
-                              ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // Email
-            ProfileInputField(
-              label: 'Email',
-              icon: Icons.email_outlined,
-              value: user?.useremail ?? '',
-              editIcon: user?.loginThrough == "phoneNumber",
-              isEmail: true,
-              onSave: (String value) {
-                if (value != user?.useremail) {
-                  _handleFieldChange('email', value);
-                }
-              },
-              editPressed: (bool value){
-                print(value);
-              },
-            ),
-            const SizedBox(height: 16),
-
-            // Phone Number
-            ProfileInputField(
-              label: 'Phone Number',
-              icon: Icons.send_to_mobile,
-              value: user?.phoneNumber ?? '',
-              editIcon: user?.loginThrough == "google",
-              isPhone: true,
-              onSave: (String value) {
-                if (value != user?.phoneNumber) {
-                  _handleFieldChange('phone', value);
-                }
-              },
-            ),
-
-            const SizedBox(height: 16),
-
-            if (_hasChanges)
-              TextButton(
-                onPressed: _saveChanges,
-                child: const Text(
-                  'Save',
-                  style: TextStyle(
-                    color: primaryColor,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
+      ],
     );
   }
 
@@ -368,66 +421,3 @@ class _EditProfileScreen extends State<EditProfileScreen> {
 
   // Removed the _showGenderSelection method as we're now using a dropdown
 }
-
-// class ProfileInputField extends StatelessWidget {
-//   final String label;
-//   final IconData icon;
-//   final String value;
-//   final VoidCallback onEdit;
-//   final bool isDropdown;
-//   final bool editIcon;
-//
-//   const ProfileInputField({
-//     super.key,
-//     required this.label,
-//     required this.icon,
-//     required this.value,
-//     required this.onEdit,
-//     this.isDropdown = false,
-//     required this.editIcon,
-//   });
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Column(
-//       crossAxisAlignment: CrossAxisAlignment.start,
-//       children: [
-//         Text(
-//           label,
-//           style: const TextStyle(color: Colors.grey, fontSize: 14),
-//         ),
-//         const SizedBox(height: 8),
-//         GestureDetector(
-//           onTap: onEdit,
-//           child: Container(
-//             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-//             decoration: BoxDecoration(
-//               color: Colors.white,
-//               borderRadius: BorderRadius.circular(8),
-//               border: Border.all(color: Colors.grey.shade300),
-//             ),
-//             child: Row(
-//               children: [
-//                 Icon(icon, color: Colors.grey),
-//                 const SizedBox(width: 16),
-//                 Expanded(
-//                   child: Text(
-//                     value,
-//                     style: const TextStyle(fontSize: 16, color: Colors.black),
-//                   ),
-//                 ),
-//                 if (isDropdown)
-//                   const Icon(Icons.arrow_drop_down, color: Colors.grey)
-//                 else if (editIcon)
-//                   GestureDetector(
-//                     onTap: onEdit,
-//                     child: const Icon(Icons.edit, color: primaryColor),
-//                   ),
-//               ],
-//             ),
-//           ),
-//         ),
-//       ],
-//     );
-//   }
-// }

@@ -83,6 +83,21 @@ class EditProfileSerevice {
         }
       }
       return false;
+    } on DioException catch (e) {
+      if (e.response != null && e.response?.statusCode == 400) {
+        // Handle 400 response (Invalid OTP case)
+        final responseData =
+            e.response?.data; // No need to use jsonDecode, Dio handles it
+        String errorMessage = responseData['message'];
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return false;
     } catch (e) {
       return false;
     }
