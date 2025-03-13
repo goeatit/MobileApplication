@@ -106,7 +106,7 @@ class _FirstTimeScreen extends State<FirstTimeScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               SizedBox(
-                height: 500,
+                height: 510,
                 width: double.infinity,
                 child: PageView.builder(
                   controller: _pageController,
@@ -127,12 +127,13 @@ class _FirstTimeScreen extends State<FirstTimeScreen> {
                             height: 300,
                             fit: BoxFit.cover,
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 40),
                           Text(
                             _titles[index],
                             style: const TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 28,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF1D1929),
                             ),
                             textAlign: TextAlign.center,
                           ),
@@ -140,24 +141,24 @@ class _FirstTimeScreen extends State<FirstTimeScreen> {
                           Text(
                             subtitle[index],
                             style: const TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFFF8951D)),
+                                fontSize: 28,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFFEA8307)),
                             textAlign: TextAlign.center,
                           ),
-                          const SizedBox(height: 1),
+                          const SizedBox(height: 9),
                           Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
                                 _descriptions[index],
                                 style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
                                 ),
                                 textAlign: TextAlign.center,
                               ),
-                              const SizedBox(height: 10),
+                              const SizedBox(height: 16),
                               _buildIndicator(index),
                             ],
                           ),
@@ -202,7 +203,10 @@ class _FirstTimeScreen extends State<FirstTimeScreen> {
                         ),
                         child: Text(
                           _currentIndex < _images.length - 1 ? "Next" : "Login",
-                          style: const TextStyle(color: white),
+                          style: const TextStyle(
+                              color: white,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 16),
                         ),
                       ),
                     ),
@@ -217,14 +221,23 @@ class _FirstTimeScreen extends State<FirstTimeScreen> {
                                 context, LoginScreeen.routeName);
                           },
                           style: ElevatedButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                    15), // Set the border radius here
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15),
+                              side: const BorderSide(
+                                color: Color(0xFFE5E5E5), // Neutrals200 color
+                                width: 1.0,
                               ),
-                              backgroundColor: white),
+                            ),
+                            backgroundColor: white,
+                            elevation: 0, // Removes the box shadow
+                          ),
                           child: const Text(
                             "Skip",
-                            style: TextStyle(color: blackBase),
+                            style: TextStyle(
+                              color: Color(0xFF1D1929),
+                              fontWeight: FontWeight.w500,
+                              fontSize: 16,
+                            ),
                           ),
                         ),
                       ),

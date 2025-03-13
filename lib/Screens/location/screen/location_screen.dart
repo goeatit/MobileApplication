@@ -143,20 +143,33 @@ class _LocationScreenState extends State<LocationScreen> {
               padding: const EdgeInsets.all(16),
               decoration: const BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (isLoading) const CircularProgressIndicator(),
-                  const Text(
-                    "Hang on! We will find restaurants for you.",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  Container(
+                    width: double.infinity,
+                    alignment: Alignment.centerLeft,
+                    child: const Text(
+                      "Hang on! We will find\n restaurants for you.",
+                      style:
+                          TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
+                    ),
                   ),
                   const SizedBox(height: 10),
-                  const Text(
-                    "Enter the address or select on the map.",
-                    style: TextStyle(fontSize: 16),
+                  Container(
+                    width: double.infinity,
+                    alignment: Alignment.centerLeft,
+                    child: const Text(
+                      "Enter the address or select on the map.",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w400,
+                        color: Color(0xFF1D1929),
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 10),
                   TextField(
