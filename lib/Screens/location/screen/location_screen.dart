@@ -153,7 +153,7 @@ class _LocationScreenState extends State<LocationScreen> {
                     width: double.infinity,
                     alignment: Alignment.centerLeft,
                     child: const Text(
-                      "Hang on! We will find\n restaurants for you.",
+                      "Hang on! We will find\nrestaurants for you.",
                       style:
                           TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
                     ),

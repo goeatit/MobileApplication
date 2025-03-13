@@ -152,21 +152,36 @@ class _SearchScreenState extends State<SearchScreen> {
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          const SizedBox(
-                            width: 40,
+                          Container(
+                            width: 50,
                             height: 50,
-                            child: Icon(Icons.location_on, color: primaryColor),
+                            decoration: BoxDecoration(
+                              color: const Color(
+                                  0xFFF8951D), // Background color #F8951D
+                              borderRadius: BorderRadius.circular(
+                                  25), // 50% border radius
+                            ),
+                            child: const Icon(
+                              Icons.location_on_outlined,
+                              color: Colors.white,
+                            ),
                           ),
                           const SizedBox(width: 8),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
-                              Text(
-                                'Home ▾',
-                                style: textTheme?.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              Row(
+                                children: [
+                                  Text(
+                                    'Home',
+                                    style: textTheme?.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20,
+                                    ),
+                                  ),
+                                  const Icon(Icons.keyboard_arrow_down),
+                                ],
                               ),
                               SizedBox(
                                 width: MediaQuery.of(context).size.width *
@@ -174,7 +189,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                 child: Text(
                                   fullAddress,
                                   style: textTheme?.bodySmall?.copyWith(
-                                    color: Colors.grey,
+                                    color: Colors.black,
                                   ),
                                   overflow:
                                       TextOverflow.ellipsis, // Adds ellipsis
@@ -278,14 +293,14 @@ class _SearchScreenState extends State<SearchScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               if (isLoading) const Center(child: CircularProgressIndicator()),
               if (errorMessage != null)
                 Text(errorMessage!, style: const TextStyle(color: Colors.red)),
               if (!isLoading && searchResultsRestaurant.isNotEmpty)
                 const Text("Trending near you",
                     style:
-                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               if (!isLoading && searchResultsRestaurant.isNotEmpty)
                 GridView.builder(
                   shrinkWrap:
@@ -316,17 +331,17 @@ class _SearchScreenState extends State<SearchScreen> {
                           height: 220,
                           child: Card(
                             shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8)),
+                                borderRadius: BorderRadius.circular(12)),
                             elevation: 7,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 ClipRRect(
                                   borderRadius: const BorderRadius.vertical(
-                                      top: Radius.circular(8)),
+                                      top: Radius.circular(12)),
                                   child: Image.asset(
                                       "assets/images/restaurant.png",
-                                      height: 100,
+                                      height: 120,
                                       width: double.infinity,
                                       fit: BoxFit.cover),
                                 ),
@@ -338,7 +353,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                     children: [
                                       Row(
                                         mainAxisAlignment:
-                                            MainAxisAlignment.spaceAround,
+                                            MainAxisAlignment.spaceBetween,
                                         children: [
                                           Flexible(
                                             child: Text(
@@ -356,7 +371,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                               vertical: 4,
                                             ),
                                             decoration: BoxDecoration(
-                                              color: success,
+                                              color: const Color(0xFF139456),
                                               borderRadius:
                                                   BorderRadius.circular(8),
                                             ),
@@ -371,11 +386,29 @@ class _SearchScreenState extends State<SearchScreen> {
                                         ],
                                       ),
                                       const SizedBox(height: 4),
-                                      const Text("",
-                                          style: TextStyle(color: Colors.grey)),
-                                      const SizedBox(height: 4),
-                                      const Text("200",
-                                          style: TextStyle(color: Colors.grey)),
+                                      const Text("Indian • Biryani",
+                                          style: TextStyle(
+                                            color: Color(0xFF4F4F4F),
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 13,
+                                          )),
+                                      const SizedBox(height: 8),
+                                      const Divider(
+                                        height: 4,
+                                        thickness: 1,
+                                        color: Color(0xFFE5E5E5),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      const SizedBox(
+                                        width: double
+                                            .infinity, // This makes the container take full width
+                                        child: Text(
+                                          "₹1200-₹1500 for two",
+                                          style: TextStyle(
+                                              color: darkBlack, fontSize: 12),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      )
                                     ],
                                   ),
                                 ),
@@ -418,7 +451,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         height: 220,
                         child: Card(
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8)),
+                              borderRadius: BorderRadius.circular(12)),
                           elevation: 7,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,

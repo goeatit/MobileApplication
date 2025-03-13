@@ -132,7 +132,7 @@ class _SelectPeopleScreenState extends State<SelectPeopleScreen> {
                         },
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                              vertical: 10, horizontal: 25),
+                              vertical: 10, horizontal: 15),
                           decoration: BoxDecoration(
                             color: selectedPeople == people
                                 ? const Color(0xFF139456).withOpacity(0.3)
@@ -149,7 +149,7 @@ class _SelectPeopleScreenState extends State<SelectPeopleScreen> {
                             children: [
                               Icon(
                                 getPersonIcon(people),
-                                size: 24,
+                                size: 20,
                                 color: selectedPeople == people
                                     ? const Color(0xFF139456)
                                     : Colors.black,
@@ -159,7 +159,7 @@ class _SelectPeopleScreenState extends State<SelectPeopleScreen> {
                                 "$people ${people > 1 ? 'People' : 'Person'}",
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 16,
+                                  fontSize: 14,
                                   color: selectedPeople == people
                                       ? const Color(0xFF139456)
                                       : Colors.black,

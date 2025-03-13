@@ -251,8 +251,8 @@ class _HomePage extends State<HomePage> {
                           tween: Tween<double>(begin: 0.0, end: 1.0),
                           duration: const Duration(milliseconds: 300),
                           builder: (context, value, _) {
-                            return ClipRRect(
-                              borderRadius: const BorderRadius.only(
+                            return const ClipRRect(
+                              borderRadius: BorderRadius.only(
                                 bottomLeft: Radius.circular(4),
                                 bottomRight: Radius.circular(4),
                               ),
