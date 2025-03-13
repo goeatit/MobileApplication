@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class CartPage extends StatelessWidget {
+  static const routeName = "/cart-page";
   const CartPage({super.key});
 
   @override

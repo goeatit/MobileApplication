@@ -11,6 +11,7 @@ import 'package:eatit/models/cart_items.dart';
 import 'package:eatit/models/dish_retaurant.dart';
 import 'package:eatit/provider/cart_dish_provider.dart';
 import 'package:eatit/provider/order_type_provider.dart';
+import 'package:eatit/Screens/cart_screen/screen/cart_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -180,16 +181,67 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
     textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-        appBar: AppBar(
-          toolbarHeight: 10,
-          backgroundColor: _isVisible ? Colors.black.withOpacity(0.3) : null,
-          automaticallyImplyLeading: false, // This will remove the back arrow
-        ),
-        body: isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : Stack(
-                children: [
-                  SingleChildScrollView(
+      appBar: AppBar(
+        toolbarHeight: 10,
+        backgroundColor: _isVisible ? Colors.black.withOpacity(0.3) : null,
+        automaticallyImplyLeading: false,
+      ),
+      bottomNavigationBar: Consumer<CartProvider>(
+        builder: (ctx, cartProvider, child) {
+          int stored = ctx.watch<OrderTypeProvider>().orderType;
+          String orderType = stored == 0 ? "Dine-in" : "Take-away";
+          int totalCount = ctx
+              .watch<CartProvider>()
+              .getTotalUniqueItems(widget.id, orderType);
+
+          return AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            transitionBuilder: (child, animation) {
+              return SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 1),
+                  end: Offset.zero,
+                ).animate(animation),
+                child: child,
+              );
+            },
+            child: totalCount > 0
+                ? Container(
+                    width: double.infinity,
+                    key: totalCount>0?const ValueKey<int>(1) : const ValueKey<int>(0),
+                    decoration: BoxDecoration(
+                      color: primaryColor,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, -5),
+                        ),
+                      ],
+                    ),
+                    child: SafeArea(
+                      child: AddedItemButton(
+                        itemCount: totalCount,
+                        onPressed: () {
+                          ctx.read<OrderTypeProvider>().changeHomeState(2);
+                          Navigator.pushReplacementNamed(
+                              context, HomePage.routeName);
+                        },
+                      ),
+                    ),
+                  )
+                : const SizedBox.shrink(),
+          );
+        },
+      ),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Stack(
+              children: [
+                SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.only(
+                        bottom: 80), // Add padding for bottom navigation
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -576,87 +628,55 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                       );
                                     }).toList(),
                                   )),
-                        // Add a similar horizontal list for Main Course Dishes
                       ],
                     ),
                   ),
-                  Positioned(
-                    bottom: 20, // Adjust as needed
-                    left: 0,
-                    right: 0,
-                    child: Consumer<CartProvider>(
-                        builder: (ctx, cartProvider, child) {
-                      int stored = ctx.watch<OrderTypeProvider>().orderType;
-                      String orderType = stored == 0 ? "Dine-in" : "Take-away";
-                      int totalCount = ctx
-                          .watch<CartProvider>()
-                          .getTotalUniqueItems(widget.id, orderType);
-
-                      return totalCount > 0
-                          ? Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 8),
-                              child: SizedBox(
-                                width: double.infinity,
-                                child: AddedItemButton(
-                                  itemCount: totalCount,
-                                  onPressed: () {
-                                    ctx
-                                        .read<OrderTypeProvider>()
-                                        .changeHomeState(2);
-                                    Navigator.pushReplacementNamed(
-                                        context, HomePage.routeName);
-                                  },
-                                ),
-                              ),
-                            )
-                          : const SizedBox
-                              .shrink(); // Returns an empty widget if totalCount is 0
-                    }),
-                  ),
-                  if (_isVisible)
-                    GestureDetector(
-                      onTap: _dismissSlidingScreen, // Dismiss on tap outside
-                      behavior: HitTestBehavior.opaque,
-                      child: Stack(
-                        children: [
-                          // This is the background blur
-                          Container(
-                            color: Colors.black.withOpacity(
-                                0.3), // Optional: add slight dark overlay
-                          ),
-
-                          // This is the bottom sheet content
-                          AnimatedPositioned(
-                              duration: const Duration(
-                                  milliseconds:
-                                      300), // Keep the duration for bottom sheet slide
-                              bottom: 0,
-                              left: 0,
-                              right: 0,
-                              child: SlideTransition(
-                                position: _offsetAnimation,
-                                child: GestureDetector(
-                                    onTap: () {},
-                                    child: Consumer<CartProvider>(
-                                        builder: (ctx, cartProvider, child) {
-                                      int stored = ctx
-                                          .watch<OrderTypeProvider>()
-                                          .orderType;
-                                      String orderType = "";
-                                      if (stored == 0) {
-                                        orderType = "Dine-in";
-                                      } else {
-                                        orderType = "Take-away";
-                                      }
-                                      return FoodItemBottomSheet(
+                ),
+                if (_isVisible)
+                  GestureDetector(
+                    onTap: _dismissSlidingScreen,
+                    behavior: HitTestBehavior.opaque,
+                    child: Stack(
+                      children: [
+                        Container(
+                          color: Colors.black.withOpacity(0.3),
+                        ),
+                        AnimatedPositioned(
+                            duration: const Duration(milliseconds: 300),
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            child: SlideTransition(
+                              position: _offsetAnimation,
+                              child: GestureDetector(
+                                  onTap: () {},
+                                  child: Consumer<CartProvider>(
+                                      builder: (ctx, cartProvider, child) {
+                                    int stored = ctx
+                                        .watch<OrderTypeProvider>()
+                                        .orderType;
+                                    String orderType = "";
+                                    if (stored == 0) {
+                                      orderType = "Dine-in";
+                                    } else {
+                                      orderType = "Take-away";
+                                    }
+                                    return Padding(
+                                      padding: const EdgeInsets.only(
+                                          bottom: 2), // Remove bottom padding
+                                      child: FoodItemBottomSheet(
                                         name: selectedDish!.dishId.dishName,
-                                        imageUrl: '',
+                                        imageUrl:
+                                            'https://via.placeholder.com/100',
                                         calories: '120 Cal',
                                         quantity: ctx
                                             .watch<CartProvider>()
                                             .getQuantity(widget.id, orderType,
                                                 selectedDish!.id),
+                                        categories:
+                                            selectedDish!.dishId.dishCatagory,
+                                        price: selectedDish!.resturantDishPrice
+                                            .toString(),
                                         onAddToCart: () {
                                           final cartProvider =
                                               Provider.of<CartProvider>(context,
@@ -683,17 +703,15 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                               .decrementQuantity(widget.id,
                                                   orderType, selectedDish!.id);
                                         },
-                                        categories:
-                                            selectedDish!.dishId.dishCatagory,
-                                        price: selectedDish!.resturantDishPrice
-                                            .toString(),
-                                      );
-                                    })),
-                              )),
-                        ],
-                      ),
+                                      ),
+                                    );
+                                  })),
+                            )),
+                      ],
                     ),
-                ],
-              ));
+                  ),
+              ],
+            ),
+    );
   }
 }
