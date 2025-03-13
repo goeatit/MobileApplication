@@ -315,14 +315,16 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                       )),
                                 ],
                               ),
+                              const SizedBox(height: 10),
                               Text(
                                 widget.name,
                                 style: const TextStyle(
-                                  fontSize: 20,
+                                  fontSize: 24,
                                   fontWeight: FontWeight.bold,
                                 ),
                                 textAlign: TextAlign.center,
                               ),
+                              const SizedBox(height: 5),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
@@ -330,6 +332,7 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                     "${dish?.restaurant.restaurantRating}",
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
+                                      color: Color(0xFF4F4F4F),
                                     ),
                                   ),
                                   Icon(
@@ -337,9 +340,17 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                     color: Theme.of(context).primaryColor,
                                     size: 15, // Adjust size as needed
                                   ),
-                                  const Text(" | Indian . Biryani | 2.3km "),
+                                  const Text(
+                                    " | Indian • Biryani | 2.3km ",
+                                    style: TextStyle(
+                                      color: Color(0xFF4F4F4F),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                   const Icon(
-                                    Icons.arrow_right_outlined,
+                                    Icons.keyboard_arrow_right_outlined,
+                                    size: 23,
+                                    color: Color(0xFF4F4F4F),
                                   )
                                 ],
                               ),
@@ -352,7 +363,7 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 30, vertical: 10),
+                              horizontal: 40, vertical: 10),
                           child: Container(
                             decoration: BoxDecoration(
                               border: Border.all(
@@ -366,7 +377,9 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                   children: [
                                     Text(
                                       "₹1200-₹1500",
-                                      style: TextStyle(color: primaryColor),
+                                      style: TextStyle(
+                                          color: primaryColor,
+                                          fontWeight: FontWeight.bold),
                                     ),
                                     Text(
                                       "for two",
@@ -376,7 +389,7 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                   ],
                                 ),
                                 Container(
-                                  height: 30,
+                                  height: 55,
                                   decoration: BoxDecoration(
                                     border: Border.all(
                                         width: 1,
@@ -386,7 +399,9 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                 const Column(children: [
                                   Text(
                                     "20 mins",
-                                    style: TextStyle(color: primaryColor),
+                                    style: TextStyle(
+                                        color: primaryColor,
+                                        fontWeight: FontWeight.bold),
                                   ),
                                   Text(
                                     "before reaching",
@@ -405,14 +420,14 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                           child: Container(
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              boxShadow: [
+                              boxShadow: const [
                                 BoxShadow(
-                                  color: Colors.grey
-                                      .withOpacity(0.5), // Shadow color
-                                  spreadRadius: 2, // How far the shadow spreads
-                                  blurRadius: 5, // How blurry the shadow is
-                                  offset: const Offset(
-                                      0, 3), // Offset in X and Y direction
+                                  color: Color(
+                                      0x0D000000), // This is #0000000D in RGBA
+                                  spreadRadius: 0,
+                                  blurRadius: 20,
+                                  offset: Offset(
+                                      0, 2), // 0px horizontal, 2px vertical
                                 ),
                               ],
                               borderRadius: BorderRadius.circular(

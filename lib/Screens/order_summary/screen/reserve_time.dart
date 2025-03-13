@@ -174,26 +174,23 @@ class _ReserveTimeState extends State<ReserveTime> {
                                 });
                               },
                         child: Container(
-
-
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 12, horizontal: 20),
-                          decoration: BoxDecoration(
-                            color: selectedTime == time
-                                ? Colors.green.shade100
-                                : isClosedSlot
-                                    ? Colors.grey.shade200
-                                    : Colors.white,
-                            border: Border.all(
-                                color:selectedTime == time
-                                ? const Color(0xFF139456)
-                                : isClosedSlot
-                                    ? Colors.grey
-                                    : Colors.black,
-                                    ),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 12, horizontal: 20),
+                            decoration: BoxDecoration(
+                              color: selectedTime == time
+                                  ? Colors.green.shade100
+                                  : isClosedSlot
+                                      ? Colors.grey.shade200
+                                      : Colors.white,
+                              border: Border.all(
+                                color: selectedTime == time
+                                    ? const Color(0xFF139456)
+                                    : isClosedSlot
+                                        ? Colors.grey
+                                        : Colors.black,
+                              ),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
                             child: Text(
                               time,
                               style: TextStyle(

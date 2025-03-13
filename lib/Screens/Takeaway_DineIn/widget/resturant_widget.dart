@@ -206,6 +206,7 @@ class _RestaurantWidgetState extends State<RestaurantWidget> {
                               ?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: darkBlack,
+                                  fontSize: 22,
                                   overflow: TextOverflow.ellipsis),
                         ),
                       ),
@@ -217,7 +218,7 @@ class _RestaurantWidgetState extends State<RestaurantWidget> {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: success,
+                              color: const Color(0xFF139456),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(
@@ -242,7 +243,11 @@ class _RestaurantWidgetState extends State<RestaurantWidget> {
                     children: [
                       Text(
                         widget.cuisineType,
-                        style: const TextStyle(color: cusineType, fontSize: 14),
+                        style: const TextStyle(
+                          color: cusineType,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                       Text(
                         widget.priceRange,
@@ -294,7 +299,8 @@ class _RestaurantWidgetState extends State<RestaurantWidget> {
                       'Use "${widget.promoCode}" to avail flat 10% off.',
                       style: const TextStyle(
                         color: Colors.black,
-                        fontSize: 12,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],

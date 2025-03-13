@@ -11,6 +11,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:async';
 
 import '../widget/resturant_widget.dart';
 
@@ -22,13 +23,21 @@ class DineInScreen extends StatefulWidget {
 }
 
 class _DineInScreen extends State<DineInScreen> {
-  List<RestaurantsData> restaurants = []; // List to store fetched restaurants
-  bool isLoading = true; // Loading indicator flag
-  String errorMessage = ''; // Store error message
+  List<RestaurantsData> restaurants = [];
+  bool isLoading = true;
+  String errorMessage = '';
   String? city;
   String? country;
 
-  // Fetch the restaurant data
+  int _currentBannerIndex = 0;
+  final List<String> bannerImages = [
+    "assets/images/banner.png",
+    "assets/images/banner2.png",
+    "assets/images/banner3.png",
+  ];
+
+  Timer? _timer;
+
   fetchData() async {
     final Connectivity connectivity = Connectivity();
     final NetworkManager networkManager = NetworkManager(connectivity);
@@ -39,7 +48,6 @@ class _DineInScreen extends State<DineInScreen> {
           await SharedPreferences.getInstance();
       city = sharedPreferences.getString("city");
       country = sharedPreferences.getString("country");
-      // city="Bengaluru";
 
       final response =
           await apiRepository.fetchRestaurantByArea(city!, country!);
@@ -54,14 +62,13 @@ class _DineInScreen extends State<DineInScreen> {
         });
       } else {
         setState(() {
-          restaurants = []; // Ensure restaurants list is empty
+          restaurants = [];
           errorMessage = "We are expanding soon in your city.";
           isLoading = false;
         });
       }
     } catch (e) {
       setState(() {
-        // errorMessage = "Error: $e";
         errorMessage = "We are expanding soon in your city.";
         isLoading = false;
       });
@@ -72,6 +79,25 @@ class _DineInScreen extends State<DineInScreen> {
   void initState() {
     super.initState();
     fetchData();
+    startBannerTimer();
+  }
+
+  void startBannerTimer() {
+    _timer?.cancel();
+
+    // First set initial state
+    setState(() {
+      _currentBannerIndex = 0;
+    });
+
+    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      if (mounted) {
+        // Check if widget is still mounted
+        setState(() {
+          _currentBannerIndex = (_currentBannerIndex + 1) % bannerImages.length;
+        });
+      }
+    });
   }
 
   @override
@@ -84,47 +110,78 @@ class _DineInScreen extends State<DineInScreen> {
   }
 
   @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: isLoading
-          ? const Center(
-              child: CircularProgressIndicator()) // Show loading spinner
+          ? const Center(child: CircularProgressIndicator())
           : errorMessage.isNotEmpty
-              ? Center(
-                  child: Text(
-                      errorMessage)) // Show error message if fetching failed
+              ? Center(child: Text(errorMessage))
               : SingleChildScrollView(
                   child: restaurants.isNotEmpty
                       ? Column(
-                          // Wrap the entire content in a Column
                           children: [
-                            ClipRRect(
-                              borderRadius: const BorderRadius.only(
-                                topLeft: Radius.circular(12),
-                                topRight: Radius.circular(12),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(
-                                    8.0), // Adjust padding as needed
-                                child: Image.asset(
-                                  "assets/images/banner.png",
-                                  width: double.infinity,
-                                  fit: BoxFit.contain,
+                            // Banner with dots
+                            Column(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: const BorderRadius.only(
+                                    topLeft: Radius.circular(12),
+                                    topRight: Radius.circular(12),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: AnimatedSwitcher(
+                                      duration:
+                                          const Duration(milliseconds: 500),
+                                      child: Image.asset(
+                                        bannerImages[_currentBannerIndex],
+                                        key: ValueKey<int>(
+                                            _currentBannerIndex), // Add this key
+                                        width: double.infinity,
+                                        fit: BoxFit.contain,
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                              ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: List.generate(
+                                    bannerImages.length,
+                                    (index) => Container(
+                                      width: 10,
+                                      height: 10,
+                                      margin: const EdgeInsets.symmetric(
+                                          horizontal: 4),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: _currentBannerIndex == index
+                                            ? const Color(0xFFF8951D)
+                                            : const Color(0xFFFBCA8E),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                              ],
                             ),
 
-                            // Promo restaurants
-
+                            // Promoted Restaurant Section
                             Container(
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 16),
                               width: double.infinity,
                               child: const Text(
-                                "Promoted Restaurant",
+                                "Promoted Resturants",
                                 style: TextStyle(
                                   fontSize: 22,
-                                  color: darkBlack,
+                                  color: Color(0xFF1D1929),
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -132,20 +189,18 @@ class _DineInScreen extends State<DineInScreen> {
                             RestaurantWidget(
                               imageUrl: 'assets/images/restaurant.png',
                               restaurantName: restaurants[0].restaurantName,
-                              cuisineType:
-                                  "Indian • Biryani", // Update this if you have a field for cuisine
-                              priceRange:
-                                  "₹1200-₹1500 for two", // Update this if you have price range info
+                              cuisineType: "Indian • Biryani",
+                              priceRange: "₹1200-₹1500 for two",
                               rating: restaurants[0].ratings.toDouble(),
-                              promotionText:
-                                  "Flat 10% off in booking", // Update if you have promo data
-                              promoCode:
-                                  "Happy10", // Update this if you have promo codes
+                              promotionText: "Flat 10% off in booking !",
+                              promoCode: "Happy10",
                               location: city!,
                               lat: restaurants[0].lat,
                               long: restaurants[0].long,
                               id: restaurants[0].id,
                             ),
+
+                            // What do you want to eat section
                             Container(
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 16),
@@ -153,32 +208,33 @@ class _DineInScreen extends State<DineInScreen> {
                               child: const Text(
                                 "What do you want to Eat Today",
                                 style: TextStyle(
-                                  fontSize: 18,
-                                  color: darkBlack,
+                                  fontSize: 20,
+                                  color: Color(0xFF1D1929),
                                 ),
                               ),
                             ),
-                            const SizedBox(
-                              height: 20,
-                            ),
+                            const SizedBox(height: 20),
+
+                            // Categories
                             SingleChildScrollView(
-                              scrollDirection: Axis
-                                  .horizontal, // Set horizontal scroll direction
+                              scrollDirection: Axis.horizontal,
                               child: Row(
                                 children: [
                                   categoryItem("Healthy Food",
-                                      "assets/images/healthy.png"), // Display the category item
+                                      "assets/images/healthy.png"),
                                   categoryItem("Home Style",
-                                      "assets/images/home_style.png"), // Display the category item
-                                  categoryItem("Pizza",
-                                      "assets/images/pizza.png"), // Display the category item
-                                  categoryItem("Burger",
-                                      "assets/images/burgers.png"), // Display the category item
-                                  categoryItem("Chicken",
-                                      "assets/images/chicken.png"), // Display the category item
+                                      "assets/images/home_style.png"),
+                                  categoryItem(
+                                      "Pizza", "assets/images/pizza.png"),
+                                  categoryItem(
+                                      "Burger", "assets/images/burgers.png"),
+                                  categoryItem(
+                                      "Chicken", "assets/images/chicken.png"),
                                 ],
                               ),
                             ),
+
+                            // Restaurant List
                             ListView.builder(
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
@@ -187,7 +243,6 @@ class _DineInScreen extends State<DineInScreen> {
                                   : 0,
                               itemBuilder: (context, index) {
                                 final restaurant = restaurants[index + 1];
-                                // Calculate image index (1-4) using modulo to cycle through images
                                 final imageIndex = (index % 9) + 1;
                                 return RestaurantWidget(
                                   imageUrl:
@@ -200,10 +255,6 @@ class _DineInScreen extends State<DineInScreen> {
                                   long: restaurant.long,
                                   lat: restaurant.lat,
                                   id: restaurant.id,
-                                  // promotionText:
-                                  //     "Promoted", // Update if you have promo data
-                                  // promoCode:
-                                  //     "Promo Placeholder", // Update this if you have promo codes
                                 );
                               },
                             ),
@@ -224,15 +275,16 @@ class _DineInScreen extends State<DineInScreen> {
           ClipOval(
             child: Image.asset(
               imagePath,
-              height: 60,
-              width: 60,
+              height: 80,
+              width: 80,
               fit: BoxFit.cover,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             label,
-            style: const TextStyle(fontSize: 14),
+            style: const TextStyle(
+                fontSize: 14, color: darkBlack, fontWeight: FontWeight.bold),
           ),
         ],
       ),
