@@ -10,6 +10,7 @@ import 'package:eatit/common/constants/colors.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class HomePage extends StatefulWidget {
   static const routeName = "/home-screen";
@@ -82,14 +83,15 @@ class _HomePage extends State<HomePage> {
                                 width: 50,
                                 height: 50,
                                 decoration: BoxDecoration(
-                                  color: const Color(
-                                      0xFFF8951D), // Background color #F8951D
-                                  borderRadius: BorderRadius.circular(
-                                      25), // 50% border radius
+                                  color: const Color(0xFFF8951D),
+                                  borderRadius: BorderRadius.circular(25),
                                 ),
-                                child: const Icon(
-                                  Icons.location_on_outlined,
-                                  color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: SvgPicture.asset(
+                                    'assets/images/location.svg',
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -140,8 +142,12 @@ class _HomePage extends State<HomePage> {
                                 },
                                 splashColor: Colors.transparent,
                                 highlightColor: Colors.transparent,
-                                child: const Icon(Icons.search,
-                                    color: primaryColor),
+                                child: SvgPicture.asset(
+                                  'assets/images/search.svg',
+                                  color: primaryColor,
+                                  width: 25,
+                                  height: 25,
+                                ),
                               ),
                               const SizedBox(width: 16),
                               InkWell(

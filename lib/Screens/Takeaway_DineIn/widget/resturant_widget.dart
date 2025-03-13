@@ -130,17 +130,14 @@ class _RestaurantWidgetState extends State<RestaurantWidget> {
                 Positioned(
                   top: 10,
                   right: 10,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(50),
-                    ),
-                    child: IconButton(
-                      onPressed: () {},
-                      icon: const Icon(
-                        Icons.bookmark_border,
-                        color: Colors.black,
-                      ),
+                  child: GestureDetector(
+                    onTap: () {
+                      // Your onTap functionality here
+                    },
+                    child: SvgPicture.asset(
+                      "assets/images/bookmark.svg",
+                      width: 45,
+                      height: 45,
                     ),
                   ),
                 ),
