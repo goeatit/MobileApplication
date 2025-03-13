@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../api/network_manager.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class SearchScreen extends StatefulWidget {
   static const routeName = "/search-page";
@@ -156,14 +157,15 @@ class _SearchScreenState extends State<SearchScreen> {
                             width: 50,
                             height: 50,
                             decoration: BoxDecoration(
-                              color: const Color(
-                                  0xFFF8951D), // Background color #F8951D
-                              borderRadius: BorderRadius.circular(
-                                  25), // 50% border radius
+                              color: const Color(0xFFF8951D),
+                              borderRadius: BorderRadius.circular(25),
                             ),
-                            child: const Icon(
-                              Icons.location_on_outlined,
-                              color: Colors.white,
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: SvgPicture.asset(
+                                'assets/images/location.svg',
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                           const SizedBox(width: 8),

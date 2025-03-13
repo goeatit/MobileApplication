@@ -13,6 +13,7 @@ import 'package:eatit/provider/cart_dish_provider.dart';
 import 'package:eatit/provider/order_type_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class SingleRestaurantScreen extends StatefulWidget {
   static const routeName = "/single-restaurant-screen";
@@ -258,29 +259,14 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                   Positioned(
                                     top: 10,
                                     right: 10,
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        shape: BoxShape.circle,
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color:
-                                                Colors.black.withOpacity(0.2),
-                                            spreadRadius: 1,
-                                            blurRadius: 3,
-                                            offset: const Offset(0, 1),
-                                          ),
-                                        ],
-                                      ),
-                                      child: IconButton(
-                                        icon: const Icon(
-                                          Icons.bookmark_border,
-                                          size: 20,
-                                          color: Colors.black87,
-                                        ),
-                                        onPressed: () {
-                                          // Add bookmark functionality here
-                                        },
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        // Your onTap functionality here
+                                      },
+                                      child: SvgPicture.asset(
+                                        "assets/images/bookmark.svg",
+                                        width: 45,
+                                        height: 45,
                                       ),
                                     ),
                                   ),
