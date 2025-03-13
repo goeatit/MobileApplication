@@ -109,7 +109,7 @@ class _LoginScreen extends State<LoginScreeen> {
               child: Row(
                 children: [
                   Container(
-                    width: 84, // Reduced width for dropdown (was 120)
+                    width: 105, // Reduced width for dropdown (was 120)
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.grey),
                       borderRadius: BorderRadius.circular(15),
