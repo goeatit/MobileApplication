@@ -62,4 +62,42 @@ class UserModelProvider extends ChangeNotifier {
 
     notifyListeners();
   }
+
+  Future<void> updateEmail(String email) async {
+    if (_userModel != null) {
+      _userModel!.useremail = email;
+      await _saveToPrefs();
+      notifyListeners();
+    }
+  }
+
+  Future<void> updatePhone(String phone) async {
+    if (_userModel != null) {
+      _userModel!.phoneNumber = phone;
+      await _saveToPrefs();
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateDob(String dob) async {
+    if (_userModel != null) {
+      _userModel!.dob = dob;
+      await _saveToPrefs();
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateGender(String gender) async {
+    if (_userModel != null) {
+      _userModel!.gender = gender;
+      await _saveToPrefs();
+      notifyListeners();
+    }
+  }
+
+  Future<void> _saveToPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userModelJson = json.encode(_userModel!.toJson());
+    await prefs.setString(_userModelKey, userModelJson);
+  }
 }
