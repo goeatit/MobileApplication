@@ -84,7 +84,7 @@ class CartPage extends StatelessWidget {
                                 arguments: {
                                   'name': cartItemWithDetails.restaurantName,
                                   'orderType': cartItemWithDetails.orderType,
-                                   'id': cartItemWithDetails.id,
+                                  'id': cartItemWithDetails.id,
                                 });
                           },
                           splashColor: Colors.transparent,

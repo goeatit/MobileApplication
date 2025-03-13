@@ -24,15 +24,15 @@ class DishCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 160, // Adjust the width as needed
+      width: 157, // Adjust the width as needed
       margin: const EdgeInsets.only(right: 10),
       padding: const EdgeInsets.all(5),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.3),
+            color: Colors.grey.withOpacity(0.2),
             spreadRadius: 2,
             blurRadius: 5,
             offset: const Offset(0, 3),
@@ -48,7 +48,7 @@ class DishCard extends StatelessWidget {
               Stack(
                 children: [
                   ClipRRect(
-                    borderRadius: const BorderRadius.all(Radius.circular(12)),
+                    borderRadius: const BorderRadius.all(Radius.circular(20)),
                     child: Image.asset(
                       imageUrl,
                       height: 120,
@@ -57,24 +57,34 @@ class DishCard extends StatelessWidget {
                     ),
                   ),
                   // Corner Ribbon
+                  // Replace the existing Corner Ribbon Positioned widget with this:
                   Positioned(
-                    top: 8,
-                    left: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 4,
-                        horizontal: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.orange,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Text(
-                        'Most Rated',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
+                    top: 12,
+                    left: -27, // Adjust this value to position the ribbon
+                    child: Transform.rotate(
+                      angle: -0.6, // Approximately -28.6 degrees in radians
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 1,
+                          horizontal: 35,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.orange,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: const Text(
+                          'Most Rated',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
@@ -84,7 +94,7 @@ class DishCard extends StatelessWidget {
               const SizedBox(height: 8),
               // Dish Name
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 10),
                 child: Text(
                   name,
                   style: const TextStyle(
@@ -100,7 +110,7 @@ class DishCard extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: Text(
-                  "$price · $calories",
+                  "$price • $calories",
                   style: const TextStyle(
                     color: Color(0xff737373),
                     fontSize: 14,
@@ -134,7 +144,6 @@ class DishCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(20),
                         color: Colors.white,
                       ),
-
                       child: Row(
                         children: [
                           IconButton(

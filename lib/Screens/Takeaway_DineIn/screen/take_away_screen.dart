@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/widget/bottom_cart.dart';
@@ -28,6 +30,15 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
   String errorMessage = ''; // Store error message
   String? city;
   String? country;
+
+  int _currentBannerIndex = 0;
+  final List<String> bannerImages = [
+    "assets/images/banner.png",
+    "assets/images/banner2.png",
+    "assets/images/banner3.png",
+  ];
+
+  Timer? _timer;
 
   // Fetch the restaurant data
   fetchData() async {
@@ -74,6 +85,25 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
   void initState() {
     super.initState();
     fetchData();
+    startBannerTimer();
+  }
+
+  void startBannerTimer() {
+    _timer?.cancel();
+
+    // First set initial state
+    setState(() {
+      _currentBannerIndex = 0;
+    });
+
+    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      if (mounted) {
+        // Check if widget is still mounted
+        setState(() {
+          _currentBannerIndex = (_currentBannerIndex + 1) % bannerImages.length;
+        });
+      }
+    });
   }
 
   @override
@@ -83,6 +113,12 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
     context
         .read<CartProvider>()
         .loadCartFromStorage(); // Load cart after widget initialization
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -102,22 +138,53 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
                             ? Column(
                                 // Wrap the entire content in a Column
                                 children: [
-                                  ClipRRect(
-                                    borderRadius: const BorderRadius.only(
-                                      topLeft: Radius.circular(12),
-                                      topRight: Radius.circular(12),
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(
-                                          8.0), // Adjust padding as needed
-                                      child: Image.asset(
-                                        "assets/images/banner.png",
-                                        width: double.infinity,
-                                        fit: BoxFit.contain,
+                                  // Banner with dots
+                                  Column(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: const BorderRadius.only(
+                                          topLeft: Radius.circular(12),
+                                          topRight: Radius.circular(12),
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: AnimatedSwitcher(
+                                            duration: const Duration(
+                                                milliseconds: 500),
+                                            child: Image.asset(
+                                              bannerImages[_currentBannerIndex],
+                                              key: ValueKey<int>(
+                                                  _currentBannerIndex), // Add this key
+                                              width: double.infinity,
+                                              fit: BoxFit.contain,
+                                            ),
+                                          ),
+                                        ),
                                       ),
-                                    ),
+                                      const SizedBox(height: 8),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: List.generate(
+                                          bannerImages.length,
+                                          (index) => Container(
+                                            width: 10,
+                                            height: 10,
+                                            margin: const EdgeInsets.symmetric(
+                                                horizontal: 4),
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color:
+                                                  _currentBannerIndex == index
+                                                      ? const Color(0xFFF8951D)
+                                                      : const Color(0xFFFBCA8E),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16),
+                                    ],
                                   ),
-
                                   // Promo restaurants
 
                                   Container(
@@ -232,16 +299,15 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
           ClipOval(
             child: Image.asset(
               imagePath,
-              height: 60,
-              width: 60,
+              height: 80,
+              width: 80,
               fit: BoxFit.cover,
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            label,
-            style: const TextStyle(fontSize: 14),
-          ),
+          Text(label,
+              style: const TextStyle(
+                  fontSize: 14, color: darkBlack, fontWeight: FontWeight.bold)),
         ],
       ),
     );

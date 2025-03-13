@@ -65,7 +65,7 @@ class _VerifyOtpState extends State<VerifyOtp> {
 
   void _onOtpChange() {
     setState(() {
-      _isButtonEnabled = _otpController.text.length == 4;
+      _isButtonEnabled = _otpController.text.length == 6;
       if (message.isNotEmpty) {
         message = "";
       }
@@ -149,7 +149,7 @@ class _VerifyOtpState extends State<VerifyOtp> {
                   ),
                   const SizedBox(height: 10),
                   const Text(
-                    "Enter the 4 digit code that has been sent to your registered number.",
+                    "Enter the 6 digit code that has been sent to your registered number.",
                     textAlign: TextAlign.left,
                     style: TextStyle(
                         fontSize: 16,
@@ -161,7 +161,7 @@ class _VerifyOtpState extends State<VerifyOtp> {
                       child: // Replace the existing Pinput widget with this updated version
                           Pinput(
                     controller: _otpController,
-                    length: 4,
+                    length: 6,
                     onCompleted: (value) {
                       _verifyOtp();
                     },
@@ -234,7 +234,7 @@ class _VerifyOtpState extends State<VerifyOtp> {
                   )),
                   const SizedBox(height: 10),
                   Padding(
-                    padding: const EdgeInsets.only(left: 60),
+                    padding: const EdgeInsets.only(left: 1),
                     child: Row(
                       children: [
                         if (message.isNotEmpty)
