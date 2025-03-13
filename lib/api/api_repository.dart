@@ -143,4 +143,11 @@ class ApiRepository {
       });
     });
   }
+
+  Future<Response?> updateProfile(Map<String, String?> changes) async {
+    final endpoint = ApiEndpoints.updateProfile;
+    return await networkManager.makeRequest(() {
+      return networkManager.dioManger.post(endpoint, data: changes);
+    });
+  }
 }

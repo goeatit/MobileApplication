@@ -7,7 +7,8 @@
     <application
         android:label="eatit"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:enableOnBackInvokedCallback="true">
         <meta-data android:name="com.facebook.sdk.ApplicationId"
         android:value="615531361444719"/>
         <meta-data android:name="com.facebook.sdk.ClientToken"
