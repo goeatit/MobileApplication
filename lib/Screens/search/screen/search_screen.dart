@@ -467,6 +467,7 @@ class _SearchScreenState extends State<SearchScreen> {
                               'location': item
                                   .restaurantIdDetails.restaurantAddress.city
                                   .toString(),
+                              'id':item.restaurantIdDetails.id.toString(),
                             });
                       },
                       child: Card(
@@ -512,7 +513,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                                     fontSize: 14,
                                                     fontWeight:
                                                         FontWeight.bold),
-                                                maxLines: 2,
+                                                maxLines: 3,
                                                 overflow: TextOverflow.ellipsis,
                                               ),
                                             ),
