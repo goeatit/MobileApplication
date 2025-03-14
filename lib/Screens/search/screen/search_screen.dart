@@ -164,7 +164,6 @@ class _SearchScreenState extends State<SearchScreen> {
                               padding: const EdgeInsets.all(12),
                               child: SvgPicture.asset(
                                 'assets/images/location.svg',
-                                color: Colors.white,
                               ),
                             ),
                           ),
@@ -313,7 +312,8 @@ class _SearchScreenState extends State<SearchScreen> {
                     crossAxisCount: 2,
                     crossAxisSpacing: 5,
                     mainAxisSpacing: 20,
-                    childAspectRatio: 0.8,
+                    childAspectRatio:
+                        0.78, // Fixed aspect ratio for better content fit
                   ),
                   itemCount: searchResultsRestaurant.length,
                   itemBuilder: (context, index) {
@@ -329,93 +329,112 @@ class _SearchScreenState extends State<SearchScreen> {
                                 'id': item.id.toString(),
                               });
                         },
-                        child: SizedBox(
-                          height: 220,
-                          child: Card(
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12)),
-                            elevation: 7,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                ClipRRect(
-                                  borderRadius: const BorderRadius.vertical(
-                                      top: Radius.circular(12)),
+                        child: Card(
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                          elevation: 7,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ClipRRect(
+                                borderRadius: const BorderRadius.vertical(
+                                    top: Radius.circular(12)),
+                                child: AspectRatio(
+                                  aspectRatio:
+                                      16 / 9, // Fixed aspect ratio for image
                                   child: Image.asset(
-                                      "assets/images/restaurant.png",
-                                      height: 120,
-                                      width: double.infinity,
-                                      fit: BoxFit.cover),
+                                    "assets/images/restaurant.png",
+                                    fit: BoxFit.cover,
+                                  ),
                                 ),
-                                Padding(
+                              ),
+                              Expanded(
+                                // Wrap content in Expanded
+                                child: Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment
+                                        .spaceBetween, // Space content evenly
                                     children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
-                                          Flexible(
-                                            child: Text(
-                                              item.restaurantName,
-                                              style: const TextStyle(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.bold),
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                              vertical: 4,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xFF139456),
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                            child: Text(
-                                              "${item.restaurantRating} ⭐",
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold,
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Expanded(
+                                                child: Text(
+                                                  item.restaurantName,
+                                                  style: const TextStyle(
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                  maxLines: 2,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
                                               ),
+                                              const SizedBox(width: 8),
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                  horizontal: 8,
+                                                  vertical: 4,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color:
+                                                      const Color(0xFF139456),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                ),
+                                                child: Text(
+                                                  "${item.restaurantRating} ⭐",
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 4),
+                                          const Text(
+                                            "Indian • Biryani",
+                                            style: TextStyle(
+                                              color: Color(0xFF4F4F4F),
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 13,
                                             ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
                                           ),
                                         ],
                                       ),
-                                      const SizedBox(height: 4),
-                                      const Text("Indian • Biryani",
-                                          style: TextStyle(
-                                            color: Color(0xFF4F4F4F),
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 13,
-                                          )),
-                                      const SizedBox(height: 8),
-                                      const Divider(
-                                        height: 4,
-                                        thickness: 1,
-                                        color: Color(0xFFE5E5E5),
+                                      const Column(
+                                        children: [
+                                          Divider(
+                                            height: 4,
+                                            thickness: 1,
+                                            color: Color(0xFFE5E5E5),
+                                          ),
+                                          SizedBox(height: 8),
+                                          Text(
+                                            "₹1200-₹1500 for two",
+                                            style: TextStyle(
+                                                color: darkBlack, fontSize: 12),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ],
                                       ),
-                                      const SizedBox(height: 8),
-                                      const SizedBox(
-                                        width: double
-                                            .infinity, // This makes the container take full width
-                                        child: Text(
-                                          "₹1200-₹1500 for two",
-                                          style: TextStyle(
-                                              color: darkBlack, fontSize: 12),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      )
                                     ],
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ));
                   },
@@ -432,7 +451,8 @@ class _SearchScreenState extends State<SearchScreen> {
                     crossAxisCount: 2,
                     crossAxisSpacing: 5,
                     mainAxisSpacing: 20,
-                    childAspectRatio: 0.8,
+                    childAspectRatio:
+                        0.78, // Fixed aspect ratio for better content fit
                   ),
                   itemCount: topDishes.length,
                   itemBuilder: (context, index) {
@@ -447,75 +467,109 @@ class _SearchScreenState extends State<SearchScreen> {
                               'location': item
                                   .restaurantIdDetails.restaurantAddress.city
                                   .toString(),
+                              'id':item.restaurantIdDetails.id.toString(),
                             });
                       },
-                      child: SizedBox(
-                        height: 220,
-                        child: Card(
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                          elevation: 7,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              ClipRRect(
-                                borderRadius: const BorderRadius.vertical(
-                                    top: Radius.circular(8)),
+                      child: Card(
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        elevation: 7,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ClipRRect(
+                              borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(8)),
+                              child: AspectRatio(
+                                aspectRatio:
+                                    16 / 9, // Fixed aspect ratio for image
                                 child: Image.asset(
-                                    "assets/images/restaurant.png",
-                                    height: 100,
-                                    width: double.infinity,
-                                    fit: BoxFit.cover),
+                                  "assets/images/restaurant.png",
+                                  fit: BoxFit.cover,
+                                ),
                               ),
-                              Padding(
+                            ),
+                            Expanded(
+                              // Wrap content in Expanded
+                              child: Padding(
                                 padding: const EdgeInsets.all(8.0),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment
+                                      .spaceBetween, // Space content evenly
                                   children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceAround,
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        Flexible(
-                                            child: Text(
-                                          '${item.dishId.dishName}, ${item.restaurantIdDetails.restaurantName} ',
-                                          style: const TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold),
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        )),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 8,
-                                            vertical: 4,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: success,
-                                            borderRadius:
-                                                BorderRadius.circular(8),
-                                          ),
-                                          child: Text(
-                                            "${item.rating} ⭐",
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold,
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                '${item.dishId.dishName}, ${item.restaurantIdDetails.restaurantName}',
+                                                style: const TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                                maxLines: 3,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
                                             ),
+                                            const SizedBox(width: 8),
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                horizontal: 8,
+                                                vertical: 4,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: success,
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                              child: Text(
+                                                "${item.rating} ⭐",
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          "Indian • Biryani",
+                                          style: const TextStyle(
+                                            color: Colors.grey,
+                                            fontSize: 13,
                                           ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(height: 4),
-                                    const Text("",
-                                        style: TextStyle(color: Colors.grey)),
-                                    const SizedBox(height: 4),
-                                    const Text("200",
-                                        style: TextStyle(color: Colors.grey)),
+                                    Column(
+                                      children: [
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          "₹200",
+                                          style: const TextStyle(
+                                            color: Colors.grey,
+                                            fontSize: 12,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
+                                    ),
                                   ],
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
                     );
