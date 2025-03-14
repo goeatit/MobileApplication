@@ -459,16 +459,24 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const CircleAvatar(
-                          radius: 40,
-                          backgroundImage:
-                              AssetImage('assets/images/restaurant.png'),
+                        Container(
+                          width:
+                              80, // Same size as diameter of previous CircleAvatar (radius * 2)
+                          height: 80,
+                          decoration: BoxDecoration(
+                            borderRadius:
+                                BorderRadius.circular(12), // 12px border radius
+                            image: const DecorationImage(
+                              image: AssetImage('assets/images/restaurant.png'),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 10),
                         Text(
                           widget.name,
                           style: const TextStyle(
-                            fontSize: 18,
+                            fontSize: 24,
                             fontWeight: FontWeight.bold,
                             // Add textAlign property to center the text
                           ),
@@ -500,7 +508,7 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                         const Text(
                           "Bill Summary",
                           style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold),
+                              fontSize: 24, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 10),
                         Container(
@@ -570,16 +578,32 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  const Text("Sub Total"),
-                                  Text("₹${subTotal.toStringAsFixed(2)}"),
+                                  const Text(
+                                    "Sub Total",
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  Text(
+                                    "₹${subTotal.toStringAsFixed(2)}",
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold),
+                                  ),
                                 ],
                               ),
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  const Text("GST (18%)"),
-                                  Text("₹${gst.toStringAsFixed(2)}"),
+                                  const Text(
+                                    "GST (18%)",
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  Text(
+                                    "₹${gst.toStringAsFixed(2)}",
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold),
+                                  ),
                                 ],
                               ),
                               Row(
@@ -603,7 +627,8 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                         ),
                         const SizedBox(height: 30),
                         const Text("Tip Something",
-                            style: TextStyle(fontSize: 20)),
+                            style: TextStyle(
+                                fontSize: 24, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 20),
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
