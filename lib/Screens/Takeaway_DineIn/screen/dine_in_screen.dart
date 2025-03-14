@@ -11,6 +11,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../widget/bottom_cart.dart';
+
 import 'dart:async';
 
 import '../widget/resturant_widget.dart';
@@ -118,152 +120,160 @@ class _DineInScreen extends State<DineInScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : errorMessage.isNotEmpty
-              ? Center(child: Text(errorMessage))
-              : SingleChildScrollView(
-                  child: restaurants.isNotEmpty
-                      ? Column(
-                          children: [
-                            // Banner with dots
-                            Column(
+      body: Stack(
+        children: [
+          isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : errorMessage.isNotEmpty
+                  ? Center(child: Text(errorMessage))
+                  : SingleChildScrollView(
+                      child: restaurants.isNotEmpty
+                          ? Column(
                               children: [
-                                ClipRRect(
-                                  borderRadius: const BorderRadius.only(
-                                    topLeft: Radius.circular(12),
-                                    topRight: Radius.circular(12),
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: AnimatedSwitcher(
-                                      duration:
-                                          const Duration(milliseconds: 500),
-                                      child: Image.asset(
-                                        bannerImages[_currentBannerIndex],
-                                        key: ValueKey<int>(
-                                            _currentBannerIndex), // Add this key
-                                        width: double.infinity,
-                                        fit: BoxFit.contain,
+                                // Banner with dots
+                                Column(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: const BorderRadius.only(
+                                        topLeft: Radius.circular(12),
+                                        topRight: Radius.circular(12),
                                       ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: AnimatedSwitcher(
+                                          duration:
+                                              const Duration(milliseconds: 500),
+                                          child: Image.asset(
+                                            bannerImages[_currentBannerIndex],
+                                            key: ValueKey<int>(
+                                                _currentBannerIndex),
+                                            width: double.infinity,
+                                            fit: BoxFit.contain,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: List.generate(
+                                        bannerImages.length,
+                                        (index) => Container(
+                                          width: 10,
+                                          height: 10,
+                                          margin: const EdgeInsets.symmetric(
+                                              horizontal: 4),
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: _currentBannerIndex == index
+                                                ? const Color(0xFFF8951D)
+                                                : const Color(0xFFFBCA8E),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                  ],
+                                ),
+
+                                // Promoted Restaurant Section
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16),
+                                  width: double.infinity,
+                                  child: const Text(
+                                    "Promoted Resturants",
+                                    style: TextStyle(
+                                      fontSize: 22,
+                                      color: Color(0xFF1D1929),
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 ),
-                                const SizedBox(height: 8),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: List.generate(
-                                    bannerImages.length,
-                                    (index) => Container(
-                                      width: 10,
-                                      height: 10,
-                                      margin: const EdgeInsets.symmetric(
-                                          horizontal: 4),
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: _currentBannerIndex == index
-                                            ? const Color(0xFFF8951D)
-                                            : const Color(0xFFFBCA8E),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                              ],
-                            ),
-
-                            // Promoted Restaurant Section
-                            Container(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 16),
-                              width: double.infinity,
-                              child: const Text(
-                                "Promoted Resturants",
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  color: Color(0xFF1D1929),
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            RestaurantWidget(
-                              imageUrl: 'assets/images/restaurant.png',
-                              restaurantName: restaurants[0].restaurantName,
-                              cuisineType: "Indian • Biryani",
-                              priceRange: "₹1200-₹1500 for two",
-                              rating: restaurants[0].ratings.toDouble(),
-                              promotionText: "Flat 10% off in booking !",
-                              promoCode: "Happy10",
-                              location: city!,
-                              lat: restaurants[0].lat,
-                              long: restaurants[0].long,
-                              id: restaurants[0].id,
-                            ),
-
-                            // What do you want to eat section
-                            Container(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 16),
-                              width: double.infinity,
-                              child: const Text(
-                                "What do you want to Eat Today",
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  color: Color(0xFF1D1929),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-
-                            // Categories
-                            SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                children: [
-                                  categoryItem("Healthy Food",
-                                      "assets/images/healthy.png"),
-                                  categoryItem("Home Style",
-                                      "assets/images/home_style.png"),
-                                  categoryItem(
-                                      "Pizza", "assets/images/pizza.png"),
-                                  categoryItem(
-                                      "Burger", "assets/images/burgers.png"),
-                                  categoryItem(
-                                      "Chicken", "assets/images/chicken.png"),
-                                ],
-                              ),
-                            ),
-
-                            // Restaurant List
-                            ListView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemCount: restaurants.length > 1
-                                  ? restaurants.length - 1
-                                  : 0,
-                              itemBuilder: (context, index) {
-                                final restaurant = restaurants[index + 1];
-                                final imageIndex = (index % 9) + 1;
-                                return RestaurantWidget(
-                                  imageUrl:
-                                      'assets/images/restaurant$imageIndex.png',
-                                  restaurantName: restaurant.restaurantName,
-                                  location: city!,
+                                RestaurantWidget(
+                                  imageUrl: 'assets/images/restaurant.png',
+                                  restaurantName: restaurants[0].restaurantName,
                                   cuisineType: "Indian • Biryani",
                                   priceRange: "₹1200-₹1500 for two",
-                                  rating: restaurant.ratings.toDouble(),
-                                  long: restaurant.long,
-                                  lat: restaurant.lat,
-                                  id: restaurant.id,
-                                );
-                              },
+                                  rating: restaurants[0].ratings.toDouble(),
+                                  promotionText: "Flat 10% off in booking !",
+                                  promoCode: "Happy10",
+                                  location: city!,
+                                  lat: restaurants[0].lat,
+                                  long: restaurants[0].long,
+                                  id: restaurants[0].id,
+                                ),
+
+                                // Categories Section
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16),
+                                  width: double.infinity,
+                                  child: const Text(
+                                    "What do you want to Eat Today",
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      color: Color(0xFF1D1929),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 20),
+
+                                SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
+                                    children: [
+                                      categoryItem("Healthy Food",
+                                          "assets/images/healthy.png"),
+                                      categoryItem("Home Style",
+                                          "assets/images/home_style.png"),
+                                      categoryItem(
+                                          "Pizza", "assets/images/pizza.png"),
+                                      categoryItem("Burger",
+                                          "assets/images/burgers.png"),
+                                      categoryItem("Chicken",
+                                          "assets/images/chicken.png"),
+                                    ],
+                                  ),
+                                ),
+
+                                // Restaurant List
+                                ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: restaurants.length > 1
+                                      ? restaurants.length - 1
+                                      : 0,
+                                  itemBuilder: (context, index) {
+                                    final restaurant = restaurants[index + 1];
+                                    final imageIndex = (index % 9) + 1;
+                                    return RestaurantWidget(
+                                      imageUrl:
+                                          'assets/images/restaurant$imageIndex.png',
+                                      restaurantName: restaurant.restaurantName,
+                                      location: city!,
+                                      cuisineType: "Indian • Biryani",
+                                      priceRange: "₹1200-₹1500 for two",
+                                      rating: restaurant.ratings.toDouble(),
+                                      long: restaurant.long,
+                                      lat: restaurant.lat,
+                                      id: restaurant.id,
+                                    );
+                                  },
+                                ),
+                                // Add bottom padding for cart
+                                const SizedBox(height: 80),
+                              ],
+                            )
+                          : const Center(
+                              child: Text("We are expanding soon"),
                             ),
-                          ],
-                        )
-                      : const Center(
-                          child: Text("We are expanding soon"),
-                        ),
-                ),
+                    ),
+          // Bottom Cart
+          const Positioned(bottom: 0, child: FoodCartSection())
+        ],
+      ),
     );
   }
 
@@ -284,7 +294,10 @@ class _DineInScreen extends State<DineInScreen> {
           Text(
             label,
             style: const TextStyle(
-                fontSize: 14, color: darkBlack, fontWeight: FontWeight.bold),
+              fontSize: 14,
+              color: darkBlack,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ],
       ),
