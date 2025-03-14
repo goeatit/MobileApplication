@@ -7,6 +7,7 @@ import 'package:eatit/main.dart';
 import 'package:eatit/provider/order_type_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:eatit/common/constants/colors.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -196,7 +197,7 @@ class _HomePage extends State<HomePage> {
               children: [
                 bottomNavigationItem(
                   imageIcon:
-                      "assets/images/dine-in-${_currentPage == 0 ? "select" : "unselect"}.png",
+                      "assets/svg/dine-in-${_currentPage == 0 ? "select" : "unselect"}.svg",
                   label: "Dine in",
                   isSelected: _currentPage == 0,
                   onClick: () {
@@ -207,7 +208,7 @@ class _HomePage extends State<HomePage> {
                 ),
                 bottomNavigationItem(
                   imageIcon:
-                      "assets/images/takeaway-${_currentPage == 1 ? "select" : "unselect"}.png",
+                      "assets/svg/takeaway-${_currentPage == 1 ? "select" : "unselect"}.svg",
                   label: "TakeAway",
                   isSelected: _currentPage == 1,
                   onClick: () {
@@ -218,7 +219,7 @@ class _HomePage extends State<HomePage> {
                 ),
                 bottomNavigationItem(
                   imageIcon:
-                      "assets/images/cart-${_currentPage == 2 ? "select" : "unselect"}.png",
+                      "assets/svg/cart-${_currentPage == 2 ? "select" : "unselect"}.svg",
                   label: "Cart",
                   isSelected: _currentPage == 2,
                   onClick: () {
@@ -281,12 +282,15 @@ class _HomePage extends State<HomePage> {
                 Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(
-                      imageIcon,
-                      height: 25,
+                    SvgPicture.asset(
+                      imageIcon, height: 25,
                       width: 25,
-                      color: isSelected ? primaryColor : grey,
+                      // colorFilter: ColorFilter.mode(isSelected ? primaryColor : grey, )
                     ),
+                    // Image.asset(
+                    //   imageIcon,
+                    //   color: isSelected ? primaryColor : grey,
+                    // ),
                     const SizedBox(
                       width: 10,
                     ),

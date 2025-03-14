@@ -177,9 +177,13 @@ class CartProvider extends ChangeNotifier {
   }
 
   int getTotalUniqueItems(String id, String orderType) {
+    int totalItems = 0;
     if (_restaurantCarts.containsKey(id) &&
         _restaurantCarts[id]!.containsKey(orderType)) {
-      return _restaurantCarts[id]![orderType]!.length;
+      for (var item in _restaurantCarts[id]![orderType]!) {
+        totalItems += item.quantity;
+      }
+      return totalItems;
     }
     return 0; // Return 0 if no items found for the given restaurant and order type
   }
