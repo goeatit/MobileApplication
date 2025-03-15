@@ -27,7 +27,7 @@ class _FoodCartSectionState extends State<FoodCartSection> {
             elevation: 7,
             shadowColor: const Color(0x33090909),
             child: Container(
-                width: 412,
+                width: double.infinity, // Changed from fixed 412
                 height: 70,
                 clipBehavior:
                     Clip.antiAlias, // This will hide overflowing content
@@ -72,9 +72,17 @@ class _FoodCartSectionState extends State<FoodCartSection> {
                           isSlided ? -70.0 : 0.0, 0.0, 0.0),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.horizontal(
-                          right: Radius.circular(isSlided ? 0 : 10),
-                        ),
+                        borderRadius:
+                            BorderRadius.circular(10), // Changed this line
+                        boxShadow: [
+                          // Added shadow
+                          if (isSlided)
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                        ],
                       ),
                       child: GestureDetector(
                         onTap: () {
@@ -85,8 +93,13 @@ class _FoodCartSectionState extends State<FoodCartSection> {
                           }
                         },
                         child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius:
+                                BorderRadius.circular(10), // Changed this line
+                          ),
                           padding: const EdgeInsets.symmetric(horizontal: 12),
-                          width: 412,
+                          width: double.infinity, // Changed from fixed 412
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
