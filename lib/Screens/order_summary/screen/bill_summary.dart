@@ -8,6 +8,7 @@ import 'package:eatit/models/dish_retaurant.dart';
 import 'package:eatit/provider/cart_dish_provider.dart';
 import 'package:eatit/provider/order_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart' show SvgPicture;
 import 'package:provider/provider.dart';
 
 class BillSummaryScreen extends StatefulWidget {
@@ -400,40 +401,18 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: Container(
-          margin: const EdgeInsets.only(left: 5),
-          decoration: BoxDecoration(
-            color: Colors.grey.shade200,
-            shape: BoxShape.circle,
-          ),
-          child: IconButton(
-            constraints: const BoxConstraints(
-              minWidth: 30,
-              minHeight: 30,
-            ),
-            icon: Container(
-              child: Stack(
-                children: [
-                  Positioned(
-                    left: 2,
-                    top: 2,
-                    child: Icon(
-                      Icons.arrow_back_ios_new,
-                      size: 22,
-                      color: Colors.black.withOpacity(0.3),
-                    ),
-                  ),
-                  const Icon(
-                    Icons.arrow_back_ios_new,
-                    size: 22,
-                    color: Colors.black87,
-                  ),
-                ],
-              ),
-            ),
-            onPressed: () {
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 5),
+          child: GestureDetector(
+            onTap: () {
               Navigator.pop(context);
             },
+            child: SvgPicture.asset(
+              'assets/images/graybackArrow.svg',
+              width: 30,
+              height: 30,
+              fit: BoxFit.scaleDown,
+            ),
           ),
         ),
       ),

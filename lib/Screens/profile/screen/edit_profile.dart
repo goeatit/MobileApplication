@@ -5,6 +5,7 @@ import 'package:eatit/provider/user_provider.dart';
 import 'package:eatit/Screens/profile/service/edit_profile_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 
@@ -105,68 +106,48 @@ class _EditProfileScreen extends State<EditProfileScreen> {
             elevation: 0,
             title: const Text(
               'Profile',
-              style: TextStyle(color: Colors.black),
+              style: TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.w700,
+                color: Colors.black,
+              ),
             ),
             actions: [
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
-                    shape: BoxShape.circle,
-                  ),
-                  child: IconButton(
-                    constraints: const BoxConstraints(
-                      minWidth: 30,
-                      minHeight: 30,
-                    ),
-                    icon: Container(
-                      child: Stack(
-                        children: [
-                          Positioned(
-                            left: 2,
-                            top: 2,
-                            child: Icon(
-                              Icons.arrow_back_ios_new,
-                              size: 22,
-                              color: Colors.black.withOpacity(0.3),
+                child: GestureDetector(
+                  onTap: () {
+                    if (_hasChanges) {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Unsaved Changes'),
+                          content: const Text(
+                              'Do you want to discard your changes?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('Cancel'),
                             ),
-                          ),
-                          const Icon(
-                            Icons.arrow_back_ios_new,
-                            size: 22,
-                            color: Colors.black87,
-                          ),
-                        ],
-                      ),
-                    ),
-                    onPressed: () {
-                      if (_hasChanges) {
-                        showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: const Text('Unsaved Changes'),
-                            content: const Text(
-                                'Do you want to discard your changes?'),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text('Cancel'),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pop(context); // Close dialog
-                                  Navigator.pop(context); // Go back
-                                },
-                                child: const Text('Discard'),
-                              ),
-                            ],
-                          ),
-                        );
-                      } else {
-                        Navigator.pop(context);
-                      }
-                    },
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context); // Close dialog
+                                Navigator.pop(context); // Go back
+                              },
+                              child: const Text('Discard'),
+                            ),
+                          ],
+                        ),
+                      );
+                    } else {
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: SvgPicture.asset(
+                    'assets/images/graybackArrow.svg',
+                    width: 60,
+                    height: 60,
+                    fit: BoxFit.scaleDown,
                   ),
                 ),
               ),
