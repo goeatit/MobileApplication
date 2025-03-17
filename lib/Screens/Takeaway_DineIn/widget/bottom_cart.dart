@@ -32,6 +32,7 @@ class _FoodCartSectionState extends State<FoodCartSection> {
                 clipBehavior:
                     Clip.antiAlias, // This will hide overflowing content
                 decoration: BoxDecoration(
+                  color: const Color(0xFFFDDBDB),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Stack(
@@ -41,7 +42,7 @@ class _FoodCartSectionState extends State<FoodCartSection> {
                       top: 0,
                       bottom: 0,
                       child: Container(
-                        width: 70,
+                        width: 80,
                         decoration: const BoxDecoration(
                           color: Color(0xFFFDDBDB),
                           borderRadius: BorderRadius.only(
