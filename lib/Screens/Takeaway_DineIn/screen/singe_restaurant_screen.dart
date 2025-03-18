@@ -204,7 +204,7 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
 
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight: 10,
+        toolbarHeight: 20,
         backgroundColor: _isVisible ? Colors.black.withOpacity(0.3) : null,
         automaticallyImplyLeading: false,
       ),
@@ -281,7 +281,7 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                     width: double.infinity,
                                     height: 200,
                                     child: Image.asset(
-                                      "assets/images/restaurant.png",
+                                      "assets/images/singerestaurant.png",
                                       fit: BoxFit.cover,
                                     ),
                                   ),
@@ -289,45 +289,14 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                   Positioned(
                                     top: 10,
                                     left: 10,
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        shape: BoxShape.circle,
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color:
-                                                Colors.black.withOpacity(0.2),
-                                            spreadRadius: 1,
-                                            blurRadius: 3,
-                                            offset: const Offset(0, 1),
-                                          ),
-                                        ],
-                                      ),
-                                      child: IconButton(
-                                        icon: Container(
-                                          child: Stack(
-                                            children: [
-                                              Positioned(
-                                                left: 2,
-                                                top: 2,
-                                                child: Icon(
-                                                  Icons.arrow_back_ios_new,
-                                                  size: 22,
-                                                  color: Colors.black
-                                                      .withOpacity(0.3),
-                                                ),
-                                              ),
-                                              const Icon(
-                                                Icons.arrow_back_ios_new,
-                                                size: 22,
-                                                color: Colors.black87,
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                        },
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        Navigator.pop(context);
+                                      },
+                                      child: SvgPicture.asset(
+                                        "assets/images/whitebackArrow.svg",
+                                        width: 50,
+                                        height: 50,
                                       ),
                                     ),
                                   ),
@@ -341,8 +310,8 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                       },
                                       child: SvgPicture.asset(
                                         "assets/images/bookmark.svg",
-                                        width: 45,
-                                        height: 45,
+                                        width: 50,
+                                        height: 50,
                                       ),
                                     ),
                                   ),

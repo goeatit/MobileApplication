@@ -19,7 +19,11 @@ class ProfileScreen extends StatelessWidget {
           elevation: 0,
           title: const Text(
             'Profile',
-            style: TextStyle(color: Colors.black),
+            style: TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.w700,
+              color: Colors.black,
+            ),
           ),
           actions: [
             Padding(
