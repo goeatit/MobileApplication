@@ -136,6 +136,29 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
     });
   }
 
+  void _showErrorDialog(String title, String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => PopScope(
+        canPop: false,
+        child: AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(ctx).pop();
+                Navigator.of(context).pop(); // Go back to previous screen
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _showSlidingScreen(AvailableDish dish) {
     setState(() {
       selectedDish = dish;
@@ -167,6 +190,7 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
         });
       }
     } catch (e) {
+      _showErrorDialog("Error", "An error occurred while fetching data.");
       setState(() {
         errorMessage = "Error: $e";
         isLoading = false;

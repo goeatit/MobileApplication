@@ -162,10 +162,16 @@ class _HomePage extends State<HomePage> {
                                     },
                                     splashColor: Colors.transparent,
                                     highlightColor: Colors.transparent,
-                                    child: const CircleAvatar(
+                                    child: CircleAvatar(backgroundColor: const Color(0xFFF4F4F4),
                                       radius: 20,
-                                      // backgroundImage: AssetImage(
-                                      //     'assets/images/profile_image.png'), // Replace with actual image path
+                                      child: ClipOval(
+                                        child: SvgPicture.asset(
+                                          "assets/svg/profile.svg",
+                                          fit: BoxFit.cover,
+                                          width: 40, // Adjust as needed
+                                          height: 40,
+                                        ),
+                                      ),
                                     ),
                                   )
                                 ],
