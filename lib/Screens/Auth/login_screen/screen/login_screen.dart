@@ -252,7 +252,7 @@ class _LoginScreen extends State<LoginScreeen> {
                           isLoading = false;
                         });
                         if (otpSent) {
-                          Navigator.pushNamed(context, VerifyOtp.routeName,
+                          Navigator.pushReplacementNamed(context, VerifyOtp.routeName,
                               arguments: {
                                 'countryCode': selectedCountryCode,
                                 'phoneNumber': phoneNumberController.text
