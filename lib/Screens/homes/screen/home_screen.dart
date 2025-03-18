@@ -58,118 +58,123 @@ class _HomePage extends State<HomePage> {
         },
         child: Scaffold(
           backgroundColor: white,
-          appBar: PreferredSize(
-              preferredSize: const Size.fromHeight(60),
-              child: Center(
-                child: Container(
-                    // decoration: BoxDecoration(
-                    //   border: Border.all(width: 2),
-                    // ),
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+          appBar: _currentPage == 2
+              ? null
+              : PreferredSize(
+                  preferredSize: const Size.fromHeight(60),
+                  child: Center(
                     child: Container(
-                      width: double.infinity,
-                      height: double.infinity,
-                      // decoration: BoxDecoration(
-                      //   border: Border.all(width: 2),
-                      // ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Row(
+                        // decoration: BoxDecoration(
+                        //   border: Border.all(width: 2),
+                        // ),
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Container(
+                          width: double.infinity,
+                          height: double.infinity,
+                          // decoration: BoxDecoration(
+                          //   border: Border.all(width: 2),
+                          // ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              Container(
-                                width: 50,
-                                height: 50,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF8951D),
-                                  borderRadius: BorderRadius.circular(25),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: SvgPicture.asset(
-                                    'assets/images/location.svg',
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.end,
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
-                                  Row(
+                                  Container(
+                                    width: 50,
+                                    height: 50,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFF8951D),
+                                      borderRadius: BorderRadius.circular(25),
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(12),
+                                      child: SvgPicture.asset(
+                                        'assets/images/location.svg',
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.end,
                                     children: [
-                                      Text(
-                                        'Home',
-                                        style: textTheme?.titleMedium?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 20,
+                                      Row(
+                                        children: [
+                                          Text(
+                                            'Home',
+                                            style: textTheme?.titleMedium
+                                                ?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 20,
+                                            ),
+                                          ),
+                                          const Icon(Icons.keyboard_arrow_down),
+                                        ],
+                                      ),
+                                      SizedBox(
+                                        width:
+                                            MediaQuery.of(context).size.width *
+                                                0.47, // Constrain width
+                                        child: Text(
+                                          fullAddress,
+                                          style: textTheme?.bodySmall?.copyWith(
+                                            color: Colors.black,
+                                          ),
+                                          overflow: TextOverflow
+                                              .ellipsis, // Adds ellipsis
+                                          maxLines: 1, // Restricts to one line
                                         ),
                                       ),
-                                      const Icon(Icons.keyboard_arrow_down),
                                     ],
-                                  ),
-                                  SizedBox(
-                                    width: MediaQuery.of(context).size.width *
-                                        0.47, // Constrain width
-                                    child: Text(
-                                      fullAddress,
-                                      style: textTheme?.bodySmall?.copyWith(
-                                        color: Colors.black,
-                                      ),
-                                      overflow: TextOverflow
-                                          .ellipsis, // Adds ellipsis
-                                      maxLines: 1, // Restricts to one line
-                                    ),
                                   ),
                                 ],
                               ),
-                            ],
-                          ),
-                          // Container(
-                          //   decoration: BoxDecoration(
-                          //     border: Border.all(width: 2),
-                          //   ),
-                          //   child:
-                          Row(
-                            children: [
-                              InkWell(
-                                onTap: () {
-                                  Navigator.pushNamed(
-                                      context, SearchScreen.routeName);
-                                },
-                                splashColor: Colors.transparent,
-                                highlightColor: Colors.transparent,
-                                child: SvgPicture.asset(
-                                  'assets/images/search.svg',
-                                  color: primaryColor,
-                                  width: 25,
-                                  height: 25,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              InkWell(
-                                onTap: () {
-                                  Navigator.pushNamed(
-                                      context, ProfileScreen.routeName);
-                                },
-                                splashColor: Colors.transparent,
-                                highlightColor: Colors.transparent,
-                                child: const CircleAvatar(
-                                  radius: 20,
-                                  // backgroundImage: AssetImage(
-                                  //     'assets/images/profile_image.png'), // Replace with actual image path
-                                ),
+                              // Container(
+                              //   decoration: BoxDecoration(
+                              //     border: Border.all(width: 2),
+                              //   ),
+                              //   child:
+                              Row(
+                                children: [
+                                  InkWell(
+                                    onTap: () {
+                                      Navigator.pushNamed(
+                                          context, SearchScreen.routeName);
+                                    },
+                                    splashColor: Colors.transparent,
+                                    highlightColor: Colors.transparent,
+                                    child: SvgPicture.asset(
+                                      'assets/images/search.svg',
+                                      color: primaryColor,
+                                      width: 25,
+                                      height: 25,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  InkWell(
+                                    onTap: () {
+                                      Navigator.pushNamed(
+                                          context, ProfileScreen.routeName);
+                                    },
+                                    splashColor: Colors.transparent,
+                                    highlightColor: Colors.transparent,
+                                    child: const CircleAvatar(
+                                      radius: 20,
+                                      // backgroundImage: AssetImage(
+                                      //     'assets/images/profile_image.png'), // Replace with actual image path
+                                    ),
+                                  )
+                                ],
+                                // ),
                               )
                             ],
-                            // ),
-                          )
-                        ],
-                      ),
-                    )),
-              )),
+                          ),
+                        )),
+                  )),
           body: Padding(
             padding: const EdgeInsets.all(6),
             child: Column(

@@ -77,47 +77,49 @@ class CartPageState extends State<CartPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        automaticallyImplyLeading:
+            false, // Add this line to remove the back arrow
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: const Text(
+          'Your Cart',
+          style: TextStyle(
+            fontSize: 32,
+            fontWeight: FontWeight.w700,
+            color: Colors.black,
+          ),
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: Container(
+              padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: const Color(0xFFF8951D),
+                  width: 1.5,
+                ),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.checklist_rounded,
+                color: Color(0xFFF8951D),
+                size: 20,
+              ),
+            ),
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            Container(
-              padding: const EdgeInsets.all(1),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Your Cart',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.all(3),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: const Color(0xFFF8951D),
-                        width: 1.5,
-                      ),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Icons.checklist_rounded,
-                      color: Color(0xFFF8951D),
-                      size: 20,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
             Expanded(
               child: _cartItems.isNotEmpty
                   ? AnimatedList(
                       key: _listKey,
                       initialItemCount: _cartItems.length,
-                      physics: const NeverScrollableScrollPhysics(),
                       itemBuilder: (context, index, animation) {
                         final cartItemWithDetails = _cartItems[index];
                         return SlideTransition(
@@ -161,7 +163,15 @@ class CartPageState extends State<CartPage> {
                       },
                     )
                   : const Center(
-                      child: Text('Your cart is empty.'),
+                      child: Text(
+                        'You have nothing in your cart!',
+                        style: TextStyle(
+                          color: Color(0xFF718EBF),
+                          fontWeight: FontWeight.w400,
+                          fontStyle: FontStyle.italic,
+                          fontSize: 15,
+                        ),
+                      ),
                     ),
             ),
           ],
