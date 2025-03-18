@@ -62,7 +62,7 @@ class GoogleLoginService {
 
       final responseFromBackend = await apiRepository.googleLogin(
           userInfo["email"], userInfo["name"], userInfo["picture"]);
-      print(responseFromBackend);
+      // print(responseFromBackend);
       if (responseFromBackend != null) {
         if (responseFromBackend.statusCode == 200) {
           var user = UserModel.fromJson(responseFromBackend.data);

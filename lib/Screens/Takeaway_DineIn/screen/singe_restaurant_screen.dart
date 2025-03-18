@@ -15,6 +15,7 @@ import 'package:eatit/Screens/cart_screen/screen/cart_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SingleRestaurantScreen extends StatefulWidget {
   static const routeName = "/single-restaurant-screen";
@@ -55,6 +56,27 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
   var textTheme;
   String searchQuery = ''; // Track search query
   final TextEditingController _searchController = TextEditingController();
+  void _openMap(dynamic latitude, dynamic longitude, {String? name}) async {
+    Uri googleMapsUrl;
+
+    if (latitude == null || longitude == null) {
+      googleMapsUrl = Uri.parse(
+          "https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(name!)}");
+    } else if (name != null && name.isNotEmpty) {
+      // Use `q=$latitude,$longitude+($name)` instead of `near`
+      final String encodedQuery = Uri.encodeComponent("$latitude,$longitude ($name)");
+      googleMapsUrl = Uri.parse("https://www.google.com/maps/search/?api=1&query=$encodedQuery");
+    } else {
+      // Drop a pin at the location
+      googleMapsUrl = Uri.parse("https://www.google.com/maps?q=$latitude,$longitude");
+    }
+
+    if (await canLaunchUrl(googleMapsUrl)) {
+      await launchUrl(googleMapsUrl);
+    } else {
+      throw 'Could not launch $googleMapsUrl';
+    }
+  }
 
   @override
   void initState() {
@@ -208,7 +230,9 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
             child: totalCount > 0
                 ? Container(
                     width: double.infinity,
-                    key: totalCount>0?const ValueKey<int>(1) : const ValueKey<int>(0),
+                    key: totalCount > 0
+                        ? const ValueKey<int>(1)
+                        : const ValueKey<int>(0),
                     decoration: BoxDecoration(
                       color: primaryColor,
                       boxShadow: [
@@ -333,7 +357,13 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                               20), // Adjust as needed
                                         ),
                                         child: ElevatedButton.icon(
-                                          onPressed: () {},
+                                          onPressed: () => _openMap(
+                                              dish?.restaurant
+                                                  .resturantLatitute,
+                                              dish?.restaurant
+                                                  .resturantLongitute,
+                                              name: dish
+                                                  ?.restaurant.restaurantName),
                                           label: const Text("Map",
                                               style: TextStyle(fontSize: 12)),
                                           icon: const Icon(

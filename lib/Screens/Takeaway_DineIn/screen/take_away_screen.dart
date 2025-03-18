@@ -286,7 +286,7 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
                                 child: Text("We are expanding soon"),
                               ),
                       ),
-                      const Positioned(bottom: 0, child: FoodCartSection())
+                      // const Positioned(bottom: 0, child: FoodCartSection())
                     ],
                   ));
   }

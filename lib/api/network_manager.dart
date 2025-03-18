@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -19,6 +20,9 @@ class NetworkManager {
   }
 
   void _setupInterceptors() {
+    bool isRefreshing = false;
+    Completer<void>? refreshCompleter;
+
     dioManger.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {
         final accessToken = await _tokenManager.getAccessToken();
@@ -29,38 +33,47 @@ class NetworkManager {
       },
       onError: (DioException e, handler) async {
         if (e.response?.statusCode == 401) {
-          // Token expired, try refreshing it
-          try {
-            await _tokenManager.refreshAccessToken((refreshToken) async {
-              final response = await dioManger.post(
-                'mobile/auth/refresh-token',
-                data: {'refreshToken': refreshToken},
-              );
-              return {
-                'accessToken': response.data['accessToken'],
-                'refreshToken': response.data['refreshToken'],
-              };
-            });
+          // Token expired, check if refresh is already in progress
+          if (isRefreshing) {
+            await refreshCompleter?.future; // Wait for the token to refresh
+          } else {
+            isRefreshing = true;
+            refreshCompleter = Completer<void>();
 
-            // Retry the failed request with the new token
-            final newAccessToken = await _tokenManager.getAccessToken();
-            if (newAccessToken != null) {
-              e.requestOptions.headers['Authorization'] =
-                  'Bearer $newAccessToken';
-              return handler.resolve(await dioManger.fetch(e.requestOptions));
+            try {
+              await _tokenManager.refreshAccessToken((refreshToken) async {
+                final response = await dioManger.post(
+                  '/mobile/auth/refresh-token',
+                  data: {'refreshToken': refreshToken},
+                );
+                return {
+                  'accessToken': response.data['accessToken'],
+                  'refreshToken': response.data['refreshToken'],
+                };
+              });
+            } catch (_) {
+              Fluttertoast.showToast(
+                msg: "Session expired. Please log in again.",
+                toastLength: Toast.LENGTH_LONG,
+                gravity: ToastGravity.BOTTOM,
+                backgroundColor: Colors.red,
+                textColor: Colors.white,
+              );
+              return handler.next(e);
+            } finally {
+              isRefreshing = false;
+              refreshCompleter?.complete(); // Notify all waiting requests
             }
-          } catch (_) {
-            // Refresh token failed, logout the user
-            Fluttertoast.showToast(
-              msg: "Session expired. Please log in again.",
-              toastLength: Toast.LENGTH_LONG,
-              gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.red,
-              textColor: Colors.white,
-            );
+          }
+
+          // Retry the failed request with the new token
+          final newAccessToken = await _tokenManager.getAccessToken();
+          if (newAccessToken != null) {
+            e.requestOptions.headers['Authorization'] = 'Bearer $newAccessToken';
+            return handler.resolve(await dioManger.fetch(e.requestOptions));
           }
         }
-        return handler.next(e); // Forward other errors
+        return handler.next(e);
       },
     ));
   }
