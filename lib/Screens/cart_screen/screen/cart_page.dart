@@ -120,7 +120,6 @@ class CartPageState extends State<CartPage> {
                   ? AnimatedList(
                       key: _listKey,
                       initialItemCount: _cartItems.length,
-                      physics: const NeverScrollableScrollPhysics(),
                       itemBuilder: (context, index, animation) {
                         final cartItemWithDetails = _cartItems[index];
                         return SlideTransition(
