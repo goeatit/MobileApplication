@@ -50,6 +50,8 @@ class _DineInScreen extends State<DineInScreen> {
           await SharedPreferences.getInstance();
       city = sharedPreferences.getString("city");
       country = sharedPreferences.getString("country");
+      // city = "Bhubaneswar";
+
 
       final response =
           await apiRepository.fetchRestaurantByArea(city!, country!);

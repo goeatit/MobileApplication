@@ -174,6 +174,7 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
             _showOtp = false;
             _isVerifying = false;
             _controller.text = _newValue;
+            _otpController.clear();
           });
 
           ScaffoldMessenger.of(context).showSnackBar(
@@ -186,6 +187,7 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
         } else {
           setState(() {
             _isVerifying = false;
+            _otpController.clear();
           });
 
           ScaffoldMessenger.of(context).showSnackBar(
@@ -200,6 +202,7 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
     } catch (e) {
       setState(() {
         _isVerifying = false;
+        _otpController.clear();
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
