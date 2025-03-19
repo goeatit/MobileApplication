@@ -135,7 +135,7 @@ class _RestaurantWidgetState extends State<RestaurantWidget> {
                       // Your onTap functionality here
                     },
                     child: SvgPicture.asset(
-                      "assets/images/bookmark.svg",
+                      "assets/svg/bookmark.svg",
                       width: 45,
                       height: 45,
                     ),
