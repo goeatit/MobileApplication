@@ -20,5 +20,6 @@ class ApiEndpoints {
       "/mobile/createOrder/$orderType";
   static String verifyPayment = "/mobile/payment/verify";
   static String updateProfile = "/mobile/updateProfile";
+  static String initProfile="/mobile/auth/init";
 // Add more dynamically constructed endpoints
 }

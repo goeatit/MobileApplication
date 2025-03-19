@@ -15,9 +15,9 @@ class UserModelProvider extends ChangeNotifier {
     _userModel = userModel;
 
     // Save to SharedPreferences
-    final prefs = await SharedPreferences.getInstance();
-    final userModelJson = json.encode(userModel.toJson());
-    await prefs.setString(_userModelKey, userModelJson);
+    // final prefs = await SharedPreferences.getInstance();
+    // final userModelJson = json.encode(userModel.toJson());
+    // await prefs.setString(_userModelKey, userModelJson);
     notifyListeners();
   }
 
@@ -32,9 +32,9 @@ class UserModelProvider extends ChangeNotifier {
       _userModel!.phoneNumber = phoneNumber;
 
       // Save updated data to SharedPreferences
-      final prefs = await SharedPreferences.getInstance();
-      final userModelJson = json.encode(_userModel!.toJson());
-      await prefs.setString(_userModelKey, userModelJson);
+      // final prefs = await SharedPreferences.getInstance();
+      // final userModelJson = json.encode(_userModel!.toJson());
+      // await prefs.setString(_userModelKey, userModelJson);
 
       notifyListeners();
     }
@@ -66,7 +66,7 @@ class UserModelProvider extends ChangeNotifier {
   Future<void> updateEmail(String email) async {
     if (_userModel != null) {
       _userModel!.useremail = email;
-      await _saveToPrefs();
+      // await _saveToPrefs();
       notifyListeners();
     }
   }
@@ -74,7 +74,7 @@ class UserModelProvider extends ChangeNotifier {
   Future<void> updatePhone(String phone) async {
     if (_userModel != null) {
       _userModel!.phoneNumber = phone;
-      await _saveToPrefs();
+      // await _saveToPrefs();
       notifyListeners();
     }
   }
@@ -82,7 +82,7 @@ class UserModelProvider extends ChangeNotifier {
   Future<void> updateDob(String dob) async {
     if (_userModel != null) {
       _userModel!.dob = dob;
-      await _saveToPrefs();
+      // await _saveToPrefs();
       notifyListeners();
     }
   }
@@ -90,7 +90,7 @@ class UserModelProvider extends ChangeNotifier {
   Future<void> updateGender(String gender) async {
     if (_userModel != null) {
       _userModel!.gender = gender;
-      await _saveToPrefs();
+      // await _saveToPrefs();
       notifyListeners();
     }
   }

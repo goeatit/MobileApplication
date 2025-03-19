@@ -271,7 +271,7 @@ class _DineInScreen extends State<DineInScreen> {
                             ),
                     ),
           // Bottom Cart
-          const Positioned(bottom: 0, child: FoodCartSection())
+          // const Positioned(bottom: 0, child: FoodCartSection())
         ],
       ),
     );

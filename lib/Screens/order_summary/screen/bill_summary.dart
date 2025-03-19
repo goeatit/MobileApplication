@@ -363,6 +363,7 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
             TextButton(
               onPressed: () {
                 Navigator.of(ctx).pop();
+                Navigator.of(context).pop(); // Go back to previous screen
               },
               child: const Text('OK'),
             ),

@@ -150,4 +150,11 @@ class ApiRepository {
       return networkManager.dioManger.post(endpoint, data: changes);
     });
   }
+
+  Future<Response?> initProfile() async {
+    final endpoint = ApiEndpoints.initProfile;
+    return await networkManager.makeRequest(() {
+      return networkManager.dioManger.post(endpoint);
+    });
+  }
 }
