@@ -271,6 +271,7 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                       child: AddedItemButton(
                         itemCount: totalCount,
                         onPressed: () {
+                          Navigator.pop(context);
                           ctx.read<OrderTypeProvider>().changeHomeState(2);
                           Navigator.pushReplacementNamed(
                               context, HomePage.routeName);
