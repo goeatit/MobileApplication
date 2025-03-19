@@ -245,12 +245,12 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
     _userModel = context.read<UserModelProvider>().userModel;
     setState(() {
       if (_userModel?.name != null) {
-        nameController.text = _userModel?.name ?? "";
+        nameController.text = _userModel?.name;
         isNamePresent = true;
         isNameTouched = true;
       }
       if (_userModel?.useremail != null) {
-        emailController.text = _userModel?.useremail ?? "";
+        emailController.text = _userModel?.useremail;
         isEmailPresent = true;
         isEmailTouched = true;
       }
