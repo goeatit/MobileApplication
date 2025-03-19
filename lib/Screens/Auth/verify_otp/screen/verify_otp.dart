@@ -109,12 +109,13 @@ class _VerifyOtpState extends State<VerifyOtp> {
     return Scaffold(
         appBar: AppBar(
           leading: GestureDetector(
-            onTap: (){
+            onTap: () {
               Navigator.pop(context);
             },
             child: Row(
               children: [
-                const SizedBox(width: 15), // Add some padding from the left edge
+                const SizedBox(
+                    width: 15), // Add some padding from the left edge
                 const Icon(
                   Icons.arrow_back_ios_new,
                   color: Color(0xFF999999),
