@@ -15,6 +15,7 @@ import 'package:eatit/Screens/order_summary/screen/reserve_time.dart';
 import 'package:eatit/Screens/profile/screen/edit_profile.dart';
 import 'package:eatit/Screens/profile/screen/profile_screen.dart';
 import 'package:eatit/Screens/search/screen/search_screen.dart';
+import 'package:eatit/Screens/splash_screen/screen/SplashScreen.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/provider/cart_dish_provider.dart';
 import 'package:eatit/provider/order_provider.dart';
