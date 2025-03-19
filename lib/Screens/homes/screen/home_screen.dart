@@ -91,7 +91,7 @@ class _HomePage extends State<HomePage> {
                                     child: Padding(
                                       padding: const EdgeInsets.all(12),
                                       child: SvgPicture.asset(
-                                        'assets/images/location.svg',
+                                        'assets/svg/location.svg',
                                         color: Colors.white,
                                       ),
                                     ),
@@ -148,7 +148,7 @@ class _HomePage extends State<HomePage> {
                                     splashColor: Colors.transparent,
                                     highlightColor: Colors.transparent,
                                     child: SvgPicture.asset(
-                                      'assets/images/search.svg',
+                                      'assets/svg/search.svg',
                                       color: primaryColor,
                                       width: 25,
                                       height: 25,

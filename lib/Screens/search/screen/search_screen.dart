@@ -163,7 +163,7 @@ class _SearchScreenState extends State<SearchScreen> {
                             child: Padding(
                               padding: const EdgeInsets.all(12),
                               child: SvgPicture.asset(
-                                'assets/images/location.svg',
+                                'assets/svg/location.svg',
                               ),
                             ),
                           ),
@@ -467,7 +467,7 @@ class _SearchScreenState extends State<SearchScreen> {
                               'location': item
                                   .restaurantIdDetails.restaurantAddress.city
                                   .toString(),
-                              'id':item.restaurantIdDetails.id.toString(),
+                              'id': item.restaurantIdDetails.id.toString(),
                             });
                       },
                       child: Card(

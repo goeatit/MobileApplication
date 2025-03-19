@@ -103,7 +103,7 @@ class _ReserveTimeState extends State<ReserveTime> {
               Navigator.pop(context);
             },
             child: SvgPicture.asset(
-              'assets/images/graybackArrow.svg',
+              'assets/svg/graybackArrow.svg',
               width: 30,
               height: 30,
               fit: BoxFit.scaleDown,
