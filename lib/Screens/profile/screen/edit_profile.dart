@@ -144,7 +144,7 @@ class _EditProfileScreen extends State<EditProfileScreen> {
                     }
                   },
                   child: SvgPicture.asset(
-                    'assets/images/graybackArrow.svg',
+                    'assets/svg/graybackArrow.svg',
                     width: 60,
                     height: 60,
                     fit: BoxFit.scaleDown,

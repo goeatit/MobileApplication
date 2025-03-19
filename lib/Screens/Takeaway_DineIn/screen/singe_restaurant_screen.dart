@@ -272,7 +272,7 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                         Navigator.pop(context);
                                       },
                                       child: SvgPicture.asset(
-                                        "assets/images/whitebackArrow.svg",
+                                        "assets/svg/whitebackArrow.svg",
                                         width: 50,
                                         height: 50,
                                       ),
@@ -287,7 +287,7 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                         // Your onTap functionality here
                                       },
                                       child: SvgPicture.asset(
-                                        "assets/images/bookmark.svg",
+                                        "assets/svg/bookmark.svg",
                                         width: 50,
                                         height: 50,
                                       ),
