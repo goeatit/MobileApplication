@@ -263,7 +263,8 @@ class CurrentData {
       forceClose: json['forceClose'],
       restaurantWaitingTime: json['restaurantWaitingTime'],
       restaurantTime: json['restaurantTime'],
-      orderDish: (json['orderdDish'] as List<dynamic>) // Convert list of maps to list of OrderdDish
+      orderDish: (json['orderdDish']
+              as List<dynamic>) // Convert list of maps to list of OrderdDish
           .map((dish) => OrderdDish.fromJson(dish))
           .toList(),
     );
@@ -276,7 +277,9 @@ class CurrentData {
       'forceClose': forceClose,
       'restaurantWaitingTime': restaurantWaitingTime,
       'restaurantTime': restaurantTime,
-      'orderDish': orderDish.map((dish) => dish.toJson()).toList(), // Convert list to JSON
+      'orderDish': orderDish
+          .map((dish) => dish.toJson())
+          .toList(), // Convert list to JSON
     };
   }
 }
@@ -312,4 +315,3 @@ class OrderdDish {
     };
   }
 }
-
