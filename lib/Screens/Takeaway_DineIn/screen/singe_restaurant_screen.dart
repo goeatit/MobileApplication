@@ -64,11 +64,14 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
           "https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(name!)}");
     } else if (name != null && name.isNotEmpty) {
       // Use `q=$latitude,$longitude+($name)` instead of `near`
-      final String encodedQuery = Uri.encodeComponent("$latitude,$longitude ($name)");
-      googleMapsUrl = Uri.parse("https://www.google.com/maps/search/?api=1&query=$encodedQuery");
+      final String encodedQuery =
+          Uri.encodeComponent("$latitude,$longitude ($name)");
+      googleMapsUrl = Uri.parse(
+          "https://www.google.com/maps/search/?api=1&query=$encodedQuery");
     } else {
       // Drop a pin at the location
-      googleMapsUrl = Uri.parse("https://www.google.com/maps?q=$latitude,$longitude");
+      googleMapsUrl =
+          Uri.parse("https://www.google.com/maps?q=$latitude,$longitude");
     }
 
     if (await canLaunchUrl(googleMapsUrl)) {

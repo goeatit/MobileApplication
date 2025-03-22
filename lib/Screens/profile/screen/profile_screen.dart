@@ -89,23 +89,27 @@ class ProfileScreen extends StatelessWidget {
                             style: const TextStyle(color: Colors.grey),
                           ),
                           const SizedBox(height: 8),
-                          InkWell(
-                            onTap: () {
-                              Navigator.pushNamed(
-                                  context, EditProfileScreen.routeName);
-                            },
-                            child: const Text(
-                              'Edit Profile',
-                              style: TextStyle(
-                                color: primaryColor,
-                                fontWeight: FontWeight.bold,
-                                decoration: TextDecoration.underline,
-                                decorationColor: primaryColor,
-                                decorationThickness:
-                                    2, // Optional: adjust thickness as needed
-                                decorationStyle: TextDecorationStyle.solid,
+                          Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.pushNamed(
+                                    context, EditProfileScreen.routeName);
+                              },
+                              splashColor: Colors.white,
+                              highlightColor: Colors.transparent,
+                              child: const Text(
+                                'Edit Profile',
+                                style: TextStyle(
+                                  color: primaryColor,
+                                  fontWeight: FontWeight.bold,
+                                  decoration: TextDecoration.underline,
+                                  decorationColor: primaryColor,
+                                  decorationThickness: 2,
+                                  decorationStyle: TextDecorationStyle.solid,
+                                ),
+                                textAlign: TextAlign.left,
                               ),
-                              textAlign: TextAlign.left,
                             ),
                           )
                         ],
