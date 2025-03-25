@@ -3,7 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class FoodCartSection extends StatefulWidget {
-  const FoodCartSection({super.key});
+  const FoodCartSection(
+      {super.key,
+      required this.name,
+      required this.items,
+      required this.pressMenu,
+      required this.pressCart,
+      required this.pressRemove});
+  final String name;
+  final String items;
+  final VoidCallback pressMenu;
+  final VoidCallback pressCart;
+  final VoidCallback pressRemove;
 
   @override
   State<FoodCartSection> createState() => _FoodCartSectionState();
@@ -52,7 +63,11 @@ class _FoodCartSectionState extends State<FoodCartSection> {
                         ),
                         child: GestureDetector(
                           onTap: () {
-                            // Handle remove action
+                            widget.pressRemove();
+
+                            setState(() {
+                              isSlided = false;
+                            });
                           },
                           child: const Center(
                             child: Text(
@@ -124,31 +139,42 @@ class _FoodCartSectionState extends State<FoodCartSection> {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        Text(
-                                          "Sabzi - The Indian Cuisine",
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w700,
-                                            color:
-                                                Colors.black.withOpacity(0.87),
+                                        SizedBox(
+                                          width: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.3, // Limit the width
+                                          child: Text(
+                                            widget.name,
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w700,
+                                              color: Colors.black
+                                                  .withOpacity(0.87),
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 1,
                                           ),
                                         ),
-                                        Row(
-                                          children: [
-                                            const Text(
-                                              "View Menu",
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w400,
+                                        GestureDetector(
+                                          onTap: widget.pressMenu,
+                                          child: Row(
+                                            children: [
+                                              const Text(
+                                                "View Menu",
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w400,
+                                                ),
                                               ),
-                                            ),
-                                            const SizedBox(width: 5),
-                                            SvgPicture.asset(
-                                              "assets/images/double-arrow.svg",
-                                              width: 20,
-                                              height: 20,
-                                            ),
-                                          ],
+                                              const SizedBox(width: 5),
+                                              SvgPicture.asset(
+                                                "assets/images/double-arrow.svg",
+                                                width: 20,
+                                                height: 20,
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -164,9 +190,7 @@ class _FoodCartSectionState extends State<FoodCartSection> {
                                       width: 114,
                                       height: 44,
                                       child: ElevatedButton(
-                                        onPressed: () {
-                                          // Handle "View Cart" action
-                                        },
+                                        onPressed: widget.pressCart,
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: primaryColor,
                                           shape: RoundedRectangleBorder(
@@ -174,11 +198,11 @@ class _FoodCartSectionState extends State<FoodCartSection> {
                                                 BorderRadius.circular(5),
                                           ),
                                         ),
-                                        child: const Column(
+                                        child: Column(
                                           mainAxisAlignment:
                                               MainAxisAlignment.center,
                                           children: [
-                                            Text(
+                                            const Text(
                                               "View Cart",
                                               style: TextStyle(
                                                 color: Colors.white,
@@ -186,10 +210,10 @@ class _FoodCartSectionState extends State<FoodCartSection> {
                                               ),
                                             ),
                                             Text(
-                                              "1 Items",
-                                              style: TextStyle(
+                                              "${widget.items} item",
+                                              style: const TextStyle(
                                                 color: Colors.white,
-                                                fontSize: 10,
+                                                fontSize: 12,
                                               ),
                                             ),
                                           ],
