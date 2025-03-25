@@ -6,6 +6,7 @@ class CartItem {
   final String orderType;
   final AvailableDish dish;
   int quantity;
+  final String location;
 
   CartItem({
     required this.id,
@@ -13,6 +14,7 @@ class CartItem {
     required this.orderType,
     required this.dish,
     required this.quantity,
+    required this.location,
   });
 
   // Convert CartItem to a Map (for JSON encoding)
@@ -23,17 +25,19 @@ class CartItem {
       'orderType': orderType,
       'dish': dish.toMap(),
       'quantity': quantity,
+      'location': location,
     };
   }
 
   // Create a CartItem from a Map (for JSON decoding)
   factory CartItem.fromMap(Map<String, dynamic> map) {
     return CartItem(
-      id: map['id'],
-      restaurantName: map['restaurantName'],
-      orderType: map['orderType'],
-      dish: AvailableDish.fromMap(map['dish']),
-      quantity: map['quantity'],
+        id: map['id'],
+        restaurantName: map['restaurantName'],
+        orderType: map['orderType'],
+        dish: AvailableDish.fromMap(map['dish']),
+        quantity: map['quantity'],
+        location: map['location']
     );
   }
 }

@@ -26,14 +26,14 @@ class CartPageState extends State<CartPage> {
 
   @override
   void didChangeDependencies() {
+    final restaurantCarts = context.watch<CartProvider>().restaurantCarts;
+    _updateCartItems(restaurantCarts);
     super.didChangeDependencies();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _updateCartItems());
   }
 
-  void _updateCartItems() {
-    final items = context.read<CartProvider>().restaurantCarts;
+  void _updateCartItems(restaurantCarts) {
+    final items = restaurantCarts;
     final newCartItems = <CartItemWithDetails>[];
-
     items.forEach((id, orderTypes) {
       orderTypes.forEach((orderType, cartItems) {
         if (cartItems.isNotEmpty) {
@@ -47,9 +47,28 @@ class CartPageState extends State<CartPage> {
         }
       });
     });
-    setState(() {
-      _cartItems=newCartItems;
-    });
+    if (_cartItems.length <= newCartItems.length) {
+      print("1st ");
+      _listKey.currentState?.insertItem(newCartItems.length);
+    } else {
+      for (int i = _cartItems.length - 1; i >= newCartItems.length; i--) {
+        _listKey.currentState?.removeItem(
+            i,
+            (context, animation) => SlideTransition(
+                position: animation.drive(
+                  Tween<Offset>(
+                    begin: const Offset(-1.0, 0.0),
+                    end: Offset.zero,
+                  ).chain(CurveTween(curve: Curves.easeInOutCubic)),
+                ),
+                child: const SizedBox.shrink()));
+      }
+    }
+    if (mounted) {
+      setState(() {
+        _cartItems = newCartItems;
+      });
+    }
   }
 
   void removeItem(int index) {
@@ -125,38 +144,39 @@ class CartPageState extends State<CartPage> {
         ],
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Expanded(
-              child: _cartItems.isNotEmpty
-                  ? Consumer<CartProvider>(builder: (ctx, cartProvider, child) {
-                      return AnimatedList(
-                        key: _listKey,
-                        initialItemCount: _cartItems.length,
-                        itemBuilder: (context, index, animation) {
-                          if(index>_cartItems.length-1){
-                            return const SizedBox.shrink();
-                          }
-                          return _buildCartItem(_cartItems[index], animation);
-                        },
-                      );
-                    })
-                  : const Center(
-                      child: Text(
-                        'You have nothing in your cart!',
-                        style: TextStyle(
-                          color: Color(0xFF718EBF),
-                          fontWeight: FontWeight.w400,
-                          fontStyle: FontStyle.italic,
-                          fontSize: 15,
+          padding: const EdgeInsets.all(16.0),
+          child: Consumer<CartProvider>(builder: (ctx, cartProvider, child) {
+            return Column(
+              children: [
+                Expanded(
+                  child: _cartItems.isNotEmpty
+                      ? AnimatedList(
+                          key: _listKey,
+                          initialItemCount: _cartItems.length,
+                          itemBuilder: (context, index, animation) {
+                            if (index >= _cartItems.length) {
+                              print(index);
+                              return const SizedBox.shrink();
+                            }
+                            print("outside $index");
+                            return _buildCartItem(_cartItems[index], animation);
+                          },
+                        )
+                      : const Center(
+                          child: Text(
+                            'You have nothing in your cart!',
+                            style: TextStyle(
+                              color: Color(0xFF718EBF),
+                              fontWeight: FontWeight.w400,
+                              fontStyle: FontStyle.italic,
+                              fontSize: 15,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-            ),
-          ],
-        ),
-      ),
+                ),
+              ],
+            );
+          })),
     );
   }
 
