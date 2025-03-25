@@ -13,7 +13,7 @@ class ProfileInputField extends StatefulWidget {
   final bool isPhone;
   final bool isDatePicker;
   final bool isEmail;
-  final Function(bool)? editPressed; // Function returning bool
+  final Function(bool)? editPressed;
   final Function(bool)? isLoading;
 
   const ProfileInputField({
@@ -44,7 +44,7 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
   bool _isVerifying = false;
   String _selectedCountryCode = '+91';
   String _newValue = '';
-  String initValue ="";
+  String initValue = "";
   EditProfileSerevice editProfileSerevice = EditProfileSerevice();
 
   @override
@@ -52,7 +52,7 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
     super.initState();
     _controller = TextEditingController(text: widget.value);
     _otpController = TextEditingController();
-    initValue=widget.value;
+    initValue = widget.value;
   }
 
   @override
@@ -60,6 +60,12 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
     _controller.dispose();
     _otpController.dispose();
     super.dispose();
+  }
+
+  // Add email validation method
+  bool _isValidEmail(String email) {
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    return emailRegex.hasMatch(email);
   }
 
   void _toggleEdit() {
@@ -70,6 +76,17 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
         if (_controller.text != widget.value && _controller.text.isNotEmpty) {
           _newValue = _controller.text;
           if (widget.isEmail) {
+            // Add email validation here
+            if (!_isValidEmail(_newValue)) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Please enter a valid email address'),
+                  backgroundColor: Colors.red,
+                  duration: Duration(seconds: 2),
+                ),
+              );
+              return;
+            }
             widget.isLoading?.call(true);
             _sendOtp();
           } else {
@@ -357,6 +374,38 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
                 ),
                 onCompleted: (pin) => _verifyOtp(),
                 enabled: !_isVerifying,
+                keyboardType: TextInputType.number,
+                onChanged: (value) {
+                  // Get the current cursor position
+                  final currentIndex = _otpController.selection.baseOffset - 1;
+                  if (currentIndex >= 0 && currentIndex < value.length) {
+                    // Check if the last entered character is not a number
+                    final lastChar = value[currentIndex];
+                    if (!RegExp(r'[0-9]').hasMatch(lastChar)) {
+                      // Create a new string with the invalid character removed
+                      final newValue = value.substring(0, currentIndex) +
+                          (currentIndex < value.length - 1
+                              ? value.substring(currentIndex + 1)
+                              : '');
+
+                      // Update the controller with the new value
+                      _otpController.text = newValue;
+
+                      // Set cursor position
+                      _otpController.selection = TextSelection.fromPosition(
+                        TextPosition(offset: currentIndex),
+                      );
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Please enter numbers only'),
+                          backgroundColor: Colors.red,
+                          duration: Duration(seconds: 1),
+                        ),
+                      );
+                    }
+                  }
+                },
               ),
               if (_isVerifying) ...[
                 const SizedBox(height: 8),
