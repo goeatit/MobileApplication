@@ -46,7 +46,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   bool isSendOtpPressed = false;
   bool verifyEmail = false;
   bool verifyPhone = false;
-
+  bool isDropdownOpen = false;
   bool isNamePresent = false;
   bool isEmailPresent = false;
   bool isPhonePresent = false;
@@ -416,35 +416,99 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                         },
                       ),
                       const SizedBox(height: 10),
-                      DropdownButtonFormField<String>(
-                        value: _selectedGender,
-                        items: <String>['Male', 'Female'].map((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            _selectedGender = newValue;
-                          });
-                        },
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: Colors.grey[200],
-                          hintText: "Gender",
-                          hintStyle:
-                              TextStyle(color: Colors.grey[500], fontSize: 14),
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 12),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30),
-                            borderSide: BorderSide.none,
-                          ),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(30),
                         ),
-                        validator: (value) {
-                          return null;
-                        },
+                        child: StatefulBuilder(
+                          builder: (context, setStateDropdown) {
+                            bool isDropdownOpen = false;
+                            return DropdownButtonFormField<String>(
+                              value: _selectedGender,
+                              items: [
+                                DropdownMenuItem<String>(
+                                  value: null,
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        'Gender',
+                                        style:
+                                            TextStyle(color: Colors.grey[500]),
+                                      ),
+                                      Icon(
+                                        isDropdownOpen
+                                            // ignore: dead_code
+                                            ? Icons.keyboard_arrow_down
+                                            : Icons.keyboard_arrow_up,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                ...['Male', 'Female'].map((String value) {
+                                  return DropdownMenuItem<String>(
+                                    value: value,
+                                    child: Text(value),
+                                  );
+                                }).toList(),
+                              ],
+                              onChanged: (String? newValue) {
+                                setState(() {
+                                  _selectedGender = newValue;
+                                });
+                              },
+                              onTap: () {
+                                setStateDropdown(() {
+                                  isDropdownOpen = !isDropdownOpen;
+                                });
+                              },
+                              decoration: InputDecoration(
+                                hintText: "Gender",
+                                hintStyle: TextStyle(
+                                  color: Colors.grey[500],
+                                  fontSize: 14,
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                  borderSide: BorderSide.none,
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                  borderSide: BorderSide.none,
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                  borderSide: BorderSide.none,
+                                ),
+                                errorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                  borderSide: BorderSide.none,
+                                ),
+                                filled: false,
+                              ),
+                              dropdownColor: Colors.grey[200],
+                              menuMaxHeight: 300,
+                              borderRadius: BorderRadius.circular(30),
+                              icon: const SizedBox
+                                  .shrink(), // Hide the default dropdown icon
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontSize: 14,
+                              ),
+                              validator: (value) {
+                                return null;
+                              },
+                              isDense: true,
+                              isExpanded: true,
+                            );
+                          },
+                        ),
                       ),
                       const SizedBox(height: 10),
                       TextFormField(
