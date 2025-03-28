@@ -135,10 +135,12 @@ class _SelectPeopleScreenState extends State<SelectPeopleScreen> {
                               ),
                               const SizedBox(width: 6),
                               Text(
+                                // ignore: deprecated_member_use
+                                textScaleFactor: 1.0,
                                 "$people ${people > 1 ? 'People' : 'Person'}",
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 14,
+                                  fontSize: 12,
                                   color: selectedPeople == people
                                       ? const Color(0xFF139456)
                                       : Colors.black,
