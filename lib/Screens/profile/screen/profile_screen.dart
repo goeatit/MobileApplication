@@ -1,5 +1,6 @@
 import 'package:eatit/Screens/first_time_screen/screen/first_time_screen.dart';
 import 'package:eatit/Screens/profile/screen/edit_profile.dart';
+import 'package:eatit/Screens/profile/screen/my_bookings_screen.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/models/user_model.dart';
 import 'package:eatit/provider/user_provider.dart';
@@ -155,17 +156,24 @@ class ProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             // Menu Options
-            const Row(
+            Row(
               children: [
                 Expanded(
                   child: OptionCard(
                     icon: Icons.checklist_outlined,
-                    color: Color(0xFF417C45),
+                    color: const Color(0xFF417C45),
                     text: 'My Bookings',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => MyBookingsScreen()),
+                      );
+                    },
                   ),
                 ),
-                SizedBox(width: 4),
-                Expanded(
+                const SizedBox(width: 4),
+                const Expanded(
                   child: OptionCard(
                     icon: Icons.bookmark_border,
                     color: Color(0xFF417C71),

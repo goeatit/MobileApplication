@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:eatit/models/cart_items.dart';
 import 'package:eatit/models/dish_retaurant.dart';
+import 'package:eatit/models/order_model.dart';
 
 class OrderProvider extends ChangeNotifier {
   // Restaurant information
@@ -23,6 +24,24 @@ class OrderProvider extends ChangeNotifier {
 
   // Current data from API
   CurrentData? currentData;
+
+  // Orders
+  List<Order> _orders = [];
+
+  // Getters
+  String? get getRestaurantName => restaurantName;
+  String? get getOrderType => orderType;
+  int get getRestaurantWaitingTime => restaurantWaitingTime;
+  String get getRestaurantTime => restaurantTime;
+  bool get getForceClose => forceClose;
+  List<CartItem> get getCartItems => cartItems;
+  double get getSubTotal => subTotal;
+  double get getGst => gst;
+  double get getGrandTotal => grandTotal;
+  String? get getSelectedTime => selectedTime;
+  String get getNumberOfPeople => numberOfPeople;
+  CurrentData? get getCurrentData => currentData;
+  List<Order> get getOrders => _orders;
 
   // Initialize with restaurant and order details
   void initializeOrder({
@@ -54,6 +73,12 @@ class OrderProvider extends ChangeNotifier {
         0, (sum, item) => sum + (item.dish.resturantDishPrice * item.quantity));
     gst = subTotal * 0.18; // Assuming GST is 18%
     grandTotal = subTotal + gst;
+    notifyListeners();
+  }
+
+  // Add order
+  void addOrder(Order order) {
+    _orders.add(order);
     notifyListeners();
   }
 
