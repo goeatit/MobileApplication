@@ -1,4 +1,6 @@
+import 'package:eatit/Screens/first_time_screen/screen/first_time_screen.dart';
 import 'package:eatit/Screens/profile/screen/edit_profile.dart';
+import 'package:eatit/Screens/profile/screen/my_bookings_screen.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/models/user_model.dart';
 import 'package:eatit/provider/user_provider.dart';
@@ -9,6 +11,39 @@ import 'package:provider/provider.dart';
 class ProfileScreen extends StatelessWidget {
   static const routeName = "/profile-screen";
   const ProfileScreen({super.key});
+  void _logout(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext ctx) {
+        return AlertDialog(
+          title: const Text('Logout'),
+          content: const Text('Are you sure you want to logout?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(ctx).pop(); // Close the dialog
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(ctx).pop(); // Close the dialog
+                // Perform logout
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  FirstTimeScreen.routeName,
+                  (Route<dynamic> route) => false,
+                );
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ),
+              child: const Text('Logout'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -121,17 +156,24 @@ class ProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             // Menu Options
-            const Row(
+            Row(
               children: [
                 Expanded(
                   child: OptionCard(
                     icon: Icons.checklist_outlined,
-                    color: Color(0xFF417C45),
+                    color: const Color(0xFF417C45),
                     text: 'My Bookings',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => MyBookingsScreen()),
+                      );
+                    },
                   ),
                 ),
-                SizedBox(width: 4),
-                Expanded(
+                const SizedBox(width: 4),
+                const Expanded(
                   child: OptionCard(
                     icon: Icons.bookmark_border,
                     color: Color(0xFF417C71),
@@ -147,6 +189,14 @@ class ProfileScreen extends StatelessWidget {
               color: Colors.blue,
               text: 'Contact Support',
             ),
+            const SizedBox(height: 16),
+            // Logout Option
+            OptionCard(
+              icon: Icons.logout,
+              color: Colors.red,
+              text: 'Logout',
+              onTap: () => _logout(context),
+            ),
           ],
         ),
       ),
@@ -158,12 +208,14 @@ class OptionCard extends StatelessWidget {
   final IconData icon;
   final Color color;
   final String text;
+  final VoidCallback? onTap;
 
   const OptionCard({
     super.key,
     required this.icon,
     required this.color,
     required this.text,
+    this.onTap,
   });
 
   @override
@@ -173,22 +225,29 @@ class OptionCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            CircleAvatar(
-              radius: 24,
-              backgroundColor: color,
-              child: Icon(icon, color: Colors.white),
-            ),
-            const SizedBox(width: 10),
-            Text(
-              text,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-            ),
-          ],
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              CircleAvatar(
+                radius: 24,
+                backgroundColor: color,
+                child: Icon(icon, color: Colors.white),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                text,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
