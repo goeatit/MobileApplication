@@ -55,7 +55,6 @@ class _SearchScreenState extends State<SearchScreen> {
 
             if (response != null && response.statusCode == 200) {
               final responseResult = SearchModel.fromJson(response.data);
-
               setState(() {
                 searchResultsRestaurant = responseResult.searchResults;
                 topDishes = responseResult.topRatedDishes;
@@ -129,6 +128,14 @@ class _SearchScreenState extends State<SearchScreen> {
     setState(() {
       fullAddress = prefs.getString("full_address") ?? "Address not available";
     });
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    searchResultsRestaurant.clear();
+    topDishes.clear();
+    super.dispose();
   }
 
   @override

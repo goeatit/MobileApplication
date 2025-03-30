@@ -9,7 +9,16 @@ class Order {
     required this.restaurantName,
     required this.time,
     required this.items,
+    required orderType,
+    required status,
+    required totalAmount,
   });
+
+  get numberOfPeople => null;
+
+  get totalAmount => null;
+
+  get status => null;
 }
 
 class OrderItem {
@@ -19,5 +28,8 @@ class OrderItem {
   OrderItem({
     required this.name,
     required this.quantity,
+    required price,
   });
+
+  get price => null;
 }

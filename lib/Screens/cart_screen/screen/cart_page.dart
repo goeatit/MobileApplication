@@ -22,17 +22,22 @@ class CartPageState extends State<CartPage> {
   @override
   void initState() {
     super.initState();
-    _updateCartItems();
   }
 
-  void _updateCartItems() {
-    final items = context.read<CartProvider>().restaurantCarts;
-    _cartItems = [];
+  @override
+  void didChangeDependencies() {
+    final restaurantCarts = context.watch<CartProvider>().restaurantCarts;
+    _updateCartItems(restaurantCarts);
+    super.didChangeDependencies();
+  }
 
+  void _updateCartItems(restaurantCarts) {
+    final items = restaurantCarts;
+    final newCartItems = <CartItemWithDetails>[];
     items.forEach((id, orderTypes) {
       orderTypes.forEach((orderType, cartItems) {
         if (cartItems.isNotEmpty) {
-          _cartItems.add(CartItemWithDetails(
+          newCartItems.add(CartItemWithDetails(
             cartItem: cartItems.first,
             restaurantName: cartItems.first.restaurantName,
             id: id,
@@ -42,11 +47,36 @@ class CartPageState extends State<CartPage> {
         }
       });
     });
+    if (_cartItems.length <= newCartItems.length) {
+      print("1st ");
+      _listKey.currentState?.insertItem(newCartItems.length);
+    } else {
+      for (int i = _cartItems.length - 1; i >= newCartItems.length; i--) {
+        _listKey.currentState?.removeItem(
+            i,
+            (context, animation) => SlideTransition(
+                position: animation.drive(
+                  Tween<Offset>(
+                    begin: const Offset(-1.0, 0.0),
+                    end: Offset.zero,
+                  ).chain(CurveTween(curve: Curves.easeInOutCubic)),
+                ),
+                child: const SizedBox.shrink()));
+      }
+    }
+    if (mounted) {
+      setState(() {
+        _cartItems = newCartItems;
+      });
+    }
   }
 
   void removeItem(int index) {
     final removedItem = _cartItems[index];
-    _cartItems.removeAt(index);
+    setState(() {
+      _cartItems.removeAt(index);
+    });
+
     _listKey.currentState?.removeItem(
       index,
       (context, animation) => SlideTransition(
@@ -76,6 +106,8 @@ class CartPageState extends State<CartPage> {
 
   @override
   Widget build(BuildContext context) {
+    final cartProvider =
+        context.watch<CartProvider>(); // Ensures UI rebuilds when cart updates
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading:
@@ -112,69 +144,77 @@ class CartPageState extends State<CartPage> {
         ],
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Expanded(
-              child: _cartItems.isNotEmpty
-                  ? AnimatedList(
-                      key: _listKey,
-                      initialItemCount: _cartItems.length,
-                      itemBuilder: (context, index, animation) {
-                        final cartItemWithDetails = _cartItems[index];
-                        return SlideTransition(
-                          position: animation.drive(
-                            Tween<Offset>(
-                              begin: const Offset(-1.0, 0.0),
-                              end: Offset.zero,
-                            ).chain(CurveTween(curve: Curves.easeInOutCubic)),
-                          ),
-                          child: InkWell(
-                            onTap: () {
-                              Navigator.pushNamed(
-                                context,
-                                BillSummaryScreen.routeName,
-                                arguments: {
-                                  'name': cartItemWithDetails.restaurantName,
-                                  'orderType': cartItemWithDetails.orderType,
-                                  'id': cartItemWithDetails.id,
-                                },
-                              );
-                            },
-                            splashColor: Colors.transparent,
-                            highlightColor: Colors.transparent,
-                            child: CartItemWidget(
-                              restaurantName:
-                                  cartItemWithDetails.restaurantName,
-                              orderType: cartItemWithDetails.orderType,
-                              imageUrl: 'https://via.placeholder.com/100',
-                              items: cartItemWithDetails.allItems
-                                  .map((itm) =>
-                                      '${itm.quantity} x ${itm.dish.dishId.dishName}')
-                                  .toList(),
-                              instructions: 'Make one of them spicy',
-                              icon: const Icon(Icons.remove),
-                              restaurantId: cartItemWithDetails.id,
-                              allItems: cartItemWithDetails.allItems,
-                              index: index,
+          padding: const EdgeInsets.all(16.0),
+          child: Consumer<CartProvider>(builder: (ctx, cartProvider, child) {
+            return Column(
+              children: [
+                Expanded(
+                  child: _cartItems.isNotEmpty
+                      ? AnimatedList(
+                          key: _listKey,
+                          initialItemCount: _cartItems.length,
+                          itemBuilder: (context, index, animation) {
+                            if (index >= _cartItems.length) {
+                              print(index);
+                              return const SizedBox.shrink();
+                            }
+                            print("outside $index");
+                            return _buildCartItem(_cartItems[index], animation);
+                          },
+                        )
+                      : const Center(
+                          child: Text(
+                            'You have nothing in your cart!',
+                            style: TextStyle(
+                              color: Color(0xFF718EBF),
+                              fontWeight: FontWeight.w400,
+                              fontStyle: FontStyle.italic,
+                              fontSize: 15,
                             ),
                           ),
-                        );
-                      },
-                    )
-                  : const Center(
-                      child: Text(
-                        'You have nothing in your cart!',
-                        style: TextStyle(
-                          color: Color(0xFF718EBF),
-                          fontWeight: FontWeight.w400,
-                          fontStyle: FontStyle.italic,
-                          fontSize: 15,
                         ),
-                      ),
-                    ),
-            ),
-          ],
+                ),
+              ],
+            );
+          })),
+    );
+  }
+
+  Widget _buildCartItem(
+      CartItemWithDetails cartItemWithDetails, Animation<double> animation) {
+    return SlideTransition(
+      position: animation.drive(
+        Tween<Offset>(
+          begin: const Offset(-1.0, 0.0),
+          end: Offset.zero,
+        ).chain(CurveTween(curve: Curves.easeInOutCubic)),
+      ),
+      child: InkWell(
+        onTap: () {
+          Navigator.pushNamed(
+            context,
+            BillSummaryScreen.routeName,
+            arguments: {
+              'name': cartItemWithDetails.restaurantName,
+              'orderType': cartItemWithDetails.orderType,
+              'id': cartItemWithDetails.id,
+            },
+          );
+        },
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        child: CartItemWidget(
+          restaurantName: cartItemWithDetails.restaurantName,
+          orderType: cartItemWithDetails.orderType,
+          imageUrl: 'https://via.placeholder.com/100',
+          items: cartItemWithDetails.allItems
+              .map((itm) => '${itm.quantity} x ${itm.dish.dishId.dishName}')
+              .toList(),
+          instructions: 'Make one of them spicy',
+          icon: const Icon(Icons.remove),
+          restaurantId: cartItemWithDetails.id,
+          allItems: cartItemWithDetails.allItems,
+          index: _cartItems.indexOf(cartItemWithDetails),
         ),
       ),
     );
