@@ -29,6 +29,7 @@ class OrderProvider extends ChangeNotifier {
   List<Order> _orders = [];
 
   // Getters
+  List<Order> get getOrders => _orders;
   String? get getRestaurantName => restaurantName;
   String? get getOrderType => orderType;
   int get getRestaurantWaitingTime => restaurantWaitingTime;
@@ -41,7 +42,32 @@ class OrderProvider extends ChangeNotifier {
   String? get getSelectedTime => selectedTime;
   String get getNumberOfPeople => numberOfPeople;
   CurrentData? get getCurrentData => currentData;
-  List<Order> get getOrders => _orders;
+
+  void addOrder(Order order) {
+    _orders.add(order);
+    notifyListeners();
+  }
+
+  void createOrderFromPayment(Map<String, dynamic> orderData) {
+    final order = Order(
+      id: orderData['orderId'] ?? '',
+      restaurantName: orderData['restaurantName'] ?? '',
+      time: orderData['time'] ?? '',
+      orderType: orderData['orderType'] ?? '',
+      status: orderData['status'] ?? 'Pending',
+      items: (orderData['items'] as List?)
+              ?.map((item) => OrderItem(
+                    name: item['name'],
+                    quantity: item['quantity'],
+                    price: item['price'] ?? 0.0,
+                  ))
+              .toList() ??
+          [],
+      totalAmount: orderData['totalAmount'] ?? 0.0,
+    );
+    _orders.add(order);
+    notifyListeners();
+  }
 
   // Initialize with restaurant and order details
   void initializeOrder({
@@ -77,10 +103,6 @@ class OrderProvider extends ChangeNotifier {
   }
 
   // Add order
-  void addOrder(Order order) {
-    _orders.add(order);
-    notifyListeners();
-  }
 
   // Update cart items
   void updateCartItems(List<CartItem> items) {
@@ -115,4 +137,8 @@ class OrderProvider extends ChangeNotifier {
     currentData = null;
     notifyListeners();
   }
+
+  verifyPayment() {}
+
+  fetchLatestOrderDetails() {}
 }

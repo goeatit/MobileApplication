@@ -159,7 +159,7 @@ class MyApp extends StatelessWidget {
         progressIndicatorTheme:
             const ProgressIndicatorThemeData(color: primaryColor),
       ),
-      home: const FirstTimeScreen(),
+      home: const SplashScreen(),
       onGenerateRoute: generateRoute,
     );
   }

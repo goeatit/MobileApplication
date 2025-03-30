@@ -174,6 +174,8 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
   void dispose() {
     _controller.dispose();
     _searchController.dispose();
+    dish = null; // Clear dish object
+    categorizedDishes.clear(); // Clear categorized data
     super.dispose();
   }
 
@@ -274,6 +276,7 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                       child: AddedItemButton(
                         itemCount: totalCount,
                         onPressed: () {
+                          Navigator.pop(context);
                           ctx.read<OrderTypeProvider>().changeHomeState(2);
                           Navigator.pushReplacementNamed(
                               context, HomePage.routeName);
@@ -619,7 +622,9 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                                                 orderType:
                                                                     orderType,
                                                                 dish: dish,
-                                                                quantity: 1);
+                                                                quantity: 1,
+                                                                location: widget
+                                                                    .location);
                                                             cartProvider
                                                                 .addToCart(
                                                                     widget.id,
@@ -713,7 +718,8 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                               restaurantName: widget.name,
                                               orderType: orderType,
                                               dish: selectedDish!,
-                                              quantity: 1);
+                                              quantity: 1,
+                                              location: widget.location);
                                           cartProvider.addToCart(
                                               widget.id, orderType, cartITem);
                                         },

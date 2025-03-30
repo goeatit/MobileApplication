@@ -1,12 +1,15 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
+import 'package:eatit/Screens/Takeaway_DineIn/screen/singe_restaurant_screen.dart';
 import 'package:eatit/api/api_client.dart';
 import 'package:eatit/api/api_repository.dart';
 import 'package:eatit/api/network_manager.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/main.dart';
+import 'package:eatit/models/cart_items.dart';
 import 'package:eatit/models/restaurant_model.dart';
 import 'package:eatit/provider/cart_dish_provider.dart';
+import 'package:eatit/provider/order_type_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -50,6 +53,7 @@ class _DineInScreen extends State<DineInScreen> {
           await SharedPreferences.getInstance();
       city = sharedPreferences.getString("city");
       country = sharedPreferences.getString("country");
+      city = "Bhubaneswar";
 
       final response =
           await apiRepository.fetchRestaurantByArea(city!, country!);
@@ -114,6 +118,7 @@ class _DineInScreen extends State<DineInScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    restaurants.clear();
     super.dispose();
   }
 
@@ -183,7 +188,7 @@ class _DineInScreen extends State<DineInScreen> {
                                       horizontal: 16),
                                   width: double.infinity,
                                   child: const Text(
-                                    "Promoted Resturants",
+                                    "Promoted Restaurants",
                                     style: TextStyle(
                                       fontSize: 22,
                                       color: Color(0xFF1D1929),
@@ -271,7 +276,54 @@ class _DineInScreen extends State<DineInScreen> {
                             ),
                     ),
           // Bottom Cart
-          // const Positioned(bottom: 0, child: FoodCartSection())
+          Consumer<CartProvider>(builder: (ctx, cartProvider, child) {
+            if (cartProvider.restaurantCarts.isEmpty) {
+              return const SizedBox.shrink();
+            }
+
+            List<CartItem> dineInItems = [];
+            int totalItems = 0;
+            String id = "";
+
+            // Iterate through restaurants to find the first "Take-Away" cart items
+            for (var restaurantId in cartProvider.restaurantCarts.keys) {
+              var items =
+                  cartProvider.restaurantCarts[restaurantId]?['Dine-in'];
+              if (items != null && items.isNotEmpty) {
+                dineInItems = items;
+                totalItems = items.fold(0, (sum, item) => sum + item.quantity);
+                id = restaurantId;
+                break;
+              }
+            }
+
+            // If no "Take-Away" items found in any restaurant
+            if (dineInItems.isEmpty) {
+              return const SizedBox.shrink();
+            }
+
+            return Positioned(
+                bottom: 0,
+                child: FoodCartSection(
+                  name: dineInItems.first.restaurantName,
+                  items: totalItems.toString(),
+                  pressMenu: () {
+                    Navigator.pushNamed(
+                        context, SingleRestaurantScreen.routeName,
+                        arguments: {
+                          'name': dineInItems.first.restaurantName,
+                          'location': dineInItems.first.location,
+                          'id': id
+                        });
+                  },
+                  pressCart: () {
+                    context.read<OrderTypeProvider>().changeHomeState(2);
+                  },
+                  pressRemove: () {
+                    ctx.read<CartProvider>().clearCart(id, 'Dine-in');
+                  },
+                ));
+          })
         ],
       ),
     );

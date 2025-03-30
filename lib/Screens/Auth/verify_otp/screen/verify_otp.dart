@@ -93,7 +93,7 @@ class _VerifyOtpState extends State<VerifyOtp> {
 
       user = Provider.of<UserModelProvider>(context, listen: false).userModel;
       if (!mounted) return; // Check if widget is still mounted
-
+      Navigator.pop(context);
       if (user?.useremail == null || user?.name == null) {
         Navigator.pushReplacementNamed(context, CreateAccountScreen.routeName);
       } else {
@@ -108,24 +108,30 @@ class _VerifyOtpState extends State<VerifyOtp> {
 
     return Scaffold(
         appBar: AppBar(
-          leading: Row(
-            children: [
-              const SizedBox(width: 15), // Add some padding from the left edge
-              const Icon(
-                Icons.arrow_back_ios_new,
-                color: Color(0xFF999999),
-                size: 15,
-              ),
-              const SizedBox(width: 5), // 5px gap between icon and text
-              Text(
-                "Back",
-                style: textTheme.labelMedium?.copyWith(
-                  fontSize: 20,
-                  color: const Color(0xFF999999),
-                  fontWeight: FontWeight.w700,
+          leading: GestureDetector(
+            onTap: () {
+              Navigator.pop(context);
+            },
+            child: Row(
+              children: [
+                const SizedBox(
+                    width: 15), // Add some padding from the left edge
+                const Icon(
+                  Icons.arrow_back_ios_new,
+                  color: Color(0xFF999999),
+                  size: 15,
                 ),
-              ),
-            ],
+                const SizedBox(width: 5), // 5px gap between icon and text
+                Text(
+                  "Back",
+                  style: textTheme.labelMedium?.copyWith(
+                    fontSize: 20,
+                    color: const Color(0xFF999999),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
           ),
           leadingWidth: 100, // Adjust this value based on your content width
           backgroundColor: white,
