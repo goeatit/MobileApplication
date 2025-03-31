@@ -141,10 +141,8 @@ class _OrderSummaryScreenState extends State<OrderSummaryScreen> {
 
     // For dine-in orders, pop 3 screens (summary, people, time)
     // For takeaway orders, pop 2 screens (summary, time)
-    final screensToPop = isDineIn ? 4 : 3;
 
-    // Pop the appropriate number of screens
-    for (int i = 0; i < screensToPop; i++) {
+    for (int i = 0; i < 2; i++) {
       if (mounted && Navigator.of(context).canPop()) {
         Navigator.of(context).pop();
       }
@@ -158,7 +156,7 @@ class _OrderSummaryScreenState extends State<OrderSummaryScreen> {
       // Here you would call your backend API to verify the payment
       // This is a placeholder for the actual implementation
       print(
-          "Verifying payment: PaymentID: $paymentId, OrderID: $orderId, Signature: $signature");
+          "Verifying payment: PaymentID: $paymentId, OrderId: $orderId, Signature: $signature");
 
       // Example of how you might call your backend API
       final response = await restaurantService.verifyPayment(

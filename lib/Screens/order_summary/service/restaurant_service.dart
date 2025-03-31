@@ -15,6 +15,16 @@ class RestaurantService {
     return await apiRepository.fetchCurrentData(id, name, cartItems);
   }
 
+  Future<Response?> getCurrentDataWithCancelToken(String id, String name,
+      List<CartItem> cartItems, CancelToken cancelToken) async {
+    final Connectivity connectivity = Connectivity();
+    final NetworkManager networkManager = NetworkManager(connectivity);
+    final ApiRepository apiRepository = ApiRepository(networkManager);
+
+    return await apiRepository.fetchCurrentDataWithCancelToken(
+        id, name, cartItems, cancelToken);
+  }
+
   Map<String, dynamic> checkPriceChangesAndAvailability(
       CurrentData currentData, List<CartItem> cartItems) {
     bool isRestaurantClosed = currentData.forceClose;

@@ -22,43 +22,43 @@ class MyBookingsScreen extends StatelessWidget {
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
       ),
-      body: Consumer<OrderProvider>(
-        builder: (context, orderProvider, child) {
-          if (orderProvider.getOrders.isEmpty) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.receipt_long_outlined,
-                    size: 64,
-                    color: Colors.grey,
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    'No Bookings Found',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: orderProvider.getOrders.length,
-            itemBuilder: (context, index) {
-              return OrderDetailsContainer(
-                order: orderProvider.getOrders[index],
-              );
-            },
-          );
-        },
-      ),
+      // body: Consumer<OrderProvider>(
+      //   builder: (context, orderProvider, child) {
+      //     if (orderProvider.getOrders.isEmpty) {
+      //       return const Center(
+      //         child: Column(
+      //           mainAxisAlignment: MainAxisAlignment.center,
+      //           children: [
+      //             Icon(
+      //               Icons.receipt_long_outlined,
+      //               size: 64,
+      //               color: Colors.grey,
+      //             ),
+      //             SizedBox(height: 16),
+      //             Text(
+      //               'No Bookings Found',
+      //               style: TextStyle(
+      //                 fontSize: 18,
+      //                 color: Colors.grey,
+      //                 fontWeight: FontWeight.w500,
+      //               ),
+      //             ),
+      //           ],
+      //         ),
+      //       );
+      //     }
+      //
+      //     return ListView.builder(
+      //       padding: const EdgeInsets.all(16),
+      //       itemCount: orderProvider.getOrders.length,
+      //       itemBuilder: (context, index) {
+      //         return OrderDetailsContainer(
+      //           order: orderProvider.getOrders[index],
+      //         );
+      //       },
+      //     );
+      //   },
+      // ),
     );
   }
 }

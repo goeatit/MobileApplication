@@ -16,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:dio/dio.dart';
 
 class SingleRestaurantScreen extends StatefulWidget {
   static const routeName = "/single-restaurant-screen";
@@ -56,6 +57,9 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
   var textTheme;
   String searchQuery = ''; // Track search query
   final TextEditingController _searchController = TextEditingController();
+  // Add CancelToken for API requests
+  final CancelToken _cancelToken = CancelToken();
+
   void _openMap(dynamic latitude, dynamic longitude, {String? name}) async {
     Uri googleMapsUrl;
 
@@ -172,34 +176,55 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
 
   @override
   void dispose() {
+    // Make sure animation controller is properly disposed
+    _controller.stop();
     _controller.dispose();
+
+    // Cancel any ongoing API requests
+    if (!_cancelToken.isCancelled) {
+      _cancelToken.cancel("Widget disposed");
+    }
+
+    // Dispose of text controller
+    _searchController.removeListener(_updateSearchQuery);
     _searchController.dispose();
-    dish = null; // Clear dish object
-    categorizedDishes.clear(); // Clear categorized data
+
+    // Clear large data structures
+    dish = null;
+    filterDishes = null;
+    selectedDish = null;
+    categorizedDishes.clear();
+
     super.dispose();
   }
 
   fetchDishes() async {
+    if (_cancelToken.isCancelled) return;
+
     final Connectivity connectivity = Connectivity();
     final NetworkManager networkManager = NetworkManager(connectivity);
     final ApiRepository apiRepository = ApiRepository(networkManager);
     try {
-      final fetchData =
-          await apiRepository.fetchDishesData(widget.name, widget.location);
+      final fetchData = await apiRepository.fetchDishesDataWithCancelToken(
+          widget.name, widget.location, _cancelToken);
 
-      if (fetchData?.statusCode == 200) {
+      if (fetchData?.statusCode == 200 && !_cancelToken.isCancelled) {
         final data = DishSchema.fromJson(fetchData?.data);
         categorizeAndSetDishes(data);
-        setState(() {
-          dish = data;
-        });
+        if (mounted) {
+          setState(() {
+            dish = data;
+          });
+        }
       }
     } catch (e) {
-      _showErrorDialog("Error", "An error occurred while fetching data.");
-      setState(() {
-        errorMessage = "Error: $e";
-        isLoading = false;
-      });
+      if (mounted && !_cancelToken.isCancelled) {
+        _showErrorDialog("Error", "An error occurred while fetching data.");
+        setState(() {
+          errorMessage = "Error: $e";
+          isLoading = false;
+        });
+      }
     }
   }
 
