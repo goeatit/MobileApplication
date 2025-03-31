@@ -69,7 +69,8 @@ class NetworkManager {
           // Retry the failed request with the new token
           final newAccessToken = await _tokenManager.getAccessToken();
           if (newAccessToken != null) {
-            e.requestOptions.headers['Authorization'] = 'Bearer $newAccessToken';
+            e.requestOptions.headers['Authorization'] =
+                'Bearer $newAccessToken';
             return handler.resolve(await dioManger.fetch(e.requestOptions));
           }
         }

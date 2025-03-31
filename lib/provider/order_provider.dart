@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:eatit/models/cart_items.dart';
 import 'package:eatit/models/dish_retaurant.dart';
-import 'package:eatit/models/order_model.dart';
 
 class OrderProvider extends ChangeNotifier {
   // Restaurant information
@@ -24,50 +23,6 @@ class OrderProvider extends ChangeNotifier {
 
   // Current data from API
   CurrentData? currentData;
-
-  // Orders
-  List<Order> _orders = [];
-
-  // Getters
-  List<Order> get getOrders => _orders;
-  String? get getRestaurantName => restaurantName;
-  String? get getOrderType => orderType;
-  int get getRestaurantWaitingTime => restaurantWaitingTime;
-  String get getRestaurantTime => restaurantTime;
-  bool get getForceClose => forceClose;
-  List<CartItem> get getCartItems => cartItems;
-  double get getSubTotal => subTotal;
-  double get getGst => gst;
-  double get getGrandTotal => grandTotal;
-  String? get getSelectedTime => selectedTime;
-  String get getNumberOfPeople => numberOfPeople;
-  CurrentData? get getCurrentData => currentData;
-
-  void addOrder(Order order) {
-    _orders.add(order);
-    notifyListeners();
-  }
-
-  void createOrderFromPayment(Map<String, dynamic> orderData) {
-    final order = Order(
-      id: orderData['orderId'] ?? '',
-      restaurantName: orderData['restaurantName'] ?? '',
-      time: orderData['time'] ?? '',
-      orderType: orderData['orderType'] ?? '',
-      status: orderData['status'] ?? 'Pending',
-      items: (orderData['items'] as List?)
-              ?.map((item) => OrderItem(
-                    name: item['name'],
-                    quantity: item['quantity'],
-                    price: item['price'] ?? 0.0,
-                  ))
-              .toList() ??
-          [],
-      totalAmount: orderData['totalAmount'] ?? 0.0,
-    );
-    _orders.add(order);
-    notifyListeners();
-  }
 
   // Initialize with restaurant and order details
   void initializeOrder({
@@ -102,8 +57,6 @@ class OrderProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Add order
-
   // Update cart items
   void updateCartItems(List<CartItem> items) {
     cartItems = items;
@@ -135,10 +88,5 @@ class OrderProvider extends ChangeNotifier {
     gst = 0;
     grandTotal = 0;
     currentData = null;
-    notifyListeners();
   }
-
-  verifyPayment() {}
-
-  fetchLatestOrderDetails() {}
 }

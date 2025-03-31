@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:eatit/Screens/cart_screen/widget/cart_item.dart';
 import 'package:eatit/Screens/order_summary/screen/bill_summary.dart';
 import 'package:eatit/common/constants/colors.dart';
@@ -5,6 +7,7 @@ import 'package:eatit/main.dart';
 import 'package:eatit/models/cart_items.dart';
 import 'package:eatit/provider/cart_dish_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
 class CartPage extends StatefulWidget {
@@ -143,40 +146,81 @@ class CartPageState extends State<CartPage> {
           ),
         ],
       ),
-      body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Consumer<CartProvider>(builder: (ctx, cartProvider, child) {
-            return Column(
-              children: [
-                Expanded(
-                  child: _cartItems.isNotEmpty
-                      ? AnimatedList(
-                          key: _listKey,
-                          initialItemCount: _cartItems.length,
-                          itemBuilder: (context, index, animation) {
-                            if (index >= _cartItems.length) {
-                              print(index);
-                              return const SizedBox.shrink();
-                            }
-                            print("outside $index");
-                            return _buildCartItem(_cartItems[index], animation);
-                          },
-                        )
-                      : const Center(
-                          child: Text(
-                            'You have nothing in your cart!',
-                            style: TextStyle(
-                              color: Color(0xFF718EBF),
-                              fontWeight: FontWeight.w400,
-                              fontStyle: FontStyle.italic,
-                              fontSize: 15,
-                            ),
-                          ),
-                        ),
-                ),
-              ],
-            );
-          })),
+      body: _cartItems.isNotEmpty
+          ? Padding(
+              padding: const EdgeInsets.all(16.0),
+              child:
+                  Consumer<CartProvider>(builder: (ctx, cartProvider, child) {
+                return Column(
+                  children: [
+                    Expanded(
+                        child: AnimatedList(
+                      key: _listKey,
+                      initialItemCount: _cartItems.length,
+                      itemBuilder: (context, index, animation) {
+                        if (index >= _cartItems.length) {
+                          print(index);
+                          return const SizedBox.shrink();
+                        }
+                        print("outside $index");
+                        return _buildCartItem(_cartItems[index], animation);
+                      },
+                    )),
+                  ],
+                );
+              }))
+          : _buildEmptyCartView(),
+    );
+  }
+
+  Widget _buildEmptyCartView() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Top section with check orders text and arrow
+          Padding(
+            padding: const EdgeInsets.only(right: 10.0),
+            child: SizedBox(
+              width: double.infinity,
+              height: 150,
+              child: Stack(
+                children: [
+                  Positioned(
+                    right: 20,
+                    child: SvgPicture.asset("assets/svg/arrowCartEmpty.svg"),
+                  ),
+                  const Positioned(
+                    top: 80,
+                    right: 70,
+                    child: Text(
+                      'Check your orders here',
+                      style: TextStyle(
+                        color: Color(0xFFF8951D),
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold
+                        ,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const Spacer(),
+          // Empty cart message
+          const Text(
+            'You have nothing in your cart!',
+            style: TextStyle(
+              color: Color(0xFF718EBF),
+              fontWeight: FontWeight.w400,
+              fontStyle: FontStyle.italic,
+              fontSize: 15,
+            ),
+          ),
+          const Spacer(),
+        ],
+      ),
     );
   }
 

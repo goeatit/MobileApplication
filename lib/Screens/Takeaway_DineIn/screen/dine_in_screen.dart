@@ -42,8 +42,12 @@ class _DineInScreen extends State<DineInScreen> {
   ];
 
   Timer? _timer;
+  // Add CancelToken for API requests
+  final CancelToken _cancelToken = CancelToken();
 
   fetchData() async {
+    if (_cancelToken.isCancelled) return;
+
     final Connectivity connectivity = Connectivity();
     final NetworkManager networkManager = NetworkManager(connectivity);
     final ApiRepository apiRepository = ApiRepository(networkManager);
@@ -53,20 +57,22 @@ class _DineInScreen extends State<DineInScreen> {
           await SharedPreferences.getInstance();
       city = sharedPreferences.getString("city");
       country = sharedPreferences.getString("country");
-      city = "Bhubaneswar";
+      // city = "Bhubaneswar";
 
-      final response =
-          await apiRepository.fetchRestaurantByArea(city!, country!);
+      final response = await apiRepository.fetchRestaurantByAreaWithCancelToken(
+          city!, country!, _cancelToken);
 
       if (response != null &&
           response.data is List &&
-          response.data.isNotEmpty) {
+          response.data.isNotEmpty &&
+          !_cancelToken.isCancelled &&
+          mounted) {
         setState(() {
           final restaurantModel = RestaurantModel.fromJson(response.data[0]);
           restaurants = restaurantModel.restaurants;
           isLoading = false;
         });
-      } else {
+      } else if (mounted && !_cancelToken.isCancelled) {
         setState(() {
           restaurants = [];
           errorMessage = "We are expanding soon in your city.";
@@ -74,10 +80,12 @@ class _DineInScreen extends State<DineInScreen> {
         });
       }
     } catch (e) {
-      setState(() {
-        errorMessage = "We are expanding soon in your city.";
-        isLoading = false;
-      });
+      if (mounted && !_cancelToken.isCancelled) {
+        setState(() {
+          errorMessage = "We are expanding soon in your city.";
+          isLoading = false;
+        });
+      }
     }
   }
 
@@ -117,8 +125,20 @@ class _DineInScreen extends State<DineInScreen> {
 
   @override
   void dispose() {
+    // Cancel the banner rotation timer
     _timer?.cancel();
+    _timer = null;
+
+    // Cancel any ongoing API requests
+    if (!_cancelToken.isCancelled) {
+      _cancelToken.cancel("Widget disposed");
+    }
+
+    // Clear data structures to free memory
     restaurants.clear();
+    city = null;
+    country = null;
+
     super.dispose();
   }
 

@@ -19,10 +19,36 @@ class ApiRepository {
     });
   }
 
+  Future<Response?> fetchRestaurantByAreaWithCancelToken(
+      String city, String country, CancelToken cancelToken) async {
+    // Construct the endpoint using the dynamic values for city and country
+    final endpoint = ApiEndpoints.fetchRestaurantByArea(city, country);
+
+    // Make the request using NetworkManager
+    return await networkManager.makeRequest(() {
+      // Perform the GET request with the constructed endpoint
+      return networkManager.dioManger.get(
+        endpoint,
+        cancelToken: cancelToken,
+      );
+    });
+  }
+
   Future<Response?> fetchDishesData(String name, String city) async {
     final endpoint = ApiEndpoints.fetchDishesByRestaurant(name, city);
     return await networkManager.makeRequest(() {
       return networkManager.dioManger.get(endpoint);
+    });
+  }
+
+  Future<Response?> fetchDishesDataWithCancelToken(
+      String name, String city, CancelToken cancelToken) async {
+    final endpoint = ApiEndpoints.fetchDishesByRestaurant(name, city);
+    return await networkManager.makeRequest(() {
+      return networkManager.dioManger.get(
+        endpoint,
+        cancelToken: cancelToken,
+      );
     });
   }
 
@@ -99,6 +125,20 @@ class ApiRepository {
       return networkManager.dioManger.post(endpoint, data: {
         'dishIdToBeOrderd': cartItems.map((e) => e.dish.id).toList(),
       });
+    });
+  }
+
+  Future<Response?> fetchCurrentDataWithCancelToken(String id, String name,
+      List<CartItem> cartItems, CancelToken cancelToken) async {
+    final endpoint = ApiEndpoints.fetchCurrentData(id, name);
+    return await networkManager.makeRequest(() {
+      return networkManager.dioManger.post(
+        endpoint,
+        data: {
+          'dishIdToBeOrderd': cartItems.map((e) => e.dish.id).toList(),
+        },
+        cancelToken: cancelToken,
+      );
     });
   }
 

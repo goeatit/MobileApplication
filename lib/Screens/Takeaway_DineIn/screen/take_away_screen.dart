@@ -42,9 +42,13 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
   ];
 
   Timer? _timer;
+  // Add CancelToken for API requests
+  final CancelToken _cancelToken = CancelToken();
 
   // Fetch the restaurant data
   fetchData() async {
+    if (_cancelToken.isCancelled) return;
+
     final Connectivity connectivity = Connectivity();
     final NetworkManager networkManager = NetworkManager(connectivity);
     final ApiRepository apiRepository = ApiRepository(networkManager);
@@ -54,21 +58,23 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
           await SharedPreferences.getInstance();
       city = sharedPreferences.getString("city");
       country = sharedPreferences.getString("country");
-      city = "Bengaluru";
+      // city = "Bengaluru";
       // city = "Bhubaneswar";
 
-      final response =
-          await apiRepository.fetchRestaurantByArea(city!, country!);
+      final response = await apiRepository.fetchRestaurantByAreaWithCancelToken(
+          city!, country!, _cancelToken);
 
       if (response != null &&
           response.data is List &&
-          response.data.isNotEmpty) {
+          response.data.isNotEmpty &&
+          !_cancelToken.isCancelled &&
+          mounted) {
         setState(() {
           final restaurantModel = RestaurantModel.fromJson(response.data[0]);
           restaurants = restaurantModel.restaurants;
           isLoading = false;
         });
-      } else {
+      } else if (mounted && !_cancelToken.isCancelled) {
         setState(() {
           restaurants = []; // Ensure restaurants list is empty
           errorMessage = "We are expanding soon in your city.";
@@ -76,11 +82,13 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
         });
       }
     } catch (e) {
-      setState(() {
-        //errorMessage = "Error: $e";
-        errorMessage = "We are expanding soon in your city.";
-        isLoading = false;
-      });
+      if (mounted && !_cancelToken.isCancelled) {
+        setState(() {
+          //errorMessage = "Error: $e";
+          errorMessage = "We are expanding soon in your city.";
+          isLoading = false;
+        });
+      }
     }
   }
 
@@ -120,8 +128,20 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
 
   @override
   void dispose() {
+    // Cancel the banner rotation timer
     _timer?.cancel();
-    restaurants.clear();  // Clear the list to free memory
+    _timer = null;
+
+    // Cancel any ongoing API requests
+    if (!_cancelToken.isCancelled) {
+      _cancelToken.cancel("Widget disposed");
+    }
+
+    // Clear data structures to free memory
+    restaurants.clear();
+    city = null;
+    country = null;
+
     super.dispose();
   }
 
@@ -285,14 +305,14 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
                                     },
                                   ),
                                   const SizedBox(height: 80),
-
                                 ],
                               )
                             : const Center(
                                 child: Text("We are expanding soon"),
                               ),
                       ),
-                      Consumer<CartProvider>(builder: (ctx, cartProvider, child) {
+                      Consumer<CartProvider>(
+                          builder: (ctx, cartProvider, child) {
                         if (cartProvider.restaurantCarts.isEmpty) {
                           return const SizedBox.shrink();
                         }
@@ -302,12 +322,14 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
                         String id = "";
 
                         // Iterate through restaurants to find the first "Take-Away" cart items
-                        for (var restaurantId in cartProvider.restaurantCarts.keys) {
-                          var items =
-                          cartProvider.restaurantCarts[restaurantId]?['Take-away'];
+                        for (var restaurantId
+                            in cartProvider.restaurantCarts.keys) {
+                          var items = cartProvider.restaurantCarts[restaurantId]
+                              ?['Take-away'];
                           if (items != null && items.isNotEmpty) {
                             dineInItems = items;
-                            totalItems = items.fold(0, (sum, item) => sum + item.quantity);
+                            totalItems = items.fold(
+                                0, (sum, item) => sum + item.quantity);
                             id = restaurantId;
                             break;
                           }
@@ -333,10 +355,14 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
                                     });
                               },
                               pressCart: () {
-                                context.read<OrderTypeProvider>().changeHomeState(2);
+                                context
+                                    .read<OrderTypeProvider>()
+                                    .changeHomeState(2);
                               },
                               pressRemove: () {
-                                ctx.read<CartProvider>().clearCart(id, 'Take-away');
+                                ctx
+                                    .read<CartProvider>()
+                                    .clearCart(id, 'Take-away');
                               },
                             ));
                       })
