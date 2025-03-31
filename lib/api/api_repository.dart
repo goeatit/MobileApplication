@@ -197,4 +197,12 @@ class ApiRepository {
       return networkManager.dioManger.post(endpoint);
     });
   }
+
+  Future<Response?> fetchOrderDetailsWithCancelToken(
+      CancelToken cancelToken) async {
+    final endpoint = ApiEndpoints.fetchOrderDetails;
+    return await networkManager.makeRequest(() {
+      return networkManager.dioManger.get(endpoint, cancelToken: cancelToken);
+    });
+  }
 }

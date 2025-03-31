@@ -1,20 +1,49 @@
+import 'package:eatit/models/my_booking_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:eatit/models/order_model.dart';
 import 'package:eatit/common/constants/colors.dart';
+import 'package:intl/intl.dart';
 
 class OrderDetailsContainer extends StatefulWidget {
-  final Order order;
+  final UserElement order;
 
-  const OrderDetailsContainer({Key? key, required this.order})
-      : super(key: key);
+  const OrderDetailsContainer({super.key, required this.order});
 
   @override
-  _OrderDetailsContainerState createState() => _OrderDetailsContainerState();
+  State<OrderDetailsContainer> createState() => _OrderDetailsContainerState();
 }
 
 class _OrderDetailsContainerState extends State<OrderDetailsContainer> {
   bool isExpanded = false;
+
+  String _formatDateTime(String dateTimeString) {
+    try {
+      // Parse the UTC time string
+      final DateTime utcDateTime = DateTime.parse(dateTimeString);
+      // Convert to local timezone
+      final DateTime localDateTime = utcDateTime.toLocal();
+      final DateTime now = DateTime.now();
+      final DateTime today = DateTime(now.year, now.month, now.day);
+      final DateTime yesterday = today.subtract(const Duration(days: 1));
+      final DateTime orderDate =
+          DateTime(localDateTime.year, localDateTime.month, localDateTime.day);
+
+      String dateText;
+      if (orderDate == today) {
+        dateText = 'Today';
+      } else if (orderDate == yesterday) {
+        dateText = 'Yesterday';
+      } else {
+        dateText = DateFormat('MMM dd, yyyy').format(localDateTime);
+      }
+
+      final String timeText = DateFormat('hh:mm a').format(localDateTime);
+      return '$dateText | $timeText';
+    } catch (e) {
+      // If there's any error parsing the date, return the original string
+      return dateTimeString;
+    }
+  }
 
   void _copyOrderId() {
     Clipboard.setData(ClipboardData(text: widget.order.id)).then((_) {
@@ -41,7 +70,7 @@ class _OrderDetailsContainerState extends State<OrderDetailsContainer> {
               children: [
                 Expanded(
                   child: Text(
-                    'Order ID: ${widget.order.id}',
+                    'Order ID: ${widget.order.user.orderId}',
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
@@ -56,21 +85,22 @@ class _OrderDetailsContainerState extends State<OrderDetailsContainer> {
             ),
             const SizedBox(height: 8),
             Text(
-              widget.order.restaurantName,
+              widget.order.user.restaurantName,
               style: const TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 4),
             Text(
-              'Time: ${widget.order.time}',
+              'Time: ${_formatDateTime(widget.order.user.createdAt.toString())}',
               style: const TextStyle(color: Colors.grey),
             ),
             const SizedBox(height: 4),
             Text(
-              'Status: ${widget.order.status}',
+              'Status: ${widget.order.user.orderStatus}',
               style: TextStyle(
-                color: widget.order.status.toLowerCase() == 'completed'
-                    ? Colors.green
-                    : primaryColor,
+                color:
+                    widget.order.user.orderStatus.toLowerCase() == 'completed'
+                        ? Colors.green
+                        : primaryColor,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -81,9 +111,9 @@ class _OrderDetailsContainerState extends State<OrderDetailsContainer> {
                 ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemCount: widget.order.items.length,
+                  itemCount: widget.order.user.items.length,
                   itemBuilder: (context, index) {
-                    final item = widget.order.items[index];
+                    final item = widget.order.user.items[index];
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4),
                       child: Row(
@@ -114,7 +144,7 @@ class _OrderDetailsContainerState extends State<OrderDetailsContainer> {
                       ),
                     ),
                     Text(
-                      '₹${widget.order.totalAmount.toStringAsFixed(2)}',
+                      '₹${widget.order.user.subTotal.toStringAsFixed(2)}',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
