@@ -1,6 +1,6 @@
 import 'package:eatit/Screens/first_time_screen/screen/first_time_screen.dart';
 import 'package:eatit/Screens/profile/screen/edit_profile.dart';
-import 'package:eatit/Screens/profile/screen/my_bookings_screen.dart';
+import 'package:eatit/Screens/My_Booking/screen/my_bookings_screen.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/models/user_model.dart';
 import 'package:eatit/provider/user_provider.dart';
@@ -164,11 +164,7 @@ class ProfileScreen extends StatelessWidget {
                     color: const Color(0xFF417C45),
                     text: 'My Bookings',
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => MyBookingsScreen()),
-                      );
+                      Navigator.pushNamed(context, MyBookingsScreen.routeName);
                     },
                   ),
                 ),

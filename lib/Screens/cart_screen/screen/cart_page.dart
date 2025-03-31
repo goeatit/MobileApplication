@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:eatit/Screens/My_Booking/screen/my_bookings_screen.dart';
 import 'package:eatit/Screens/cart_screen/widget/cart_item.dart';
 import 'package:eatit/Screens/order_summary/screen/bill_summary.dart';
 import 'package:eatit/common/constants/colors.dart';
@@ -126,24 +127,29 @@ class CartPageState extends State<CartPage> {
           ),
         ),
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: Container(
-              padding: const EdgeInsets.all(3),
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: const Color(0xFFF8951D),
-                  width: 1.5,
+          GestureDetector(
+            onTap: () {
+              Navigator.pushNamed(context, MyBookingsScreen.routeName);
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(right: 16.0),
+              child: Container(
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: const Color(0xFFF8951D),
+                    width: 1.5,
+                  ),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(
-                Icons.checklist_rounded,
-                color: Color(0xFFF8951D),
-                size: 20,
+                child: const Icon(
+                  Icons.checklist_rounded,
+                  color: Color(0xFFF8951D),
+                  size: 20,
+                ),
               ),
             ),
-          ),
+          )
         ],
       ),
       body: _cartItems.isNotEmpty
@@ -198,8 +204,7 @@ class CartPageState extends State<CartPage> {
                       style: TextStyle(
                         color: Color(0xFFF8951D),
                         fontSize: 16,
-                        fontWeight: FontWeight.bold
-                        ,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),

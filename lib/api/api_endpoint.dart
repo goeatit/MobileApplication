@@ -18,6 +18,7 @@ class ApiEndpoints {
   static String completeYourProfile = "/mobile/completeYourProfile";
   static String createOrder(String orderType) =>
       "/mobile/createOrder/$orderType";
+  static String fetchOrderDetails="/mobile/getOrderDetails";
   static String verifyPayment = "/mobile/payment/verify";
   static String updateProfile = "/mobile/updateProfile";
   static String initProfile="/mobile/auth/init";

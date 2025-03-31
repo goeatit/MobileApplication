@@ -1,6 +1,7 @@
 import 'package:eatit/Screens/Auth/login_screen/screen/login_screen.dart';
 import 'package:eatit/Screens/Auth/verify_otp/screen/verify_otp.dart';
 import 'package:eatit/Screens/CompleteYourProfile/Screen/Complete_your_profile_screen.dart';
+import 'package:eatit/Screens/My_Booking/screen/my_bookings_screen.dart';
 import 'package:eatit/Screens/Takeaway_DineIn//screen/singe_restaurant_screen.dart';
 import 'package:eatit/Screens/first_time_screen/screen/first_time_screen.dart';
 import 'package:eatit/Screens/homes/screen/home_screen.dart';
@@ -57,8 +58,11 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
 
     case BillSummaryScreen.routeName:
       final args = routeSettings.arguments as Map<String, String>;
-      page =
-          BillSummaryScreen(name: args['name']!, orderType: args['orderType']!, id: args['id']!,);
+      page = BillSummaryScreen(
+        name: args['name']!,
+        orderType: args['orderType']!,
+        id: args['id']!,
+      );
       break;
 
     case SelectPeopleScreen.routeName:
@@ -78,12 +82,19 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
 
     case ReserveTime.routeName:
       page = const ReserveTime();
+      break;
 
     case OrderSummaryScreen.routeName:
       page = const OrderSummaryScreen();
+      break;
 
     case CreateAccountScreen.routeName:
       page = const CreateAccountScreen();
+      break;
+
+    case MyBookingsScreen.routeName:
+      page = const MyBookingsScreen();
+      break;
   }
   return MaterialPageRoute(builder: (context) => page);
 }
