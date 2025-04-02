@@ -145,6 +145,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
           final UserElement order = _orders[index];
           return OrderDetailsContainer(
             order: order,
+            onOrderCancelled: _fetchOrderDetails,
           );
         },
       ),
