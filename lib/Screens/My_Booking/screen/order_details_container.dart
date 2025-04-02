@@ -174,10 +174,10 @@ class _OrderDetailsContainerState extends State<OrderDetailsContainer> {
     switch (status.toLowerCase()) {
       case 'preparing':
       case 'order placed':
-      case 'Ready':
+      case 'ready':
       case 'completed':
         return const Color(0xFFDAFCDD);
-      case 'Delayed':
+      case 'delayed':
         return const Color(0xFFFFF5D9);
       case 'cancelled':
         return const Color(0xFFFCE4DA);
@@ -192,10 +192,10 @@ class _OrderDetailsContainerState extends State<OrderDetailsContainer> {
     switch (status.toLowerCase()) {
       case 'preparing':
       case 'order placed':
-      case 'Ready':
+      case 'ready':
       case 'completed':
         return const Color(0xFF1F982A);
-      case 'Delayed':
+      case 'delayed':
         return const Color(0xFFD1A017);
       case 'cancelled':
         return const Color(0xFFE34301);
@@ -371,41 +371,43 @@ class _OrderDetailsContainerState extends State<OrderDetailsContainer> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed:
-                        _isCancelling ? null : _showCancelConfirmationDialog,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      elevation: 0,
-                      side: const BorderSide(
-                        color: Color(0x1A1D1929),
-                        width: 1,
+                if (widget.order.user.orderStatus?.toLowerCase() != 'cancelled')
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed:
+                          _isCancelling ? null : _showCancelConfirmationDialog,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        elevation: 0,
+                        side: const BorderSide(
+                          color: Color(0x1A1D1929),
+                          width: 1,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
+                      child: _isCancelling
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                    Color(0xFFFA9494)),
+                              ),
+                            )
+                          : Text(
+                              'Cancel Order',
+                              style: customTheme.montserratButton.copyWith(
+                                color: const Color(0xFFFA9494),
+                              ),
+                            ),
                     ),
-                    child: _isCancelling
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                  Color(0xFFFA9494)),
-                            ),
-                          )
-                        : Text(
-                            'Cancel Order',
-                            style: customTheme.montserratButton.copyWith(
-                              color: const Color(0xFFFA9494),
-                            ),
-                          ),
                   ),
-                ),
-                const SizedBox(width: 16),
+                if (widget.order.user.orderStatus?.toLowerCase() != 'cancelled')
+                  const SizedBox(width: 16),
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
