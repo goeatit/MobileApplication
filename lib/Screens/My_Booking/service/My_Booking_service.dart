@@ -19,11 +19,18 @@ class MyBookingService {
           await _apiRepository.fetchOrderDetailsWithCancelToken(_cancelToken!);
 
       if (response != null && response.statusCode == 200) {
-        print(response.data);
         return OrderDetailsResponse.fromJson(response.data);
       }
       return null;
     } catch (e) {
+      print(e);
+      return null;
+    }
+  }
+  Future<Response?> cancelOrder(String orderId) async{
+    try{
+      return _apiRepository.cancelOrder(orderId);
+    }catch(e){
       print(e);
       return null;
     }
