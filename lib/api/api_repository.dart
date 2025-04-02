@@ -184,6 +184,13 @@ class ApiRepository {
     });
   }
 
+  Future<Response?> cancelOrder(String orderId) async {
+    final endpoint = ApiEndpoints.cancelOrder(orderId);
+    return await networkManager.makeRequest(() {
+      return networkManager.dioManger.delete(endpoint);
+    });
+  }
+
   Future<Response?> updateProfile(Map<String, String?> changes) async {
     final endpoint = ApiEndpoints.updateProfile;
     return await networkManager.makeRequest(() {
