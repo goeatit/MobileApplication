@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:eatit/Screens/Auth/login_screen/screen/login_screen.dart';
 import 'package:eatit/Screens/Auth/verify_otp/screen/verify_otp.dart';
 import 'package:eatit/Screens/CompleteYourProfile/Screen/Complete_your_profile_screen.dart';
@@ -31,7 +30,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() async {
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.dark, // Adjust for dark or light icons
+    statusBarIconBrightness: Brightness.dark,
   ));
   runApp(MultiProvider(
     providers: [
@@ -44,41 +43,71 @@ void main() async {
   ));
 }
 
+@immutable
+class CustomTextTheme extends ThemeExtension<CustomTextTheme> {
+  const CustomTextTheme({
+    required this.montserratOrderId,
+    required this.montserratOrderItem,
+    required this.montserratButton,
+    required this.nunitoSansRestaurantName,
+  });
+
+  final TextStyle montserratOrderId;
+  final TextStyle montserratOrderItem;
+  final TextStyle montserratButton;
+  final TextStyle nunitoSansRestaurantName;
+
+  @override
+  CustomTextTheme copyWith({
+    TextStyle? montserratOrderId,
+    TextStyle? montserratOrderItem,
+    TextStyle? montserratButton,
+    TextStyle? nunitoSansRestaurantName,
+  }) {
+    return CustomTextTheme(
+      montserratOrderId: montserratOrderId ?? this.montserratOrderId,
+      montserratOrderItem: montserratOrderItem ?? this.montserratOrderItem,
+      montserratButton: montserratButton ?? this.montserratButton,
+      nunitoSansRestaurantName:
+          nunitoSansRestaurantName ?? this.nunitoSansRestaurantName,
+    );
+  }
+
+  @override
+  ThemeExtension<CustomTextTheme> lerp(
+      ThemeExtension<CustomTextTheme>? other, double t) {
+    if (other is! CustomTextTheme) {
+      return this;
+    }
+    return CustomTextTheme(
+      montserratOrderId:
+          TextStyle.lerp(montserratOrderId, other.montserratOrderId, t)!,
+      montserratOrderItem:
+          TextStyle.lerp(montserratOrderItem, other.montserratOrderItem, t)!,
+      montserratButton:
+          TextStyle.lerp(montserratButton, other.montserratButton, t)!,
+      nunitoSansRestaurantName: TextStyle.lerp(
+          nunitoSansRestaurantName, other.nunitoSansRestaurantName, t)!,
+    );
+  }
+}
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    const displayTextStyle = TextStyle(
-      fontWeight: FontWeight.w800,
-      fontSize: 22,
-      color: darkBlack,
-    );
-    const titleTextStyle = TextStyle(
-      fontSize: 20,
-      fontWeight: FontWeight.w700,
-      color: darkBlack,
-    );
-    const labelTextStyle = TextStyle(
-      fontSize: 18,
-      fontWeight: FontWeight.w600,
-      color: darkBlack,
-    );
-    const bodyTextStyle = TextStyle(
-      fontSize: 18,
-      fontWeight: FontWeight.w400,
-      color: darkBlack,
-    );
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Eatit',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color.fromARGB(255, 159, 92, 92)),
+          seedColor: const Color.fromARGB(255, 159, 92, 92),
+        ),
         useMaterial3: true,
-        // Define default font family
-        fontFamily: "Nunito Sans", // Or your preferred font
+        fontFamily: "Nunito Sans",
         textTheme: TextTheme(
+          // Nunito Sans styles
           displayLarge: GoogleFonts.nunitoSans(
             fontWeight: FontWeight.w800,
             fontSize: 22,
@@ -140,7 +169,58 @@ class MyApp extends StatelessWidget {
             fontSize: 14,
             color: darkBlack,
           ),
+          // Montserrat styles
+          headlineLarge: GoogleFonts.montserrat(
+            fontWeight: FontWeight.w600,
+            fontSize: 13.64,
+            height: 1.44,
+            letterSpacing: -0.02,
+            color: const Color(0xFF23272E),
+          ),
+          headlineMedium: GoogleFonts.montserrat(
+            fontWeight: FontWeight.w600,
+            fontSize: 13,
+            height: 1,
+            letterSpacing: 0,
+            color: const Color(0xFF2D2D2D),
+          ),
+          headlineSmall: GoogleFonts.montserrat(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+            color: const Color(0xFF2D2D2D),
+          ),
         ),
+        extensions: <ThemeExtension<dynamic>>[
+          CustomTextTheme(
+            montserratOrderId: GoogleFonts.montserrat(
+              fontWeight: FontWeight.w600,
+              fontSize: 13.64,
+              height: 1.44,
+              letterSpacing: -0.02,
+              color: const Color(0xFF23272E),
+            ),
+            montserratOrderItem: GoogleFonts.montserrat(
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+              height: 1,
+              letterSpacing: 0,
+              color: const Color(0xFF2D2D2D),
+            ),
+            montserratButton: GoogleFonts.montserrat(
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+              height: 1,
+              letterSpacing: 0,
+            ),
+            nunitoSansRestaurantName: GoogleFonts.nunitoSans(
+              fontWeight: FontWeight.w700,
+              fontSize: 24,
+              height: 1,
+              letterSpacing: 0,
+              color: const Color(0xFF2D2D2D),
+            ),
+          ),
+        ],
         primarySwatch: primarySwatch,
         scaffoldBackgroundColor: white,
         primaryColor: primaryColor,
@@ -167,18 +247,11 @@ class MyApp extends StatelessWidget {
 
 Future<void> checkStoredCartData() async {
   final prefs = await SharedPreferences.getInstance();
-
-  // Retrieve the JSON string
   final cartJson = prefs.getString('cart_items');
 
   if (cartJson != null) {
-    // Print the raw JSON string
     print("Raw JSON String: $cartJson");
-
-    // Decode the JSON string
     final decodedCart = json.decode(cartJson) as Map<String, dynamic>;
-
-    // Print the decoded structure
     print("Decoded Cart Data: $decodedCart");
   } else {
     print("No cart data found in SharedPreferences.");
