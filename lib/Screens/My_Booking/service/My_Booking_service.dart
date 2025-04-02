@@ -19,6 +19,7 @@ class MyBookingService {
           await _apiRepository.fetchOrderDetailsWithCancelToken(_cancelToken!);
 
       if (response != null && response.statusCode == 200) {
+        print(response.data);
         return OrderDetailsResponse.fromJson(response.data);
       }
       return null;

@@ -33,6 +33,8 @@ class UserElement {
   List<String?> latitude;
   List<String?> longitude;
 
+  var restaurant;
+
   UserElement({
     required this.id,
     required this.user,
@@ -114,6 +116,10 @@ class UserUser {
       dinein: json['dinein'],
     );
   }
+
+  get restaurantLatitude => null;
+
+  get restaurantLongitude => null;
 
   Map<String, dynamic> toJson() {
     return {
