@@ -402,7 +402,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                           if (value == null || value.trim().isEmpty) {
                             return "Name is required";
                           }
-                          if (!RegExp(r'^[A-Za-z]+(\s[A-Za-z]+)*$')
+                          if (!RegExp(r"^[A-Za-z]+([ '-.][A-Za-z]+)*$")
                               .hasMatch(value)) {
                             return "Invalid name format";
                           }
@@ -645,6 +645,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                         TextFormField(
                           controller: verifyOtpController,
                           enabled: true,
+                          maxLength: 6,
                           inputFormatters: [
                             FilteringTextInputFormatter.digitsOnly
                           ],
@@ -813,6 +814,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                         TextFormField(
                           controller: verifyOtpController,
                           enabled: true,
+                          maxLength: 6,
                           inputFormatters: [
                             FilteringTextInputFormatter.digitsOnly
                           ],
