@@ -1,6 +1,7 @@
 class ApiEndpoints {
   static String login = "/auth/login";
   static String googleLogin = "/mobile/auth/google";
+  static String facebookLogin = "/mobile/auth/facebook";
   static String fetchUserById(String userId) => "/user/$userId";
   static String fetchRestaurantByArea(String city, String country) =>
       "/mobile/area/$city/$country";

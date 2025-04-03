@@ -1,4 +1,6 @@
+import 'package:eatit/Screens/CompleteYourProfile/Screen/Complete_your_profile_screen.dart';
 import 'package:eatit/Screens/splash_screen/service/SplashScreenService.dart';
+import 'package:eatit/provider/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:async';
@@ -71,7 +73,15 @@ class _SplashScreenState extends State<SplashScreen>
       if (response) {
         context.read<CartProvider>().loadCartFromStorage();
         // User is authenticated, navigate to location screen
-        Navigator.of(context).pushReplacementNamed(LocationScreen.routeName);
+        var user = context.read<UserModelProvider>().userModel;
+        if (user != null) {
+          if (user.phoneNumber == null) {
+            Navigator.pushReplacementNamed(
+                context, CreateAccountScreen.routeName);
+          } else {
+            Navigator.pushReplacementNamed(context, LocationScreen.routeName);
+          }
+        }
       }
     } else {
       // Returning user but not logged in
