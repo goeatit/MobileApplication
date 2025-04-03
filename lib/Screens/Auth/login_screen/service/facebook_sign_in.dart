@@ -1,9 +1,19 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:eatit/Screens/Auth/login_screen/service/token_Storage.dart';
+import 'package:eatit/Screens/CompleteYourProfile/Screen/Complete_your_profile_screen.dart';
+import 'package:eatit/Screens/location/screen/location_screen.dart';
+import 'package:eatit/api/api_repository.dart';
+import 'package:eatit/api/network_manager.dart';
+import 'package:eatit/models/user_model.dart';
+import 'package:eatit/provider/user_provider.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class FacebookSignInService {
   Future<void> signInWithFacebook(BuildContext context) async {
     try {
+      // Initiate Facebook sign-in
       final LoginResult result = await FacebookAuth.instance.login(
         permissions: ['email', 'public_profile'],
       );
@@ -14,40 +24,77 @@ class FacebookSignInService {
           fields: "name,email,picture.width(200)",
         );
 
-        // Here you can handle the successful login
-        // For example, send the data to your backend or navigate to home screen
-        print('Facebook login successful');
-        print('Name: ${userData['name']}');
-        print('Email: ${userData['email']}');
-        print('Profile picture: ${userData['picture']['data']['url']}');
+        if (userData['email'] == null || userData['name'] == null) {
+          throw Exception(
+              "Failed to get required user information from Facebook");
+        }
 
-        // Navigate to your desired screen
-        // Navigator.pushReplacementNamed(context, '/home');
+        // Post user data to your backend API
+        final Connectivity connectivity = Connectivity();
+        final NetworkManager networkManager = NetworkManager(connectivity);
+        final ApiRepository apiRepository = ApiRepository(networkManager);
+        TokenManager _tokenManager = TokenManager();
+
+        final responseFromBackend = await apiRepository.facebookLogin(
+          userData['email'],
+          userData['name'],
+          userData['picture']?['data']?['url'] ?? '',
+          result.accessToken!.token,
+        );
+
+        if (responseFromBackend != null) {
+          if (responseFromBackend.statusCode == 200) {
+            var user = UserModel.fromJson(responseFromBackend.data);
+            await _tokenManager.storeTokens(
+                user.accessToken, user.refreshToken);
+            context.read<UserModelProvider>().updateUserModel(user.user);
+
+            // Show success message
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Login Success: Enjoy your meal with EatIt!"),
+                backgroundColor: Colors.green,
+              ),
+            );
+
+            // Navigate based on user profile completion
+            if (user.user.name == null || user.user.phoneNumber == null) {
+              Navigator.pushReplacementNamed(
+                context,
+                CreateAccountScreen.routeName,
+              );
+            } else {
+              Navigator.pushReplacementNamed(
+                context,
+                LocationScreen.routeName,
+              );
+            }
+          } else {
+            throw Exception("Failed to authenticate with backend");
+          }
+        } else {
+          throw Exception("No response from server");
+        }
       } else if (result.status == LoginStatus.cancelled) {
-        // Handle when user cancels the login
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Facebook login cancelled'),
+            content: Text("Facebook login was cancelled"),
             backgroundColor: Colors.orange,
           ),
         );
       } else {
-        // Handle when login fails
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Facebook login failed'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        throw Exception("Facebook login failed");
       }
     } catch (e) {
       // Handle any errors that occur during the login process
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error during Facebook login: $e'),
+          content: Text("Error during Facebook login: ${e.toString()}"),
           backgroundColor: Colors.red,
         ),
       );
+      // Sign out from Facebook in case of error
+      await FacebookAuth.instance.logOut();
     }
   }
 
