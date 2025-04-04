@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/screen/singe_restaurant_screen.dart';
+import 'package:eatit/Screens/Takeaway_DineIn/widget/dish_card_widget.dart';
 import 'package:eatit/Screens/order_summary/screen/no_of_people.dart';
 import 'package:eatit/Screens/order_summary/screen/order_summary.dart';
 import 'package:eatit/Screens/order_summary/screen/reserve_time.dart';
@@ -59,13 +60,13 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
       fetchCurrentData();
     });
   }
+
   late OrderProvider orderProvider;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     orderProvider = Provider.of<OrderProvider>(context, listen: false);
-
   }
 
   @override
@@ -79,7 +80,7 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
     // Do NOT clear cartItems as it's needed by the CartProvider
 
     // Only reset the order provider state which is temporary
-    if(!mounted) return;
+    if (!mounted) return;
     orderProvider.clearOrder();
 
     super.dispose();
@@ -440,8 +441,6 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
     }
   }
 
-
-
   void _removeItem(CartItem item) {
     final cartProvider = Provider.of<CartProvider>(context, listen: false);
     final orderProvider = Provider.of<OrderProvider>(context, listen: false);
@@ -587,6 +586,7 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
         },
         canPop: true,
         child: Scaffold(
+          backgroundColor: const Color(0xFFF5F5F5),
           appBar: AppBar(
               backgroundColor: Colors.white,
               elevation: 0,
@@ -619,10 +619,13 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                         Text(
                           widget.name,
                           textAlign: TextAlign.right,
-                          style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black),
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleSmall
+                              ?.copyWith(
+                                  color: const Color(0xFF737373),
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w100),
                         ),
                         Row(
                           mainAxisSize: MainAxisSize
@@ -631,8 +634,8 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                             const Text(
                               "25 Min from location",
                               style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                             const SizedBox(
@@ -706,13 +709,13 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                                       padding: const EdgeInsets.all(12),
                                       decoration: BoxDecoration(
                                         color: Colors.white,
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(18),
                                         boxShadow: const [
-                                          BoxShadow(
-                                            color: Colors.black12,
-                                            blurRadius: 6,
-                                            offset: Offset(0, 3),
-                                          ),
+                                          // BoxShadow(
+                                          //   color: Colors.black12,
+                                          //   blurRadius: 6,
+                                          //   offset: Offset(0, 3),
+                                          // ),
                                         ],
                                       ),
                                       child: Column(
@@ -777,26 +780,62 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                                       padding: const EdgeInsets.all(16),
                                       decoration: BoxDecoration(
                                         color: Colors.white,
-                                        borderRadius: BorderRadius.circular(12),
-                                        boxShadow: const [
-                                          BoxShadow(
-                                            color: Colors.black12,
-                                            blurRadius: 6,
-                                            offset: Offset(0, 3),
-                                          ),
-                                        ],
+                                        borderRadius: BorderRadius.circular(18),
                                       ),
                                       child: Column(
                                         children: [
-                                          _buildSummaryRow("Sub Total",
-                                              "₹${subTotal.toStringAsFixed(2)}"),
-                                          _buildSummaryRow("GST (18%)",
-                                              "₹${gst.toStringAsFixed(2)}"),
-                                          const Divider(),
-                                          _buildSummaryRow(
-                                            "Grand Total",
-                                            "₹${grandTotal.toStringAsFixed(2)}",
-                                            isBold: true,
+                                          Row(
+                                            children: [
+                                              SvgPicture.asset(
+                                                'assets/svg/WidgetAdd.svg',
+                                                width: 24,
+                                                height: 24,
+                                                fit: BoxFit.scaleDown,
+                                              ),
+                                              const SizedBox(width: 5),
+                                              const Text(
+                                                "Complete your meal with",
+                                                style: TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 10),
+                                          // Add SingleChildScrollView for horizontal scrolling
+                                          SizedBox(
+                                            height:
+                                                190, // Adjust height as needed for your DishCard
+                                            child: SingleChildScrollView(
+                                              scrollDirection: Axis.horizontal,
+                                              child: Row(
+                                                children: [
+                                                  for (int i = 0;
+                                                      i < 10;
+                                                      i++) ...[
+                                                    if (i > 0)
+                                                      const SizedBox(
+                                                          width:
+                                                              2), // 2px gap between cards
+                                                    SizedBox(
+                                                      width:
+                                                          150, // Adjust width as needed for your DishCard
+                                                      child: DishCard(
+                                                          name: 'Briyani',
+                                                          quantity: 1,
+                                                          price: '200',
+                                                          imageUrl:
+                                                              'assets/images/home_style.png',
+                                                          calories: "200",
+                                                          onAddToCart: () {},
+                                                          onIncrement: () {},
+                                                          onDecrement: () {}),
+                                                    ),
+                                                  ],
+                                                ],
+                                              ),
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -812,13 +851,13 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                                         decoration: BoxDecoration(
                                           color: Colors.white,
                                           borderRadius:
-                                              BorderRadius.circular(12),
+                                              BorderRadius.circular(18),
                                           boxShadow: const [
-                                            BoxShadow(
-                                              color: Colors.black12,
-                                              blurRadius: 6,
-                                              offset: Offset(0, 3),
-                                            ),
+                                            // BoxShadow(
+                                            //   color: Colors.black12,
+                                            //   blurRadius: 6,
+                                            //   offset: Offset(0, 3),
+                                            // ),
                                           ],
                                         ),
                                         child: const SelectNoPeopleWidget(),
@@ -831,13 +870,13 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                                       padding: const EdgeInsets.all(16),
                                       decoration: BoxDecoration(
                                         color: Colors.white,
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(18),
                                         boxShadow: const [
-                                          BoxShadow(
-                                            color: Colors.black12,
-                                            blurRadius: 6,
-                                            offset: Offset(0, 3),
-                                          ),
+                                          // BoxShadow(
+                                          //   color: Colors.black12,
+                                          //   blurRadius: 6,
+                                          //   offset: Offset(0, 3),
+                                          // ),
                                         ],
                                       ),
                                       child: const TimeSlotsReserveWidget(),
@@ -855,14 +894,14 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                         // Fixed button at the bottom
                         Container(
                           decoration: const BoxDecoration(
-                            color: Colors.white,
+                            //color: Colors.white,
                             boxShadow: [
-                              BoxShadow(
-                                color: Colors.black12,
-                                offset: Offset(0, -2),
-                                blurRadius: 4,
-                                spreadRadius: 1,
-                              ),
+                              // BoxShadow(
+                              //   color: Colors.black12,
+                              //   offset: Offset(0, -2),
+                              //   blurRadius: 4,
+                              //   spreadRadius: 1,
+                              // ),
                             ],
                           ),
                           padding: const EdgeInsets.all(16.0),
