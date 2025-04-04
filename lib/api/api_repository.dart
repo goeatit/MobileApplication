@@ -88,6 +88,19 @@ class ApiRepository {
     });
   }
 
+  Future<Response?> facebookLogin(
+      String email, String name, String avatarurl, String accessToken) async {
+    final endpoint = ApiEndpoints.facebookLogin;
+    return await networkManager.makeRequest(() {
+      return networkManager.dioManger.post(endpoint, data: {
+        "email": email,
+        "name": name,
+        "avatarurl": avatarurl,
+        "accessTokenFacebook": accessToken
+      });
+    });
+  }
+
   Future<Response?> sendOtpEmail(String email) async {
     final endpoint = ApiEndpoints.sendOtpEmail;
     return await networkManager.makeRequest(() {

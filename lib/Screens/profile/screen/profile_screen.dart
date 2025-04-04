@@ -4,14 +4,17 @@ import 'package:eatit/Screens/My_Booking/screen/my_bookings_screen.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/models/user_model.dart';
 import 'package:eatit/provider/user_provider.dart';
+import 'package:eatit/Screens/Auth/login_screen/service/token_Storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 
 class ProfileScreen extends StatelessWidget {
   static const routeName = "/profile-screen";
   const ProfileScreen({super.key});
-  void _logout(BuildContext context) {
+  void _logout(BuildContext context) async {
     showDialog(
       context: context,
       builder: (BuildContext ctx) {
@@ -26,9 +29,25 @@ class ProfileScreen extends StatelessWidget {
               child: const Text('Cancel'),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.of(ctx).pop(); // Close the dialog
-                // Perform logout
+
+                // Clear all tokens
+                final tokenManager = TokenManager();
+                await tokenManager.clearTokens();
+
+                // Clear user data from provider
+                await context.read<UserModelProvider>().clearUserModel();
+
+                // Sign out from social providers if needed
+                try {
+                  await GoogleSignIn().signOut();
+                  await FacebookAuth.instance.logOut();
+                } catch (e) {
+                  print('Error signing out from social providers: $e');
+                }
+
+                // Navigate to first time screen and clear all routes
                 Navigator.of(context).pushNamedAndRemoveUntil(
                   FirstTimeScreen.routeName,
                   (Route<dynamic> route) => false,
