@@ -3,6 +3,7 @@ import 'package:eatit/provider/order_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 class SelectNoPeopleWidget extends StatefulWidget {
@@ -121,13 +122,13 @@ class _SelectPeopleScreenState extends State<SelectNoPeopleWidget> {
                     const SizedBox(width: 6),
                     Text(
                       "$people ${people > 1 ? 'People' : 'Person'}",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                        color: selectedPeople == people
-                            ? const Color(0xFF139456)
-                            : Colors.black,
-                      ),
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                            color: selectedPeople == people
+                                ? const Color(0xFF139456)
+                                : Colors.black,
+                          ),
                     ),
                   ],
                 ),
@@ -139,9 +140,7 @@ class _SelectPeopleScreenState extends State<SelectNoPeopleWidget> {
         const Text(
           "More than four people?",
           style: TextStyle(
-            color: fontColor7979,
-            fontSize: 14,
-          ),
+              color: fontColor7979, fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
         TextField(
@@ -149,6 +148,10 @@ class _SelectPeopleScreenState extends State<SelectNoPeopleWidget> {
           keyboardType: TextInputType.number,
           focusNode: _focusNode,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          style: GoogleFonts.nunitoSans(
+            fontSize: 14,
+            color: Colors.black,
+          ),
           onChanged: (value) {
             setState(() {
               int? numPeople = int.tryParse(value);
@@ -173,22 +176,44 @@ class _SelectPeopleScreenState extends State<SelectNoPeopleWidget> {
             });
           },
           decoration: InputDecoration(
-              hintText: "Enter no. of People",
-              hintStyle: const TextStyle(color: fontColor7979, fontSize: 14),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(
-                  color: Color(0xFFE8E8EA),
-                  width: 1,
-                ),
+            hintText: "Enter no. of People",
+            hintStyle: GoogleFonts.nunitoSans(
+              color: fontColor7979,
+              fontSize: 16,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(
+                color: Color(0xFFE8E8EA),
+                width: 1,
               ),
-              filled: true,
-              fillColor: Colors.white,
-              contentPadding: const EdgeInsets.symmetric(
-                vertical: 5,
-                horizontal: 16,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(
+                color: Color(0xFFE8E8EA),
+                width: 1,
               ),
-              errorText: errorMessage),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(
+                color: Color(0xFFE8E8EA),
+                width: 1,
+              ),
+            ),
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 5,
+              horizontal: 16,
+            ),
+            errorText: errorMessage,
+            errorStyle: GoogleFonts.nunitoSans(
+              fontSize: 12,
+              color: Colors.red,
+            ),
+          ),
         ),
       ],
     );
