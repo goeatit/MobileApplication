@@ -58,15 +58,20 @@ class _TimeSlotsReserveWidgetState extends State<TimeSlotsReserveWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
+        const Row(
           children: [
-            SvgPicture.asset(
-              'assets/svg/clock.svg',
-              width: 24,
-              height: 24,
+            // SvgPicture.asset(
+            //   'assets/svg/clock.svg',
+            //   width: 24,
+            //   height: 24,
+            // ),
+            Icon(
+              Icons.access_alarm, // or Icons.schedule
+              size: 24,
+              color: Colors.black,
             ),
-            const SizedBox(width: 10),
-            const Text(
+            SizedBox(width: 10),
+            Text(
               "Select Time",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
