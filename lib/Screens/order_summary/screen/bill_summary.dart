@@ -866,7 +866,7 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                                     // Show time slots for all order types
                                     Container(
                                       margin: const EdgeInsets.symmetric(
-                                          vertical: 20),
+                                          vertical: 0),
                                       padding: const EdgeInsets.all(16),
                                       decoration: BoxDecoration(
                                         color: Colors.white,
