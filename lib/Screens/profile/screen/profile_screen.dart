@@ -80,14 +80,16 @@ class ProfileScreen extends StatelessWidget {
                   Expanded(
                     child: TextButton(
                       onPressed: () async {
-                        Navigator.of(ctx).pop();
+                        Navigator.of(ctx).pop(); // Close the dialog
 
                         // Clear all tokens
                         final tokenManager = TokenManager();
                         await tokenManager.clearTokens();
 
                         // Clear user data from provider
-                        await ctx.read<UserModelProvider>().clearUserModel();
+                        await context
+                            .read<UserModelProvider>()
+                            .clearUserModel();
 
                         // Sign out from social providers if needed
                         try {
