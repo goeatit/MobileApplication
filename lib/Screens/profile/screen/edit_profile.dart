@@ -120,24 +120,110 @@ class _EditProfileScreen extends State<EditProfileScreen> {
                     if (_hasChanges) {
                       showDialog(
                         context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text('Unsaved Changes'),
-                          content: const Text(
-                              'Do you want to discard your changes?'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text('Cancel'),
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            backgroundColor: Colors.white,
+                            titlePadding:
+                                const EdgeInsets.only(top: 20, bottom: 5),
+                            title: Column(
+                              children: [
+                                const Icon(
+                                  Icons.warning_rounded,
+                                  color: Color(0xFFF8951D),
+                                  size: 40,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Unsaved Changes',
+                                  style: Theme.of(context).textTheme.titleLarge,
+                                ),
+                              ],
                             ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pop(context); // Close dialog
-                                Navigator.pop(context); // Go back
-                              },
-                              child: const Text('Discard'),
+                            contentPadding: const EdgeInsets.only(
+                              top: 5,
+                              left: 24,
+                              right: 24,
+                              bottom: 20,
                             ),
-                          ],
-                        ),
+                            content: Text(
+                              'Do you want to discard your changes?',
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelLarge
+                                  ?.copyWith(
+                                    color: const Color(0xFF666666),
+                                  ),
+                            ),
+                            actions: [
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        style: TextButton.styleFrom(
+                                          backgroundColor: Colors.white,
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 12),
+                                          side: const BorderSide(
+                                            color: Color(0xFFF8951D),
+                                            width: 1,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                          ),
+                                        ),
+                                        child: Text(
+                                          'Cancel',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .labelMedium
+                                              ?.copyWith(
+                                                color: const Color(0xFFF8951D),
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(
+                                              context); // Close dialog
+                                          Navigator.pop(context); // Go back
+                                        },
+                                        style: TextButton.styleFrom(
+                                          backgroundColor:
+                                              const Color(0xFFF8951D),
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 12),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                          ),
+                                        ),
+                                        child: Text(
+                                          'Discard',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .labelMedium
+                                              ?.copyWith(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          );
+                        },
                       );
                     } else {
                       Navigator.pop(context);

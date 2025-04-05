@@ -2,6 +2,7 @@ import 'package:eatit/Screens/My_Booking/screen/order_details_container.dart';
 import 'package:flutter/material.dart';
 import 'package:eatit/models/my_booking_modal.dart';
 import 'package:eatit/Screens/My_Booking/service/My_Booking_service.dart';
+import 'package:flutter_svg/svg.dart';
 
 class MyBookingsScreen extends StatefulWidget {
   static const routeName = "/my-bookings-screen";
@@ -61,18 +62,32 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 5),
+          child: GestureDetector(
+            onTap: () {
+              Navigator.of(context).pop();
+            },
+            child: SvgPicture.asset(
+              'assets/svg/graybackArrow.svg',
+              width: 31,
+              height: 30,
+              fit: BoxFit.scaleDown,
+            ),
+          ),
+        ),
         title: const Text(
           'My Bookings',
           style: TextStyle(
+            fontSize: 27,
+            fontWeight: FontWeight.w700,
             color: Colors.black,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
       ),
+      backgroundColor: const Color(0xFFF4F4F4),
       body: _buildBody(),
     );
   }
