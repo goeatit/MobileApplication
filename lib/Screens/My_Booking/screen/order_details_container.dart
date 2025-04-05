@@ -380,10 +380,13 @@ class _OrderDetailsContainerState extends State<OrderDetailsContainer> {
                 ),
               ],
             ),
-            const SizedBox(height: 3),
+            const SizedBox(height: 8),
             Text(
               widget.order.user.restaurantName,
-              style: customTheme.nunitoSansRestaurantName,
+              style: customTheme.nunitoSansRestaurantName.copyWith(
+                letterSpacing: 0.5,
+                height: 1.3,
+              ),
             ),
             const SizedBox(height: 9),
             _buildFormattedDateTime(widget.order.user.createdAt.toString()),
