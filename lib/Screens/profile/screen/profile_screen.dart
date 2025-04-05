@@ -19,44 +19,108 @@ class ProfileScreen extends StatelessWidget {
       context: context,
       builder: (BuildContext ctx) {
         return AlertDialog(
-          title: const Text('Logout'),
-          content: const Text('Are you sure you want to logout?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(ctx).pop(); // Close the dialog
-              },
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () async {
-                Navigator.of(ctx).pop(); // Close the dialog
-
-                // Clear all tokens
-                final tokenManager = TokenManager();
-                await tokenManager.clearTokens();
-
-                // Clear user data from provider
-                await context.read<UserModelProvider>().clearUserModel();
-
-                // Sign out from social providers if needed
-                try {
-                  await GoogleSignIn().signOut();
-                  await FacebookAuth.instance.logOut();
-                } catch (e) {
-                  print('Error signing out from social providers: $e');
-                }
-
-                // Navigate to first time screen and clear all routes
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                  FirstTimeScreen.routeName,
-                  (Route<dynamic> route) => false,
-                );
-              },
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.red,
+          backgroundColor: Colors.white,
+          titlePadding: const EdgeInsets.only(top: 20, bottom: 5),
+          title: Column(
+            children: [
+              const Icon(
+                Icons.warning_rounded,
+                color: Color(0xFFF64C4D),
+                size: 40,
               ),
-              child: const Text('Logout'),
+              const SizedBox(height: 8),
+              Text(
+                'Confirm Logout',
+                style: Theme.of(ctx).textTheme.titleLarge,
+              ),
+            ],
+          ),
+          contentPadding: const EdgeInsets.only(
+            top: 5,
+            left: 24,
+            right: 24,
+            bottom: 20,
+          ),
+          content: Text(
+            'Are you sure you want to logout?',
+            textAlign: TextAlign.center,
+            style: Theme.of(ctx).textTheme.labelLarge?.copyWith(
+                  color: const Color(0xFF666666),
+                ),
+          ),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        side: const BorderSide(
+                          color: Color(0xFFF64C4D),
+                          width: 1,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Text(
+                        'Cancel',
+                        style: Theme.of(ctx).textTheme.labelMedium?.copyWith(
+                              color: const Color(0xFFF64C4D),
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () async {
+                        Navigator.of(ctx).pop();
+
+                        // Clear all tokens
+                        final tokenManager = TokenManager();
+                        await tokenManager.clearTokens();
+
+                        // Clear user data from provider
+                        await ctx.read<UserModelProvider>().clearUserModel();
+
+                        // Sign out from social providers if needed
+                        try {
+                          await GoogleSignIn().signOut();
+                          await FacebookAuth.instance.logOut();
+                        } catch (e) {
+                          print('Error signing out from social providers: $e');
+                        }
+
+                        // Navigate to first time screen and clear all routes
+                        Navigator.of(context).pushNamedAndRemoveUntil(
+                          FirstTimeScreen.routeName,
+                          (Route<dynamic> route) => false,
+                        );
+                      },
+                      style: TextButton.styleFrom(
+                        backgroundColor: const Color(0xFFF64C4D),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Text(
+                        'Logout',
+                        style: Theme.of(ctx).textTheme.labelMedium?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         );
