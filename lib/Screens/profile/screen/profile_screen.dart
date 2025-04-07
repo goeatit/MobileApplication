@@ -25,7 +25,7 @@ class ProfileScreen extends StatelessWidget {
             children: [
               const Icon(
                 Icons.warning_rounded,
-                color: Color(0xFFF64C4D),
+                color: Color(0xFFF8951D),
                 size: 40,
               ),
               const SizedBox(height: 8),
@@ -60,7 +60,7 @@ class ProfileScreen extends StatelessWidget {
                         backgroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         side: const BorderSide(
-                          color: Color(0xFFF64C4D),
+                          color: Color(0xFFF8951D),
                           width: 1,
                         ),
                         shape: RoundedRectangleBorder(
@@ -70,7 +70,7 @@ class ProfileScreen extends StatelessWidget {
                       child: Text(
                         'Cancel',
                         style: Theme.of(ctx).textTheme.labelMedium?.copyWith(
-                              color: const Color(0xFFF64C4D),
+                              color: const Color(0xFFF8951D),
                               fontWeight: FontWeight.w600,
                             ),
                       ),
@@ -106,7 +106,7 @@ class ProfileScreen extends StatelessWidget {
                         );
                       },
                       style: TextButton.styleFrom(
-                        backgroundColor: const Color(0xFFF64C4D),
+                        backgroundColor: const Color(0xFFF8951D),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
