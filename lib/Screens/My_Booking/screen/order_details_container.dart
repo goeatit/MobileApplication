@@ -67,7 +67,7 @@ class _OrderDetailsContainerState extends State<OrderDetailsContainer> {
             children: [
               const Icon(
                 Icons.warning_rounded, // Added alert icon
-                color: Color(0xFFF64C4D), // Same red color as buttons
+                color: Color(0xFFF8951D), // Same red color as buttons
                 size: 40, // Adjust size as needed
               ),
               const SizedBox(height: 8), // Space between icon and text
@@ -102,7 +102,7 @@ class _OrderDetailsContainerState extends State<OrderDetailsContainer> {
                         backgroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         side: const BorderSide(
-                          color: Color(0xFFF64C4D),
+                          color: Color(0xFFF8951D),
                           width: 1,
                         ),
                         shape: RoundedRectangleBorder(
@@ -113,7 +113,7 @@ class _OrderDetailsContainerState extends State<OrderDetailsContainer> {
                         'No',
                         style:
                             Theme.of(context).textTheme.labelMedium?.copyWith(
-                                  color: const Color(0xFFF64C4D),
+                                  color: const Color(0xFFF8951D),
                                   fontWeight: FontWeight.w600,
                                 ),
                       ),
@@ -127,7 +127,7 @@ class _OrderDetailsContainerState extends State<OrderDetailsContainer> {
                         await _cancelOrder();
                       },
                       style: TextButton.styleFrom(
-                        backgroundColor: const Color(0xFFF64C4D),
+                        backgroundColor: const Color(0xFFF8951D),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -547,7 +547,7 @@ class _OrderDetailsContainerState extends State<OrderDetailsContainer> {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFF64C4D),
+                      backgroundColor: const Color(0xFFF8951D),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       elevation: 0,
                       shape: RoundedRectangleBorder(
