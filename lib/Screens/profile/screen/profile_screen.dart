@@ -1,4 +1,5 @@
 import 'package:eatit/Screens/first_time_screen/screen/first_time_screen.dart';
+import 'package:eatit/Screens/profile/screen/collections_screen.dart';
 import 'package:eatit/Screens/profile/screen/edit_profile.dart';
 import 'package:eatit/Screens/My_Booking/screen/my_bookings_screen.dart';
 import 'package:eatit/common/constants/colors.dart';
@@ -254,11 +255,14 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 4),
-                const Expanded(
+                Expanded(
                   child: OptionCard(
                     icon: Icons.bookmark_border,
-                    color: Color(0xFF417C71),
+                    color: const Color(0xFF417C71),
                     text: 'Collection',
+                    onTap: () {
+                      Navigator.pushNamed(context, CollectionsScreen.routeName);
+                    },
                   ),
                 ),
               ],

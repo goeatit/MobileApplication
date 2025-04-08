@@ -19,6 +19,7 @@ import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/provider/cart_dish_provider.dart';
 import 'package:eatit/provider/order_provider.dart';
 import 'package:eatit/provider/order_type_provider.dart';
+import 'package:eatit/provider/saved_restaurants_provider.dart';
 import 'package:eatit/provider/user_provider.dart';
 import 'package:eatit/routes/main_router.dart';
 import 'package:flutter/material.dart';
@@ -38,6 +39,7 @@ void main() async {
       ChangeNotifierProvider(create: (context) => OrderTypeProvider()),
       ChangeNotifierProvider(create: (context) => UserModelProvider()),
       ChangeNotifierProvider(create: (context) => OrderProvider()),
+      ChangeNotifierProvider(create: (context) => SavedRestaurantsProvider()),
     ],
     child: const MyApp(),
   ));

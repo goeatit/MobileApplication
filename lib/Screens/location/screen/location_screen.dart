@@ -9,6 +9,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:eatit/Screens/location/screen/restaurant_address_screen.dart';
 
 class LocationScreen extends StatefulWidget {
   static const routeName = "/location-screen";
@@ -202,6 +203,22 @@ class _LocationScreenState extends State<LocationScreen> {
                           style: TextStyle(color: Colors.white)),
                     ),
                   ),
+                  const SizedBox(height: 10),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pushNamed(
+                          context, RestaurantAddressScreen.routeName);
+                    },
+                    child: const Text(
+                      'Enter manually',
+                      style: TextStyle(
+                        color: Color(0xFFF8951D),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
                 ],
               ),
             ),
