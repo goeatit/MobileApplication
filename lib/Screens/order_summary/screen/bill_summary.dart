@@ -16,6 +16,7 @@ import 'package:eatit/provider/order_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart' show SvgPicture;
 import 'package:provider/provider.dart';
+import 'package:eatit/Screens/order_summary/widget/coupon_section_widget.dart';
 
 class BillSummaryScreen extends StatefulWidget {
   static const routeName = "/bill-summary";
@@ -1144,8 +1145,26 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                                       ),
                                       child: const TimeSlotsReserveWidget(),
                                     ),
-
                                     // Add bottom padding to ensure content isn't hidden behind the fixed button
+                                    const SizedBox(height: 20),
+
+                                    Container(
+                                      margin: const EdgeInsets.symmetric(
+                                          vertical: 0),
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(18),
+                                        boxShadow: const [
+                                          // BoxShadow(
+                                          //   color: Colors.black12,
+                                          //   blurRadius: 6,
+                                          //   offset: Offset(0, 3),
+                                          // ),
+                                        ],
+                                      ),
+                                      child: const CouponSectionWidget(),
+                                    ),
                                     const SizedBox(height: 80),
                                   ],
                                 ),
