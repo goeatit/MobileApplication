@@ -960,19 +960,34 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                       const SizedBox(height: 10),
                       Row(
                         children: [
-                          Radio(
-                            value: true,
-                            groupValue: isChecked,
-                            onChanged: (value) {
-                              setState(() => isChecked = value as bool);
-                              _validateForm();
-                            },
+                          Transform.scale(
+                            scale: 1.2,
+                            child: Radio(
+                              value: true,
+                              groupValue: isChecked,
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  isChecked = value ?? false;
+                                  _validateForm();
+                                });
+                              },
+                              activeColor: const Color(
+                                  0xFFF8951D), // Set the selected radio button color
+                              fillColor: WidgetStateProperty.resolveWith<Color>(
+                                  (Set<WidgetState> states) {
+                                if (states.contains(WidgetState.selected)) {
+                                  return const Color(
+                                      0xFFF8951D); // Selected state color
+                                }
+                                return Colors.grey; // Unselected state color
+                              }),
+                            ),
                           ),
                           Expanded(
                             child: Text(
                               "I agree with the Terms Condition & Privacy Policy",
-                              style: GoogleFonts.poppins(
-                                fontSize: 13,
+                              style: GoogleFonts.outfit(
+                                fontSize: 14,
                                 fontWeight: FontWeight.w400,
                               ),
                             ),
