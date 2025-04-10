@@ -51,6 +51,10 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
         name: args['name']!,
         location: args['location']!,
         id: args['id']!,
+        imageUrl: args['imageUrl']!,
+        cuisineType: args['cuisineType']!,
+        priceRange: args['priceRange']!,
+        rating: double.parse(args['rating']!),
       );
       break;
 

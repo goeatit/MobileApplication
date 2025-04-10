@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:eatit/Screens/Takeaway_DineIn//screen/singe_restaurant_screen.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/models/saved_restaurant_model.dart';
@@ -7,6 +9,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class RestaurantWidget extends StatefulWidget {
   final String imageUrl;
@@ -40,13 +43,54 @@ class RestaurantWidget extends StatefulWidget {
 }
 
 class _RestaurantWidgetState extends State<RestaurantWidget> {
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
   bool _isSaved = false;
+  Timer? _autoScrollTimer;
 
   @override
   void initState() {
     super.initState();
     _isSaved =
         context.read<SavedRestaurantsProvider>().isRestaurantSaved(widget.id);
+
+    // Add auto-scroll timer
+    _autoScrollTimer =
+        Timer.periodic(const Duration(seconds: 4), (Timer timer) {
+      final List<String> images = _getRestaurantImages();
+      if (_currentPage < images.length - 1) {
+        _currentPage++;
+      } else {
+        _currentPage = 0;
+      }
+
+      if (_pageController.hasClients) {
+        _pageController.animateToPage(
+          _currentPage,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _autoScrollTimer?.cancel(); // Cancel timer when disposing
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  List<String> _getRestaurantImages() {
+    // Extract the base name and number from the imageUrl
+    String baseName = widget.imageUrl.split('/').last;
+    baseName = baseName.replaceAll('.png', '').replaceAll('.jpg', '');
+
+    return [
+      'assets/images/$baseName.png',
+      'assets/images/${baseName}table.png',
+      'assets/images/${baseName}dish.png',
+    ];
   }
 
   void _openMap(dynamic latitude, dynamic longitude, {String? name}) async {
@@ -75,6 +119,8 @@ class _RestaurantWidgetState extends State<RestaurantWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final List<String> images = _getRestaurantImages();
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -90,14 +136,18 @@ class _RestaurantWidgetState extends State<RestaurantWidget> {
       margin: const EdgeInsets.all(12),
       child: Material(
         color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(20),
+        child: GestureDetector(
+          //borderRadius: BorderRadius.circular(20),
           onTap: () {
             Navigator.pushNamed(context, SingleRestaurantScreen.routeName,
                 arguments: {
                   'name': widget.restaurantName,
                   'location': widget.location,
-                  'id': widget.id
+                  'id': widget.id,
+                  'imageUrl': widget.imageUrl,
+                  'cuisineType': widget.cuisineType,
+                  'priceRange': widget.priceRange,
+                  'rating': widget.rating.toString(),
                 });
           },
           child: Column(
@@ -106,16 +156,60 @@ class _RestaurantWidgetState extends State<RestaurantWidget> {
               // Image Section
               Stack(
                 children: [
-                  ClipRRect(
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(24),
-                      topRight: Radius.circular(24),
+                  SizedBox(
+                    height: 200,
+                    child: PageView.builder(
+                      controller: _pageController,
+                      onPageChanged: (index) {
+                        setState(() {
+                          _currentPage = index;
+                        });
+                      },
+                      itemCount: images.length,
+                      itemBuilder: (context, index) {
+                        return ClipRRect(
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(24),
+                            topRight: Radius.circular(24),
+                          ),
+                          child: Image.asset(
+                            images[index],
+                            height: 200,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                height: 200,
+                                width: double.infinity,
+                                color: Colors.grey[300],
+                                child: const Center(
+                                  child: Icon(Icons.error_outline,
+                                      size: 40, color: Colors.grey),
+                                ),
+                              );
+                            },
+                          ),
+                        );
+                      },
                     ),
-                    child: Image.asset(
-                      widget.imageUrl,
-                      height: 200,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
+                  ),
+                  // Page Indicator
+                  Positioned(
+                    bottom: 20,
+                    left: 0,
+                    right: 0,
+                    child: Center(
+                      child: SmoothPageIndicator(
+                        controller: _pageController,
+                        count: images.length,
+                        effect: const WormEffect(
+                          dotHeight: 8,
+                          dotWidth: 8,
+                          spacing: 8,
+                          dotColor: Colors.white60,
+                          activeDotColor: Colors.white,
+                        ),
+                      ),
                     ),
                   ),
                   if (widget.promoCode != null && widget.promotionText != null)

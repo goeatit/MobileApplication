@@ -435,31 +435,48 @@ class _SearchScreenState extends State<SearchScreen> {
                     final item = searchResultsRestaurant[index];
                     return InkWell(
                         onTap: () {
-                          Navigator.pushReplacementNamed(
-                              context, SingleRestaurantScreen.routeName,
-                              arguments: {
-                                'name': item.restaurantName.toString(),
-                                'location':
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => SingleRestaurantScreen(
+                                name: item.restaurantName.toString(),
+                                location:
                                     item.restaurantAddress.city.toString(),
-                                'id': item.id.toString(),
-                              });
+                                id: item.id.toString(),
+                                imageUrl:
+                                    "assets/images/restaurant.png", // or your default image
+                                cuisineType:
+                                    "Indian • Biryani", // Add appropriate cuisine type
+                                priceRange:
+                                    "₹1200-₹1500 for two", // Add appropriate price range
+                                rating: double.parse(item.restaurantRating
+                                    .toString()), // Convert rating to double
+                              ),
+                            ),
+                          );
                         },
                         child: Card(
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
+                              borderRadius: BorderRadius.circular(15)),
                           elevation: 7,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               ClipRRect(
                                 borderRadius: const BorderRadius.vertical(
-                                    top: Radius.circular(12)),
+                                    top: Radius.circular(16)),
                                 child: AspectRatio(
-                                  aspectRatio:
-                                      16 / 9, // Fixed aspect ratio for image
+                                  aspectRatio: 16 / 9,
                                   child: Image.asset(
-                                    "assets/images/restaurant.png",
+                                    "assets/images/restaurant${(index % 9) + 1}.png", // This will cycle through restaurant1.png to restaurant9.png
                                     fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      // Fallback image in case the numbered image is not found
+                                      return Image.asset(
+                                        "assets/images/restaurant.png",
+                                        fit: BoxFit.cover,
+                                      );
+                                    },
                                   ),
                                 ),
                               ),

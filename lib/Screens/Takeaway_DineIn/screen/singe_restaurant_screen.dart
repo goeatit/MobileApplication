@@ -17,18 +17,28 @@ import 'package:provider/provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:dio/dio.dart';
+import 'package:eatit/provider/saved_restaurants_provider.dart';
+import 'package:eatit/models/saved_restaurant_model.dart';
 
 class SingleRestaurantScreen extends StatefulWidget {
   static const routeName = "/single-restaurant-screen";
   final String name;
   final String location;
   final String id;
+  final String imageUrl;
+  final String cuisineType;
+  final String priceRange;
+  final double rating;
 
   const SingleRestaurantScreen({
     super.key,
     required this.name,
     required this.location,
     required this.id,
+    required this.imageUrl,
+    required this.cuisineType,
+    required this.priceRange,
+    required this.rating,
   });
 
   @override
@@ -332,14 +342,17 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                               Stack(
                                 children: [
                                   // Restaurant Image
+                                  // Replace this part in the Stack
                                   SizedBox(
                                     width: double.infinity,
                                     height: 200,
                                     child: Image.asset(
-                                      "assets/images/singerestaurant.png",
+                                      widget
+                                          .imageUrl, // Use the passed imageUrl
                                       fit: BoxFit.cover,
                                     ),
                                   ),
+
                                   // Back Button
                                   Positioned(
                                     top: 10,
@@ -356,20 +369,221 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                     ),
                                   ),
                                   // Bookmark Button
+                                  // In SingleRestaurantScreen class, replace the existing bookmark button with:
+
                                   Positioned(
                                     top: 10,
                                     right: 10,
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        // Your onTap functionality here
+                                    child: Consumer<SavedRestaurantsProvider>(
+                                      builder: (context, savedProvider, child) {
+                                        bool isSaved = savedProvider
+                                            .isRestaurantSaved(widget.id);
+
+                                        return GestureDetector(
+                                          onTap: () async {
+                                            if (isSaved) {
+                                              // Show delete confirmation dialog
+                                              bool? remove =
+                                                  await showDialog<bool>(
+                                                context: context,
+                                                builder: (context) =>
+                                                    AlertDialog(
+                                                  backgroundColor: Colors.white,
+                                                  titlePadding:
+                                                      const EdgeInsets.only(
+                                                          top: 20, bottom: 5),
+                                                  title: Column(
+                                                    children: [
+                                                      const Icon(
+                                                        Icons.warning_rounded,
+                                                        color:
+                                                            Color(0xFFF8951D),
+                                                        size: 40,
+                                                      ),
+                                                      const SizedBox(height: 8),
+                                                      Text(
+                                                        'Remove Restaurant',
+                                                        style: Theme.of(context)
+                                                            .textTheme
+                                                            .titleLarge,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  contentPadding:
+                                                      const EdgeInsets.only(
+                                                    top: 5,
+                                                    left: 24,
+                                                    right: 24,
+                                                    bottom: 20,
+                                                  ),
+                                                  content: Text(
+                                                    'Remove ${widget.name} from saved?',
+                                                    textAlign: TextAlign.center,
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .labelLarge
+                                                        ?.copyWith(
+                                                          color: const Color(
+                                                              0xFF666666),
+                                                        ),
+                                                  ),
+                                                  actions: [
+                                                    Padding(
+                                                      padding: const EdgeInsets
+                                                          .fromLTRB(0, 0, 0, 0),
+                                                      child: Row(
+                                                        children: [
+                                                          Expanded(
+                                                            child: TextButton(
+                                                              onPressed: () =>
+                                                                  Navigator.pop(
+                                                                      context,
+                                                                      false),
+                                                              style: TextButton
+                                                                  .styleFrom(
+                                                                backgroundColor:
+                                                                    Colors
+                                                                        .white,
+                                                                padding:
+                                                                    const EdgeInsets
+                                                                        .symmetric(
+                                                                        vertical:
+                                                                            12),
+                                                                side:
+                                                                    const BorderSide(
+                                                                  color: Color(
+                                                                      0xFFF8951D),
+                                                                  width: 1,
+                                                                ),
+                                                                shape:
+                                                                    RoundedRectangleBorder(
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              10),
+                                                                ),
+                                                              ),
+                                                              child: Text(
+                                                                'Cancel',
+                                                                style: Theme.of(
+                                                                        context)
+                                                                    .textTheme
+                                                                    .labelMedium
+                                                                    ?.copyWith(
+                                                                      color: const Color(
+                                                                          0xFFF8951D),
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w600,
+                                                                    ),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          const SizedBox(
+                                                              width: 10),
+                                                          Expanded(
+                                                            child: TextButton(
+                                                              onPressed: () =>
+                                                                  Navigator.pop(
+                                                                      context,
+                                                                      true),
+                                                              style: TextButton
+                                                                  .styleFrom(
+                                                                backgroundColor:
+                                                                    const Color(
+                                                                        0xFFF8951D),
+                                                                padding:
+                                                                    const EdgeInsets
+                                                                        .symmetric(
+                                                                        vertical:
+                                                                            12),
+                                                                shape:
+                                                                    RoundedRectangleBorder(
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              10),
+                                                                ),
+                                                              ),
+                                                              child: Text(
+                                                                'Remove',
+                                                                style: Theme.of(
+                                                                        context)
+                                                                    .textTheme
+                                                                    .labelMedium
+                                                                    ?.copyWith(
+                                                                      color: Colors
+                                                                          .white,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w600,
+                                                                    ),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+
+                                              if (remove == true) {
+                                                await savedProvider
+                                                    .toggleSaveRestaurant(
+                                                  SavedRestaurant(
+                                                    id: widget.id,
+                                                    imageUrl: widget.imageUrl,
+                                                    restaurantName: widget.name,
+                                                    location: widget.location,
+                                                    cuisineType: widget
+                                                        .cuisineType, // Add this
+                                                    priceRange: widget
+                                                        .priceRange, // Add this
+                                                    rating: widget
+                                                        .rating, // Add this
+                                                    lat: dish?.restaurant
+                                                        .resturantLatitute, // Optional
+                                                    long: dish?.restaurant
+                                                        .resturantLongitute, // Optional
+                                                  ),
+                                                );
+                                              }
+                                            } else {
+                                              // Direct save
+                                              await savedProvider
+                                                  .toggleSaveRestaurant(
+                                                SavedRestaurant(
+                                                  id: widget.id,
+                                                  imageUrl: widget.imageUrl,
+                                                  restaurantName: widget.name,
+                                                  location: widget.location,
+                                                  cuisineType: widget
+                                                      .cuisineType, // Add this
+                                                  priceRange: widget
+                                                      .priceRange, // Add this
+                                                  rating:
+                                                      widget.rating, // Add this
+                                                  lat: dish?.restaurant
+                                                      .resturantLatitute, // Optional
+                                                  long: dish?.restaurant
+                                                      .resturantLongitute, // Optional
+                                                ),
+                                              );
+                                            }
+                                          },
+                                          child: SvgPicture.asset(
+                                            isSaved
+                                                ? "assets/svg/Saved.svg"
+                                                : "assets/svg/bookmark.svg",
+                                            width: 50,
+                                            height: 50,
+                                          ),
+                                        );
                                       },
-                                      child: SvgPicture.asset(
-                                        "assets/svg/bookmark.svg",
-                                        width: 50,
-                                        height: 50,
-                                      ),
                                     ),
                                   ),
+
                                   Positioned(
                                       bottom: 10,
                                       right: 10,
