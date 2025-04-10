@@ -290,7 +290,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                       ),
                     ),
                     SizedBox(
-                      width: 71,
+                      width: 80,
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton2<String>(
                           value: selectedCountry,
