@@ -213,16 +213,24 @@ class CartPageState extends State<CartPage> {
             ),
           ),
           const Spacer(),
+          // Empty cart image
+          Image.asset(
+            'assets/images/emptyCart.png',
+            width: 200,
+            height: 200,
+            fit: BoxFit.contain,
+          ),
           // Empty cart message
           const Text(
-            'You have nothing in your cart!',
+            'Your Cart is Empty',
             style: TextStyle(
-              color: Color(0xFF718EBF),
-              fontWeight: FontWeight.w400,
-              fontStyle: FontStyle.italic,
-              fontSize: 15,
+              color: Color(0xFFF8951D),
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
             ),
           ),
+          const SizedBox(height: 10),
+
           const Spacer(),
         ],
       ),
