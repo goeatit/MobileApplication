@@ -8,6 +8,7 @@ import 'package:eatit/provider/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 class CreateAccountScreen extends StatefulWidget {
@@ -54,15 +55,11 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   UserResponse? _userModel;
 
   final List<Map<String, String>> countryList = [
-    {"flag": "🇮🇳", "name": "India", "code": "+91"},
+    {"flag": "🇮🇳", "name": "IN", "code": "+91"},
     {"flag": "🇺🇸", "name": "USA", "code": "+1"},
     {"flag": "🇬🇧", "name": "UK", "code": "+44"},
-    {"flag": "🇦🇺", "name": "Australia", "code": "+61"},
-    {
-      "flag": "🇸🇦",
-      "name": "Saudi Arabia",
-      "code": "+966"
-    }, // Added Saudi Arabia
+    {"flag": "🇦🇺", "name": "AU", "code": "+61"},
+    {"flag": "🇸🇦", "name": "SA", "code": "+966"}, // Added Saudi Arabia
   ];
 
   Future<void> _selectDate(BuildContext context) async {
@@ -285,16 +282,17 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       "Complete your\n profile!",
-                      style:
-                          TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                      style: GoogleFonts.outfit(
+                        fontSize: 25,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     SizedBox(
-                      width: 125,
+                      width: 71,
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton2<String>(
-                          // isExpanded: true,
                           value: selectedCountry,
                           onChanged: (value) {
                             setState(() {
@@ -302,47 +300,96 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                               _validateForm();
                             });
                           },
+                          selectedItemBuilder: (context) {
+                            return countryList.map((country) {
+                              return ClipOval(
+                                child: Text(
+                                  country["flag"]!,
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              );
+                            }).toList();
+                          },
                           items: countryList.map((country) {
                             return DropdownMenuItem<String>(
                               value: country["code"],
                               child: Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Text(
                                     country["flag"]!,
-                                    style: const TextStyle(fontSize: 20),
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w700,
+                                    ),
                                   ),
-                                  const SizedBox(width: 10),
-                                  Text("${country['code']}"),
+                                  const SizedBox(width: 5),
+                                  Flexible(
+                                    // Wrap with Flexible
+                                    child: Text(
+                                      "${country["name"]} (${country["code"]})",
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 16, // Increased font size
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                      overflow: TextOverflow
+                                          .ellipsis, // Add ellipsis for overflow
+                                    ),
+                                  )
                                 ],
                               ),
                             );
                           }).toList(),
                           buttonStyleData: ButtonStyleData(
                             height: 50,
-                            width: 160,
+                            width: 90,
                             decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(11),
                               color: Colors.white,
                             ),
-                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            padding: const EdgeInsets.symmetric(horizontal: 5),
                           ),
                           dropdownStyleData: DropdownStyleData(
-                            maxHeight: 250,
-                            width: 180,
+                            maxHeight: 207,
+                            width:
+                                120, // Increased width to accommodate larger text
+                            offset: const Offset(-70, 0),
                             decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(11),
+                              color: const Color(0xFFF6F6F6),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Color(0x24000000),
+                                  blurRadius: 18,
+                                  offset: Offset(7, 7),
+                                ),
+                              ],
                             ),
-                            elevation: 2,
+                            elevation: 0,
                             scrollbarTheme: ScrollbarThemeData(
-                              thumbColor:
-                                  WidgetStateProperty.all(Colors.grey.shade400),
+                              thickness: MaterialStateProperty.all(0),
+                              thumbVisibility: MaterialStateProperty.all(false),
                             ),
                           ),
                           iconStyleData: const IconStyleData(
                             icon: Icon(Icons.arrow_drop_down,
                                 color: Colors.black),
                             iconSize: 24,
+                            iconEnabledColor: Colors.black,
+                          ),
+                          menuItemStyleData: MenuItemStyleData(
+                            height: 40,
+                            selectedMenuItemBuilder: (context, child) =>
+                                Container(
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFFEEDD9),
+                              ),
+                              child: child,
+                            ),
                           ),
                         ),
                       ),
@@ -350,14 +397,20 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                   ],
                 ),
                 const SizedBox(height: 20),
-                const Text("Fill your details to continue"),
+                Text(
+                  "Fill your details to continue",
+                  style: GoogleFonts.outfit(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
                 const SizedBox(height: 20),
-                const Text(
-                  "Create Account",
-                  style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black54),
+                Text(
+                  "Create your Account",
+                  style: GoogleFonts.poppins(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 const SizedBox(height: 5),
                 Form(
@@ -371,8 +424,11 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                         decoration: InputDecoration(
                           filled: true,
                           hintText: "Name",
-                          hintStyle:
-                              TextStyle(color: Colors.grey[500], fontSize: 14),
+                          hintStyle: GoogleFonts.outfit(
+                            color: Colors.grey[500],
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                          ),
                           fillColor: Colors.grey[200],
                           contentPadding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 12),
@@ -423,89 +479,87 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                         ),
                         child: StatefulBuilder(
                           builder: (context, setStateDropdown) {
-                            bool isDropdownOpen = false;
-                            return DropdownButtonFormField<String>(
-                              value: _selectedGender,
-                              items: [
-                                DropdownMenuItem<String>(
-                                  value: null,
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        'Gender',
-                                        style:
-                                            TextStyle(color: Colors.grey[500]),
-                                      ),
-                                      Icon(
-                                        isDropdownOpen
-                                            // ignore: dead_code
-                                            ? Icons.keyboard_arrow_down
-                                            : Icons.keyboard_arrow_up,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                ...['Male', 'Female'].map((String value) {
-                                  return DropdownMenuItem<String>(
-                                    value: value,
-                                    child: Text(value),
-                                  );
-                                }).toList(),
-                              ],
-                              onChanged: (String? newValue) {
-                                setState(() {
-                                  _selectedGender = newValue;
-                                });
-                              },
+                            return GestureDetector(
                               onTap: () {
                                 setStateDropdown(() {
                                   isDropdownOpen = !isDropdownOpen;
                                 });
                               },
-                              decoration: InputDecoration(
-                                hintText: "Gender",
-                                hintStyle: TextStyle(
-                                  color: Colors.grey[500],
-                                  fontSize: 14,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 12),
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          _selectedGender ?? 'Gender',
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w400,
+                                            color: _selectedGender != null
+                                                ? Colors.black
+                                                : Colors.grey[500],
+                                          ),
+                                        ),
+                                        Icon(
+                                          isDropdownOpen
+                                              ? Icons.keyboard_arrow_up
+                                              : Icons.keyboard_arrow_down,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ],
+                                    ),
+                                    if (isDropdownOpen) ...[
+                                      const SizedBox(height: 8),
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          border: Border(
+                                            top: BorderSide(
+                                              color: Colors.grey[400]!,
+                                              width: 1,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Column(
+                                        children: [
+                                          'Male',
+                                          'Female',
+                                        ].map((String value) {
+                                          return GestureDetector(
+                                            onTap: () {
+                                              setState(() {
+                                                _selectedGender = value;
+                                              });
+                                              setStateDropdown(() {
+                                                isDropdownOpen = false;
+                                              });
+                                            },
+                                            child: Container(
+                                              width: double.infinity,
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                vertical: 8,
+                                              ),
+                                              child: Text(
+                                                value,
+                                                style: GoogleFonts.outfit(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        }).toList(),
+                                      ),
+                                    ],
+                                  ],
                                 ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 12,
-                                ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                  borderSide: BorderSide.none,
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                  borderSide: BorderSide.none,
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                  borderSide: BorderSide.none,
-                                ),
-                                errorBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                  borderSide: BorderSide.none,
-                                ),
-                                filled: false,
                               ),
-                              dropdownColor: Colors.grey[200],
-                              menuMaxHeight: 300,
-                              borderRadius: BorderRadius.circular(30),
-                              icon: const SizedBox
-                                  .shrink(), // Hide the default dropdown icon
-                              style: const TextStyle(
-                                color: Colors.black,
-                                fontSize: 14,
-                              ),
-                              validator: (value) {
-                                return null;
-                              },
-                              isDense: true,
-                              isExpanded: true,
                             );
                           },
                         ),
@@ -516,9 +570,12 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                         decoration: InputDecoration(
                           filled: true,
                           fillColor: Colors.grey[200],
-                          hintStyle:
-                              TextStyle(color: Colors.grey[500], fontSize: 14),
                           hintText: "Date of birth",
+                          hintStyle: GoogleFonts.outfit(
+                            color: Colors.grey[500],
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                          ),
                           contentPadding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 12),
                           border: OutlineInputBorder(
@@ -574,9 +631,12 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                 )
                               : null,
                           fillColor: Colors.grey[200],
-                          hintStyle:
-                              TextStyle(color: Colors.grey[500], fontSize: 14),
                           hintText: "Email",
+                          hintStyle: GoogleFonts.outfit(
+                            color: Colors.grey[500],
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                          ),
                           contentPadding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 12),
                           border: OutlineInputBorder(
@@ -666,7 +726,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                 : null,
                             fillColor: Colors.grey[200],
                             hintStyle: TextStyle(
-                                color: Colors.grey[500], fontSize: 14),
+                                color: Colors.grey[500], fontSize: 16),
                             hintText: "Verify Otp",
                             contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 16, vertical: 12),
@@ -745,9 +805,12 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                   ),
                                 )
                               : null,
-                          hintStyle:
-                              TextStyle(color: Colors.grey[500], fontSize: 14),
-                          hintText: "Mobile number",
+                          hintText: "Mobile Number",
+                          hintStyle: GoogleFonts.outfit(
+                            color: Colors.grey[500],
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                          ),
                           contentPadding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 12),
                           border: OutlineInputBorder(
@@ -835,7 +898,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                 : null,
                             fillColor: Colors.grey[200],
                             hintStyle: TextStyle(
-                                color: Colors.grey[500], fontSize: 14),
+                                color: Colors.grey[500], fontSize: 16),
                             hintText: "Verify Otp",
                             contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 16, vertical: 12),
@@ -897,17 +960,38 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                       const SizedBox(height: 10),
                       Row(
                         children: [
-                          Radio(
-                            value: true,
-                            groupValue: isChecked,
-                            onChanged: (value) {
-                              setState(() => isChecked = value as bool);
-                              _validateForm();
-                            },
+                          Transform.scale(
+                            scale: 1.2,
+                            child: Radio(
+                              value: true,
+                              groupValue: isChecked,
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  isChecked = value ?? false;
+                                  _validateForm();
+                                });
+                              },
+                              activeColor: const Color(
+                                  0xFFF8951D), // Set the selected radio button color
+                              fillColor: WidgetStateProperty.resolveWith<Color>(
+                                  (Set<WidgetState> states) {
+                                if (states.contains(WidgetState.selected)) {
+                                  return const Color(
+                                      0xFFF8951D); // Selected state color
+                                }
+                                return Colors.grey; // Unselected state color
+                              }),
+                            ),
                           ),
-                          const Expanded(
-                              child: Text(
-                                  "I agree with the Terms Condition & Privacy Policy")),
+                          Expanded(
+                            child: Text(
+                              "I agree with the Terms Condition & Privacy Policy",
+                              style: GoogleFonts.outfit(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 20),

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/main.dart' show CustomTextTheme;
 import 'package:eatit/models/my_booking_modal.dart';
 import 'package:flutter/material.dart';
@@ -39,13 +40,11 @@ class _OrderDetailsContainerState extends State<OrderDetailsContainer> {
       googleMapsUrl = Uri.parse(
           "https://www.google.com/maps/search/${Uri.encodeComponent("${name!} $address")}");
     } else if (name != null && name.isNotEmpty) {
-      // Use `q=$latitude,$longitude+($name)` instead of `near`
       final String encodedQuery =
           Uri.encodeComponent("$latitude,$longitude ($name)");
       googleMapsUrl = Uri.parse(
           "https://www.google.com/maps/search/?api=1&query=$encodedQuery");
     } else {
-      // Drop a pin at the location
       googleMapsUrl =
           Uri.parse("https://www.google.com/maps?q=$latitude,$longitude");
     }
@@ -62,19 +61,90 @@ class _OrderDetailsContainerState extends State<OrderDetailsContainer> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Cancel Order'),
-          content: const Text('Are you sure you want to cancel this order?'),
+          backgroundColor: Colors.white,
+          titlePadding: const EdgeInsets.only(top: 20, bottom: 5),
+          title: Column(
+            children: [
+              const Icon(
+                Icons.warning_rounded, // Added alert icon
+                color: Color(0xFFF8951D), // Same red color as buttons
+                size: 40, // Adjust size as needed
+              ),
+              const SizedBox(height: 8), // Space between icon and text
+              Text(
+                'Confirm Cancellation',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+            ],
+          ),
+          contentPadding: const EdgeInsets.only(
+            top: 5,
+            left: 24,
+            right: 24,
+            bottom: 20,
+          ),
+          content: Text(
+            'Are you sure you want to cancel this order?',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: const Color(0xFF666666),
+                ),
+          ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('No'),
-            ),
-            TextButton(
-              onPressed: () async {
-                Navigator.of(context).pop();
-                await _cancelOrder();
-              },
-              child: const Text('Yes'),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        side: const BorderSide(
+                          color: Color(0xFFF8951D),
+                          width: 1,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Text(
+                        'No',
+                        style:
+                            Theme.of(context).textTheme.labelMedium?.copyWith(
+                                  color: const Color(0xFFF8951D),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () async {
+                        Navigator.of(context).pop();
+                        await _cancelOrder();
+                      },
+                      style: TextButton.styleFrom(
+                        backgroundColor: const Color(0xFFF8951D),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Text(
+                        'Yes',
+                        style:
+                            Theme.of(context).textTheme.labelMedium?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         );
@@ -100,7 +170,6 @@ class _OrderDetailsContainerState extends State<OrderDetailsContainer> {
               backgroundColor: Colors.green,
             ),
           );
-          // Call the callback to refresh the list
           widget.onOrderCancelled();
         }
       } else {
@@ -141,7 +210,7 @@ class _OrderDetailsContainerState extends State<OrderDetailsContainer> {
     }
   }
 
-  String _formatDateTime(String dateTimeString) {
+  Widget _buildFormattedDateTime(String dateTimeString) {
     try {
       final DateTime utcDateTime = DateTime.parse(dateTimeString);
       final DateTime localDateTime = utcDateTime.toLocal();
@@ -155,16 +224,52 @@ class _OrderDetailsContainerState extends State<OrderDetailsContainer> {
       );
 
       String timeText = DateFormat('hh:mm a').format(localDateTime);
+      String dateText;
 
       if (dateToCheck == today) {
-        return '$timeText Today';
+        dateText = 'Today';
       } else if (dateToCheck == yesterday) {
-        return '$timeText Yesterday';
+        dateText = 'Yesterday';
       } else {
-        return '${DateFormat('dd.MM.yyyy').format(localDateTime)} $timeText';
+        dateText = DateFormat('dd.MM.yyyy').format(localDateTime);
       }
+
+      return Row(
+        children: [
+          Text(
+            timeText,
+            style: Theme.of(context)
+                .extension<CustomTextTheme>()
+                ?.montserratOrderItem
+                .copyWith(
+                  color: const Color(0xFF8BA3CB),
+                  fontSize: 14,
+                ),
+          ),
+          const SizedBox(width: 10), // 10px gap
+          Text(
+            dateText,
+            style: Theme.of(context)
+                .extension<CustomTextTheme>()
+                ?.montserratOrderItem
+                .copyWith(
+                  color: const Color(0xFF8BA3CB),
+                  fontSize: 14,
+                ),
+          ),
+        ],
+      );
     } catch (e) {
-      return dateTimeString;
+      return Text(
+        dateTimeString,
+        style: Theme.of(context)
+            .extension<CustomTextTheme>()
+            ?.montserratOrderItem
+            .copyWith(
+              color: const Color(0xFF8BA3CB),
+              fontSize: 14,
+            ),
+      );
     }
   }
 
@@ -221,10 +326,13 @@ class _OrderDetailsContainerState extends State<OrderDetailsContainer> {
         widget.order.user.items.isNotEmpty ? widget.order.user.items[0] : null;
     final customTheme = Theme.of(context).extension<CustomTextTheme>()!;
 
-    return Card(
-      elevation: 2,
+    return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      color: const Color.fromARGB(255, 255, 253, 253),
+      decoration: BoxDecoration(
+        color: white,
+        borderRadius:
+            BorderRadius.circular(18), // You can adjust this value as needed
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -241,17 +349,15 @@ class _OrderDetailsContainerState extends State<OrderDetailsContainer> {
                         style: customTheme.montserratOrderId,
                         textScaler: TextScaler.noScaling,
                       ),
-                      IconButton(
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                        icon: const Icon(
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: _copyOrderId,
+                        child: const Icon(
                           Icons.copy,
-                          size: 15,
+                          size: 14,
                           color: Color(0xFF8BA3CB),
                         ),
-                        onPressed: _copyOrderId,
                       ),
-                      const SizedBox(width: 0),
                     ],
                   ),
                 ),
@@ -277,94 +383,106 @@ class _OrderDetailsContainerState extends State<OrderDetailsContainer> {
             const SizedBox(height: 8),
             Text(
               widget.order.user.restaurantName,
-              style: customTheme.nunitoSansRestaurantName,
-            ),
-            const SizedBox(height: 5),
-            Text(
-              _formatDateTime(widget.order.user.createdAt.toString()),
-              style: customTheme.montserratOrderItem.copyWith(
-                color: const Color(0xFF8BA3CB),
-                fontSize: 12,
+              style: customTheme.nunitoSansRestaurantName.copyWith(
+                letterSpacing: 0.5,
+                height: 1.3,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 9),
+            _buildFormattedDateTime(widget.order.user.createdAt.toString()),
+            const SizedBox(height: 20),
             Container(
               decoration: BoxDecoration(
                 color: const Color(0x54CACACA),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: ExpansionTile(
-                title: Text(
-                  firstItem != null
-                      ? '${firstItem.quantity}x ${firstItem.name}'
-                      : '',
-                  style: customTheme.montserratOrderItem,
+              child: Theme(
+                data: Theme.of(context).copyWith(
+                  dividerColor: Colors.transparent,
+                  splashColor: Colors.transparent,
+                  highlightColor: Colors.transparent,
                 ),
-                tilePadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-                childrenPadding: EdgeInsets.zero,
-                visualDensity: VisualDensity.compact,
-                initiallyExpanded: false,
-                shape: const RoundedRectangleBorder(
-                  side: BorderSide.none,
-                ),
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Column(
-                      children: [
-                        ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: widget.order.user.items.length,
-                          itemBuilder: (context, index) {
-                            final item = widget.order.user.items[index];
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 4),
+                child: ListTileTheme(
+                  dense: true,
+                  child: ExpansionTile(
+                    title: Text(
+                      // firstItem != null
+                      //     ? '${firstItem.quantity}x ${firstItem.name}'
+                      //     : '',
+                      "Order Items",
+                      style: customTheme.montserratOrderItem,
+                    ),
+                    tilePadding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                    childrenPadding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                    initiallyExpanded: false,
+                    shape: const RoundedRectangleBorder(
+                      side: BorderSide.none,
+                    ),
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Column(
+                          children: [
+                            ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: widget.order.user.items.length,
+                              itemBuilder: (context, index) {
+                                final item = widget.order.user.items[index];
+                                return Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 4),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        '${item.quantity}x ${item.name}',
+                                        style: customTheme.montserratOrderItem,
+                                      ),
+                                      Text(
+                                        '₹${(item.price * item.quantity).toStringAsFixed(2)}',
+                                        style: customTheme.montserratOrderItem,
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                            const Divider(),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
                               child: Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    '${item.quantity}x ${item.name}',
-                                    style: customTheme.montserratOrderItem,
+                                    'Total Amount',
+                                    style: customTheme.montserratOrderItem
+                                        .copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 14,
+                                    ),
                                   ),
                                   Text(
-                                    '₹${(item.price * item.quantity).toStringAsFixed(2)}',
-                                    style: customTheme.montserratOrderItem,
+                                    '₹${widget.order.user.subTotal.toStringAsFixed(2)}',
+                                    style: customTheme.montserratOrderItem
+                                        .copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 14,
+                                    ),
                                   ),
                                 ],
                               ),
-                            );
-                          },
+                            ),
+                          ],
                         ),
-                        const Divider(),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Total Amount',
-                                style: customTheme.montserratOrderItem.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 14,
-                                ),
-                              ),
-                              Text(
-                                '₹${widget.order.user.subTotal.toStringAsFixed(2)}',
-                                style: customTheme.montserratOrderItem.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
             const SizedBox(height: 16),
@@ -429,7 +547,7 @@ class _OrderDetailsContainerState extends State<OrderDetailsContainer> {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFF64C4D),
+                      backgroundColor: const Color(0xFFF8951D),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       elevation: 0,
                       shape: RoundedRectangleBorder(

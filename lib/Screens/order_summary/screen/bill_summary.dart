@@ -16,6 +16,7 @@ import 'package:eatit/provider/order_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart' show SvgPicture;
 import 'package:provider/provider.dart';
+import 'package:eatit/Screens/order_summary/widget/coupon_section_widget.dart';
 
 class BillSummaryScreen extends StatefulWidget {
   static const routeName = "/bill-summary";
@@ -223,55 +224,130 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
         context: context,
         barrierDismissible: false,
         builder: (ctx) => PopScope(
-          canPop: false,
-          child: AlertDialog(
-            title: const Text('Unavailable Items'),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
+            canPop: false,
+            child: AlertDialog(
+              backgroundColor: Colors.white,
+              titlePadding: const EdgeInsets.only(top: 20, bottom: 5),
+              title: Column(
                 children: [
-                  const Text(
-                    'The following items are no longer available:',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  const Icon(
+                    Icons.warning_rounded,
+                    color: Color(0xFFF8951D),
+                    size: 40,
                   ),
-                  const SizedBox(height: 10),
-                  ...unavailableItems
-                      .map((item) => Padding(
-                            padding: const EdgeInsets.only(bottom: 8.0),
-                            child: Text('• ${item['dishName']}',
-                                style: const TextStyle(color: Colors.red)),
-                          ))
-                      .toList(),
-                  const SizedBox(height: 10),
-                  const Text(
-                      'Would you like to remove these items and continue?'),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Unavailable Items',
+                    style: Theme.of(ctx).textTheme.titleLarge,
+                  ),
                 ],
               ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(ctx).pop();
-                  Navigator.of(context).pop(); // Go back to previous screen
-                },
-                child: const Text('Cancel Order'),
+              contentPadding: const EdgeInsets.only(
+                top: 5,
+                left: 24,
+                right: 24,
+                bottom: 20,
               ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(ctx).pop();
-                  _removeUnavailableItems();
-                  // Show price changes dialog if there are any
-                  if (changedPrices
-                      .any((change) => change.containsKey('newPrice'))) {
-                    _showPriceChangesDialog();
-                  }
-                },
-                child: const Text('Remove Items & Continue'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'The following items are no longer available:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF666666),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 10),
+                    ...unavailableItems
+                        .map((item) => Padding(
+                              padding: const EdgeInsets.only(bottom: 8.0),
+                              child: Text(
+                                '• ${item['dishName']}',
+                                style: const TextStyle(color: Colors.red),
+                                textAlign: TextAlign.center,
+                              ),
+                            ))
+                        .toList(),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Would you like to remove these items and continue?',
+                      style: Theme.of(ctx).textTheme.labelLarge?.copyWith(
+                            color: const Color(0xFF666666),
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
               ),
-            ],
-          ),
-        ),
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.of(ctx).pop();
+                            Navigator.of(context).pop();
+                          },
+                          style: TextButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            side: const BorderSide(
+                              color: Color(0xFFF8951D),
+                              width: 1,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: Text(
+                            'Cancel Order',
+                            style:
+                                Theme.of(ctx).textTheme.labelMedium?.copyWith(
+                                      color: const Color(0xFFF8951D),
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.of(ctx).pop();
+                            _removeUnavailableItems();
+                            if (changedPrices.any(
+                                (change) => change.containsKey('newPrice'))) {
+                              _showPriceChangesDialog();
+                            }
+                          },
+                          style: TextButton.styleFrom(
+                            backgroundColor: const Color(0xFFF8951D),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: Text(
+                            'Remove Items',
+                            style:
+                                Theme.of(ctx).textTheme.labelMedium?.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            )),
       );
     } else if (changedPrices.isNotEmpty) {
       // If there are only price changes, show that dialog
@@ -313,15 +389,40 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
         builder: (ctx) => PopScope(
           canPop: false,
           child: AlertDialog(
-            title: const Text('Price Changes'),
+            backgroundColor: Colors.white,
+            titlePadding: const EdgeInsets.only(top: 20, bottom: 5),
+            title: Column(
+              children: [
+                const Icon(
+                  Icons.warning_rounded,
+                  color: Color(0xFFF8951D),
+                  size: 40,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Price Changes',
+                  style: Theme.of(ctx).textTheme.titleLarge,
+                ),
+              ],
+            ),
+            contentPadding: const EdgeInsets.only(
+              top: 5,
+              left: 24,
+              right: 24,
+              bottom: 20,
+            ),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const Text(
                     'The following price changes have been detected:',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF666666),
+                    ),
+                    textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 10),
                   ...priceChanges
@@ -330,28 +431,77 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                             child: Text(
                               '• ${change['dishName']} price changed from ₹${change['oldPrice']} to ₹${change['newPrice']}',
                               style: const TextStyle(color: Colors.red),
+                              textAlign: TextAlign.center,
                             ),
                           ))
                       .toList(),
                   const SizedBox(height: 10),
-                  const Text('Would you like to continue with the new prices?'),
+                  Text(
+                    'Would you like to continue with the new prices?',
+                    style: Theme.of(ctx).textTheme.labelLarge?.copyWith(
+                          color: const Color(0xFF666666),
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
                 ],
               ),
             ),
             actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(ctx).pop();
-                  Navigator.of(context).pop(); // Go back to previous screen
-                },
-                child: const Text('Cancel Order'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(ctx).pop();
-                  _updatePriceChanges(); // Apply the price changes only when user accepts
-                },
-                child: const Text('Accept & Continue'),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.of(ctx).pop();
+                          Navigator.of(context).pop();
+                        },
+                        style: TextButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          side: const BorderSide(
+                            color: Color(0xFFF8951D),
+                            width: 1,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: Text(
+                          'Cancel Order',
+                          style: Theme.of(ctx).textTheme.labelSmall?.copyWith(
+                                color: const Color(0xFFF8951D),
+                                fontWeight: FontWeight.w600,
+                              ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.of(ctx).pop();
+                          _updatePriceChanges();
+                        },
+                        style: TextButton.styleFrom(
+                          backgroundColor: const Color(0xFFF8951D),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: Text(
+                          'Accept & Continue',
+                          style: Theme.of(ctx).textTheme.labelSmall?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -367,18 +517,62 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
       builder: (ctx) => PopScope(
         canPop: false,
         child: AlertDialog(
-          title: const Text('Restaurant Closed'),
+          backgroundColor: Colors.white,
+          titlePadding: const EdgeInsets.only(top: 20, bottom: 5),
+          title: Column(
+            children: [
+              const Icon(
+                Icons.warning_rounded,
+                color: Color(0xFFF8951D),
+                size: 40,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Restaurant Closed',
+                style: Theme.of(ctx).textTheme.titleLarge,
+              ),
+            ],
+          ),
+          contentPadding: const EdgeInsets.only(
+            top: 5,
+            left: 24,
+            right: 24,
+            bottom: 20,
+          ),
           content: const Text(
             'This restaurant is currently closed. Please try again later or choose another restaurant.',
-            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF666666),
+            ),
+            textAlign: TextAlign.center,
           ),
           actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(ctx).pop();
-                Navigator.of(context).pop(); // Go back to previous screen
-              },
-              child: const Text('OK'),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+              child: SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                    Navigator.of(context).pop();
+                  },
+                  style: TextButton.styleFrom(
+                    backgroundColor: const Color(0xFFF8951D),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: Text(
+                    'OK',
+                    style: Theme.of(ctx).textTheme.labelMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -510,33 +704,102 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
     if (item.quantity == 1) {
       showDialog(
         context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Remove Item'),
-          content: Text('Remove ${item.dish.dishId.dishName} from your cart?'),
+        builder: (BuildContext ctx) => AlertDialog(
+          backgroundColor: Colors.white,
+          titlePadding: const EdgeInsets.only(top: 20, bottom: 5),
+          title: Column(
+            children: [
+              const Icon(
+                Icons.warning_rounded,
+                color: Color(0xFFF8951D),
+                size: 40,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Remove Item',
+                style: Theme.of(ctx).textTheme.titleLarge,
+              ),
+            ],
+          ),
+          contentPadding: const EdgeInsets.only(
+            top: 5,
+            left: 24,
+            right: 24,
+            bottom: 20,
+          ),
+          content: Text(
+            'Are you sure you want to remove ${item.dish.dishId.dishName} from your cart?',
+            textAlign: TextAlign.center,
+            style: Theme.of(ctx).textTheme.labelLarge?.copyWith(
+                  color: const Color(0xFF666666),
+                ),
+          ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(ctx).pop();
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        side: const BorderSide(
+                          color: Color(0xFFF8951D),
+                          width: 1,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Text(
+                        'Cancel',
+                        style: Theme.of(ctx).textTheme.labelMedium?.copyWith(
+                              color: const Color(0xFFF8951D),
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.of(ctx).pop();
 
-                // Check if this is the last item in the cart
-                if (cartItems.length == 1) {
-                  // Remove the item
-                  cartProvider.removeItem(widget.id, item.dish.id);
+                        // Check if this is the last item in the cart
+                        if (cartItems.length == 1) {
+                          // Remove the item
+                          cartProvider.removeItem(widget.id, item.dish.id);
 
-                  // Clear the order provider
-                  orderProvider.clearOrder();
+                          // Clear the order provider
+                          orderProvider.clearOrder();
 
-                  // Pop back to previous screen
-                  Navigator.of(context).pop();
-                } else {
-                  _removeItem(item);
-                }
-              },
-              child: const Text('Remove'),
+                          // Pop back to previous screen
+                          Navigator.of(context).pop();
+                        } else {
+                          _removeItem(item);
+                        }
+                      },
+                      style: TextButton.styleFrom(
+                        backgroundColor: const Color(0xFFF8951D),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Text(
+                        'Remove',
+                        style: Theme.of(ctx).textTheme.labelMedium?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -840,13 +1103,14 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                                         ],
                                       ),
                                     ),
+                                    const SizedBox(height: 10),
 
                                     // Only show number of people for dine-in orders
                                     if (widget.orderType.toLowerCase() ==
                                         "dine-in")
                                       Container(
                                         margin: const EdgeInsets.symmetric(
-                                            vertical: 20),
+                                            vertical: 10),
                                         padding: const EdgeInsets.all(16),
                                         decoration: BoxDecoration(
                                           color: Colors.white,
@@ -862,7 +1126,7 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                                         ),
                                         child: const SelectNoPeopleWidget(),
                                       ),
-
+                                    const SizedBox(height: 10),
                                     // Show time slots for all order types
                                     Container(
                                       margin: const EdgeInsets.symmetric(
@@ -881,8 +1145,26 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                                       ),
                                       child: const TimeSlotsReserveWidget(),
                                     ),
-
                                     // Add bottom padding to ensure content isn't hidden behind the fixed button
+                                    const SizedBox(height: 20),
+
+                                    Container(
+                                      margin: const EdgeInsets.symmetric(
+                                          vertical: 0),
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(18),
+                                        boxShadow: const [
+                                          // BoxShadow(
+                                          //   color: Colors.black12,
+                                          //   blurRadius: 6,
+                                          //   offset: Offset(0, 3),
+                                          // ),
+                                        ],
+                                      ),
+                                      child: const CouponSectionWidget(),
+                                    ),
                                     const SizedBox(height: 80),
                                   ],
                                 ),
