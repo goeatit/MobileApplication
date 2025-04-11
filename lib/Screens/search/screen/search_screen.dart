@@ -444,7 +444,8 @@ class _SearchScreenState extends State<SearchScreen> {
                                     item.restaurantAddress.city.toString(),
                                 id: item.id.toString(),
                                 imageUrl:
-                                    "assets/images/restaurant.png", // or your default image
+                                    "assets/images/restaurant${(index % 9) + 1}.png",
+
                                 cuisineType:
                                     "Indian • Biryani", // Add appropriate cuisine type
                                 priceRange:
@@ -591,16 +592,26 @@ class _SearchScreenState extends State<SearchScreen> {
                     final item = topDishes[index];
                     return InkWell(
                       onTap: () {
-                        Navigator.pushReplacementNamed(
-                            context, SingleRestaurantScreen.routeName,
-                            arguments: {
-                              'name': item.restaurantIdDetails.restaurantName
-                                  .toString(),
-                              'location': item
-                                  .restaurantIdDetails.restaurantAddress.city
-                                  .toString(),
-                              'id': item.restaurantIdDetails.id.toString(),
-                            });
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SingleRestaurantScreen(
+                              name: item.restaurantIdDetails.restaurantName,
+                              location: item
+                                  .restaurantIdDetails.restaurantAddress.city,
+                              id: item.restaurantIdDetails.id.toString(),
+                              imageUrl:
+                                  "assets/images/restaurant${(index % 9) + 1}.png",
+
+                              cuisineType:
+                                  "Indian • Biryani", // Add appropriate cuisine type
+                              priceRange:
+                                  "₹1200-₹1500 for two", // Add appropriate price range
+                              rating: double.parse(item.rating
+                                  .toString()), // Convert rating to double
+                            ),
+                          ),
+                        );
                       },
                       child: Card(
                         shape: RoundedRectangleBorder(
@@ -611,13 +622,19 @@ class _SearchScreenState extends State<SearchScreen> {
                           children: [
                             ClipRRect(
                               borderRadius: const BorderRadius.vertical(
-                                  top: Radius.circular(8)),
+                                  top: Radius.circular(16)),
                               child: AspectRatio(
-                                aspectRatio:
-                                    16 / 9, // Fixed aspect ratio for image
+                                aspectRatio: 16 / 9,
                                 child: Image.asset(
-                                  "assets/images/restaurant.png",
+                                  "assets/images/restaurant${(index % 9) + 1}.png", // This will cycle through restaurant1.png to restaurant9.png
                                   fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    // Fallback image in case the numbered image is not found
+                                    return Image.asset(
+                                      "assets/images/restaurant.png",
+                                      fit: BoxFit.cover,
+                                    );
+                                  },
                                 ),
                               ),
                             ),
@@ -672,9 +689,9 @@ class _SearchScreenState extends State<SearchScreen> {
                                           ],
                                         ),
                                         const SizedBox(height: 4),
-                                        Text(
+                                        const Text(
                                           "Indian • Biryani",
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             color: Colors.grey,
                                             fontSize: 13,
                                           ),
@@ -683,12 +700,12 @@ class _SearchScreenState extends State<SearchScreen> {
                                         ),
                                       ],
                                     ),
-                                    Column(
+                                    const Column(
                                       children: [
-                                        const SizedBox(height: 4),
+                                        SizedBox(height: 4),
                                         Text(
                                           "₹200",
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             color: Colors.grey,
                                             fontSize: 12,
                                           ),

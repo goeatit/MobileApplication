@@ -102,6 +102,26 @@ class _VerifyOtpState extends State<VerifyOtp> {
     }
   }
 
+  // In _VerifyOtpState class
+  void _handleResendOtp() async {
+    // Reset the OTP input
+    _otpController.clear();
+
+    // Reset verification status
+    setState(() {
+      isVerificationSuccess = null;
+      message = "";
+      _secondsRemaining = 60; // Reset timer
+      _startTimer(); // Restart timer
+    });
+
+    // Call the OTP service to resend
+    await _otpService.sendOtp(
+      widget.countryCode,
+      widget.phoneNumber,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
@@ -296,32 +316,34 @@ class _VerifyOtpState extends State<VerifyOtp> {
                             style: const TextStyle(color: Colors.black),
                           )
                         else
+                          // Replace the existing Container for Resend OTP with this:
                           Container(
                             decoration: BoxDecoration(
                               border: Border.all(
-                                color: const Color(
-                                    0xFFE5E5E5), // Neutrals200 color
+                                color: const Color(0xFFE5E5E5),
                                 width: 1,
                               ),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: InkWell(
-                              onTap: () {
-                                Navigator.pop(context);
-                              },
-                              child: const Padding(
-                                padding: EdgeInsets.symmetric(
+                              onTap: _secondsRemaining == 0
+                                  ? _handleResendOtp
+                                  : null,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
                                     horizontal: 60, vertical: 15),
                                 child: Text(
-                                  "Resent OTP",
+                                  "Resend OTP",
                                   style: TextStyle(
                                       fontSize: 16,
-                                      color: Color(0xFF1D1929),
+                                      color: _secondsRemaining == 0
+                                          ? const Color(0xFF1D1929)
+                                          : Colors.grey,
                                       fontWeight: FontWeight.w500),
                                 ),
                               ),
                             ),
-                          ),
+                          )
                       ],
                     ),
                   )
