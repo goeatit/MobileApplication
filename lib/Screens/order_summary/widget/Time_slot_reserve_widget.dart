@@ -93,7 +93,7 @@ class _TimeSlotsReserveWidgetState extends State<TimeSlotsReserveWidget> {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 4, // 4 items per row
+              crossAxisCount: 3, // 3 items per row
               childAspectRatio: 2.5, // Adjust this value to control height
               crossAxisSpacing: 8,
               mainAxisSpacing: 8,
@@ -131,7 +131,7 @@ class _TimeSlotsReserveWidgetState extends State<TimeSlotsReserveWidget> {
                               ? Colors.grey
                               : Colors.black,
                     ),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(20),
                   ),
                   child: Center(
                     // Center the text
