@@ -54,7 +54,17 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
     "assets/images/pizza.png",
     "assets/images/healthy.png",
     "assets/images/home_style.png",
-    "assets/images/chicken.png"
+    "assets/images/chicken.png",
+    "assets/images/image1.png",
+    "assets/images/image2.png",
+    "assets/images/image3.png",
+    "assets/images/image4.png",
+    "assets/images/image5.png",
+    "assets/images/image6.png",
+    "assets/images/image7.png",
+    "assets/images/image8.png",
+    "assets/images/image9.png",
+    "assets/images/image10.png",
   ];
   bool _isVisible = false;
   DishSchema? dish;
@@ -836,7 +846,7 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                                           price:
                                                               "₹${dish.resturantDishPrice}",
                                                           imageUrl: imgurls[
-                                                              index % 5],
+                                                              index % 9],
                                                           calories: "120 cal",
                                                           quantity: (ctx
                                                               .watch<
@@ -863,7 +873,10 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                                                 dish: dish,
                                                                 quantity: 1,
                                                                 location: widget
-                                                                    .location);
+                                                                    .location,
+                                                                restaurantImageUrl:
+                                                                    widget
+                                                                        .imageUrl);
                                                             cartProvider
                                                                 .addToCart(
                                                                     widget.id,
@@ -955,6 +968,8 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                           final cartITem = CartItem(
                                               id: selectedDish!.id,
                                               restaurantName: widget.name,
+                                              restaurantImageUrl:
+                                                  widget.imageUrl,
                                               orderType: orderType,
                                               dish: selectedDish!,
                                               quantity: 1,

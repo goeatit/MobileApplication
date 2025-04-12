@@ -47,6 +47,7 @@ class CartPageState extends State<CartPage> {
             id: id,
             orderType: orderType,
             allItems: cartItems,
+            restaurantImageUrl: cartItems.first.restaurantImageUrl, // Add this
           ));
         }
       });
@@ -239,6 +240,11 @@ class CartPageState extends State<CartPage> {
 
   Widget _buildCartItem(
       CartItemWithDetails cartItemWithDetails, Animation<double> animation) {
+    // Calculate image index based on restaurant ID to ensure consistent image
+    final imageIndex =
+        cartItemWithDetails.id.hashCode % 10; // Will give numbers 0-9
+    final restaurantImage = 'assets/images/restaurant${imageIndex}.png';
+
     return SlideTransition(
       position: animation.drive(
         Tween<Offset>(
@@ -255,6 +261,10 @@ class CartPageState extends State<CartPage> {
               'name': cartItemWithDetails.restaurantName,
               'orderType': cartItemWithDetails.orderType,
               'id': cartItemWithDetails.id,
+              'imageUrl': restaurantImage, // Using the calculated image path
+              'cuisineType': "Indian • Biryani", // Add appropriate cuisine type
+              'priceRange': "₹1200-₹1500 for two",
+              'rating': cartItemWithDetails.cartItem.dish.ratting.toString(),
             },
           );
         },
@@ -284,6 +294,7 @@ class CartItemWithDetails {
   final String orderType;
   final String id;
   final List<CartItem> allItems;
+  final String restaurantImageUrl;
 
   CartItemWithDetails({
     required this.cartItem,
@@ -291,5 +302,6 @@ class CartItemWithDetails {
     required this.orderType,
     required this.allItems,
     required this.id,
+    required this.restaurantImageUrl,
   });
 }
