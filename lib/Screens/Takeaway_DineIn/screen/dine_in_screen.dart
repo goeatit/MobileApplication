@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widget/bottom_cart.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import 'dart:async';
 
@@ -289,6 +290,15 @@ class _DineInScreen extends State<DineInScreen> {
                                 ),
                                 // Add bottom padding for cart
                                 const SizedBox(height: 80),
+                                // Add the SVG image after RestaurantWidget
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16),
+                                  child: SvgPicture.asset(
+                                    'assets/svg/first_Default.svg',
+                                  ),
+                                ),
+                                const SizedBox(height: 100),
                               ],
                             )
                           : const Center(
