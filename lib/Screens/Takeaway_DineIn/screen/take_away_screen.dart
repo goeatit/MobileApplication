@@ -15,6 +15,7 @@ import 'package:eatit/provider/cart_dish_provider.dart';
 import 'package:eatit/provider/order_type_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -304,7 +305,17 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
                                       );
                                     },
                                   ),
+                                  // Add bottom padding for cart
                                   const SizedBox(height: 80),
+                                  // Add the SVG image after RestaurantWidget
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16),
+                                    child: SvgPicture.asset(
+                                      'assets/svg/first_Default.svg',
+                                    ),
+                                  ),
+                                  const SizedBox(height: 100),
                                 ],
                               )
                             : const Center(
