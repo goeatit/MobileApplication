@@ -128,23 +128,15 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
     }
 
     if (_orders.isEmpty) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.receipt_long_outlined,
-              size: 64,
-              color: Colors.grey,
-            ),
-            SizedBox(height: 16),
-            Text(
-              'No Bookings Found',
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.grey,
-                fontWeight: FontWeight.w500,
-              ),
+            Image.asset(
+              'assets/images/emptyBooking.png',
+              width: 400, // Adjust the width as needed
+              height: 400, // Adjust the height as needed
+              fit: BoxFit.contain,
             ),
           ],
         ),

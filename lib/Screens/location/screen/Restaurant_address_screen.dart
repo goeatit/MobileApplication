@@ -28,6 +28,9 @@ class _RestaurantAddressScreenState extends State<RestaurantAddressScreen> {
   final TextEditingController _areaController = TextEditingController();
   final TextEditingController _cityController = TextEditingController();
   final TextEditingController _landmarkController = TextEditingController();
+  final TextEditingController _stateController = TextEditingController();
+  final TextEditingController _countryController = TextEditingController();
+  final TextEditingController _postalCodeController = TextEditingController();
 
   String _error = '';
   LatLng _currentPosition = const LatLng(28.7041, 77.1025); // Default: Delhi
@@ -91,9 +94,25 @@ class _RestaurantAddressScreenState extends State<RestaurantAddressScreen> {
         Placemark place = placemarks.first;
         setState(() {
           _searchController.text =
-              '${place.street} ${place.subLocality} ${place.locality}'.trim();
-          _areaController.text = '${place.street} ${place.subLocality}'.trim();
+              '${place.subLocality} ${place.locality}'.trim();
+          // Combine area details with postal code
+          String areaText = '';
+          if (place.subLocality?.isNotEmpty ?? false) {
+            areaText += place.subLocality!;
+          }
+          if (place.thoroughfare?.isNotEmpty ?? false) {
+            areaText += areaText.isEmpty
+                ? place.thoroughfare!
+                : ', ${place.thoroughfare}';
+          }
+          if (place.postalCode?.isNotEmpty ?? false) {
+            areaText +=
+                areaText.isEmpty ? place.postalCode! : ' - ${place.postalCode}';
+          }
+          _areaController.text = areaText;
           _cityController.text = place.locality ?? '';
+          _stateController.text = place.administrativeArea ?? '';
+          _countryController.text = place.country ?? '';
           _currentPosition = position;
           _isLocationSelected = true;
         });
@@ -310,30 +329,12 @@ class _RestaurantAddressScreenState extends State<RestaurantAddressScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
-                TextFormField(
-                  controller: _buildingNoController,
-                  enabled: _isLocationSelected,
-                  decoration: const InputDecoration(
-                    labelText: 'Building No. (Optional)',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: _floorController,
-                  enabled: _isLocationSelected,
-                  decoration: const InputDecoration(
-                    labelText: 'Floor (Optional)',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 30),
                 TextFormField(
                   controller: _areaController,
                   enabled: false,
                   decoration: const InputDecoration(
-                    labelText: 'Area / Sector / Locality*',
+                    labelText: 'Area / Sector / Locality / Postal Code*',
                     border: OutlineInputBorder(),
                   ),
                   validator: (value) {
@@ -359,14 +360,37 @@ class _RestaurantAddressScreenState extends State<RestaurantAddressScreen> {
                   },
                 ),
                 const SizedBox(height: 10),
+                // After the existing city field
                 TextFormField(
-                  controller: _landmarkController,
-                  enabled: _isLocationSelected,
+                  controller: _stateController,
+                  enabled: false,
                   decoration: const InputDecoration(
-                    labelText: 'Landmark (Optional)',
+                    labelText: 'State*',
                     border: OutlineInputBorder(),
                   ),
+                  validator: (value) {
+                    if (value?.isEmpty ?? true) {
+                      return 'Please select a location from the map';
+                    }
+                    return null;
+                  },
                 ),
+                const SizedBox(height: 10),
+                TextFormField(
+                  controller: _countryController,
+                  enabled: false,
+                  decoration: const InputDecoration(
+                    labelText: 'Country*',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value?.isEmpty ?? true) {
+                      return 'Please select a location from the map';
+                    }
+                    return null;
+                  },
+                ),
+
                 if (_error.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -402,6 +426,7 @@ class _RestaurantAddressScreenState extends State<RestaurantAddressScreen> {
                                     "log", _currentPosition.longitude);
 
                                 // Construct and save full address
+                                // In the save button onPressed callback
                                 String fullAddress = '';
                                 if (_buildingNoController.text.isNotEmpty) {
                                   fullAddress +=
@@ -415,12 +440,19 @@ class _RestaurantAddressScreenState extends State<RestaurantAddressScreen> {
                                   fullAddress +=
                                       '${_landmarkController.text}, ';
                                 }
-                                fullAddress += _cityController.text;
+                                fullAddress += '${_cityController.text}, ';
+                                fullAddress += '${_stateController.text}, ';
+                                fullAddress += '${_countryController.text} ';
+                                fullAddress += _postalCodeController.text;
 
                                 await prefs.setString(
                                     "full_address", fullAddress);
                                 await prefs.setString(
                                     "city", _cityController.text);
+                                await prefs.setString(
+                                    "state", _stateController.text);
+                                await prefs.setString(
+                                    "country", _countryController.text);
 
                                 // Show success message
                                 if (context.mounted) {
@@ -477,6 +509,9 @@ class _RestaurantAddressScreenState extends State<RestaurantAddressScreen> {
     _areaController.dispose();
     _cityController.dispose();
     _landmarkController.dispose();
+    _stateController.dispose();
+    _countryController.dispose();
+
     super.dispose();
   }
 }

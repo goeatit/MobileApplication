@@ -34,6 +34,12 @@ class CartItemWidget extends StatefulWidget {
 
 class _CartItemWidgetState extends State<CartItemWidget> {
   bool _isExpanded = false;
+  // In the _CartItemWidgetState class, add this method to get a random restaurant image
+  String getRestaurantImage(int index) {
+    // Use modulo to cycle through images 0-9
+    final imageIndex = index % 10;
+    return 'assets/images/restaurant$imageIndex.png';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,13 +53,24 @@ class _CartItemWidgetState extends State<CartItemWidget> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                // Then modify the Image.asset widget in the build method
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
                   child: Image.asset(
-                    'assets/images/restaurant.png',
+                    // Use the widget.index passed from parent to get different images
+                    getRestaurantImage(widget.index),
                     width: 85,
                     height: 85,
                     fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      // Fallback to default image if the numbered image is not found
+                      return Image.asset(
+                        'assets/images/restaurant.png',
+                        width: 85,
+                        height: 85,
+                        fit: BoxFit.cover,
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(width: 12),

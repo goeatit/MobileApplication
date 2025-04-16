@@ -46,7 +46,7 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
       break;
 
     case SingleRestaurantScreen.routeName:
-      final args = routeSettings.arguments as Map<String, String>;
+      final args = routeSettings.arguments as Map<String, dynamic>;
       page = SingleRestaurantScreen(
         name: args['name']!,
         location: args['location']!,
@@ -54,7 +54,9 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
         imageUrl: args['imageUrl']!,
         cuisineType: args['cuisineType']!,
         priceRange: args['priceRange']!,
-        rating: double.parse(args['rating']!),
+        rating: args['rating'] is String
+            ? double.parse(args['rating'])
+            : args['rating'],
       );
       break;
 
@@ -68,6 +70,10 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
         name: args['name']!,
         orderType: args['orderType']!,
         id: args['id']!,
+        imageUrl: args['imageUrl']!,
+        cuisineType: args['cuisineType']!,
+        priceRange: args['priceRange']!,
+        rating: double.parse(args['rating']!),
       );
       break;
 

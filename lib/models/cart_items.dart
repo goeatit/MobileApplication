@@ -3,6 +3,7 @@ import 'package:eatit/models/dish_retaurant.dart';
 class CartItem {
   final String id; // Unique identifier
   final String restaurantName;
+  final String restaurantImageUrl;
   final String orderType;
   final AvailableDish dish;
   int quantity;
@@ -11,6 +12,7 @@ class CartItem {
   CartItem({
     required this.id,
     required this.restaurantName,
+    required this.restaurantImageUrl,
     required this.orderType,
     required this.dish,
     required this.quantity,
@@ -34,10 +36,10 @@ class CartItem {
     return CartItem(
         id: map['id'],
         restaurantName: map['restaurantName'],
+        restaurantImageUrl: map['restaurantImageUrl'] ?? '',
         orderType: map['orderType'],
         dish: AvailableDish.fromMap(map['dish']),
         quantity: map['quantity'],
-        location: map['location']
-    );
+        location: map['location']);
   }
 }
