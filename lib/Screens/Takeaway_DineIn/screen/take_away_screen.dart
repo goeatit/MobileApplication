@@ -15,6 +15,7 @@ import 'package:eatit/provider/cart_dish_provider.dart';
 import 'package:eatit/provider/order_type_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -77,7 +78,7 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
       } else if (mounted && !_cancelToken.isCancelled) {
         setState(() {
           restaurants = []; // Ensure restaurants list is empty
-          errorMessage = "We are expanding soon in your city.";
+          errorMessage = "assets/images/expand-your-city.png";
           isLoading = false;
         });
       }
@@ -85,7 +86,7 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
       if (mounted && !_cancelToken.isCancelled) {
         setState(() {
           //errorMessage = "Error: $e";
-          errorMessage = "We are expanding soon in your city.";
+          errorMessage = "assets/images/expand-your-city.png";
           isLoading = false;
         });
       }
@@ -153,8 +154,12 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
                 child: CircularProgressIndicator()) // Show loading spinner
             : errorMessage.isNotEmpty
                 ? Center(
-                    child: Text(
-                        errorMessage)) // Show error message if fetching failed
+                    child: Image.asset(
+                      errorMessage, // Using errorMessage as image path
+                      fit: BoxFit.contain,
+                      height: 350,
+                    ),
+                  ) // Show error message if fetching failed
                 : Stack(
                     children: [
                       SingleChildScrollView(
@@ -304,11 +309,24 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
                                       );
                                     },
                                   ),
+                                  // Add bottom padding for cart
                                   const SizedBox(height: 80),
+                                  // Add the SVG image after RestaurantWidget
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16),
+                                    child: SvgPicture.asset(
+                                      'assets/svg/first_Default.svg',
+                                    ),
+                                  ),
+                                  const SizedBox(height: 100),
                                 ],
                               )
-                            : const Center(
-                                child: Text("We are expanding soon"),
+                            : Center(
+                                child: Image.asset(
+                                  'assets/images/expand-your-city.png',
+                                  fit: BoxFit.contain,
+                                ),
                               ),
                       ),
                       Consumer<CartProvider>(

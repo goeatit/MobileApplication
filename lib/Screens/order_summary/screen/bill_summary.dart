@@ -11,8 +11,10 @@ import 'package:eatit/Screens/order_summary/widget/Time_slot_reserve_widget.dart
 import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/models/cart_items.dart';
 import 'package:eatit/models/dish_retaurant.dart';
+import 'package:eatit/models/saved_restaurant_model.dart';
 import 'package:eatit/provider/cart_dish_provider.dart';
 import 'package:eatit/provider/order_provider.dart';
+import 'package:eatit/provider/saved_restaurants_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart' show SvgPicture;
 import 'package:provider/provider.dart';
@@ -23,12 +25,21 @@ class BillSummaryScreen extends StatefulWidget {
   final String name;
   final String orderType;
   final String id;
+  final String imageUrl;
+  final String cuisineType;
+  final String priceRange;
+  final double rating;
 
-  const BillSummaryScreen(
-      {super.key,
-      required this.name,
-      required this.orderType,
-      required this.id});
+  const BillSummaryScreen({
+    super.key,
+    required this.name,
+    required this.orderType,
+    required this.id,
+    required this.imageUrl,
+    required this.cuisineType,
+    required this.priceRange,
+    required this.rating,
+  });
 
   @override
   State<StatefulWidget> createState() => _BillSummaryScreen();
@@ -928,14 +939,167 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                       ],
                     ),
                   ),
-                  GestureDetector(
-                      onTap: () {},
-                      child: SvgPicture.asset(
-                        'assets/svg/save_appbar.svg',
-                        width: 50,
-                        height: 50,
-                        fit: BoxFit.scaleDown,
-                      ))
+                  Consumer<SavedRestaurantsProvider>(
+                    builder: (context, savedProvider, child) {
+                      final isSaved =
+                          savedProvider.isRestaurantSaved(widget.id);
+                      return GestureDetector(
+                        // onTap: () async {
+                        //   if (isSaved) {
+                        //     // Show delete confirmation
+                        //     bool? remove = await showDialog<bool>(
+                        //       context: context,
+                        //       builder: (context) => AlertDialog(
+                        //         backgroundColor: Colors.white,
+                        //         titlePadding:
+                        //             const EdgeInsets.only(top: 20, bottom: 5),
+                        //         title: Column(
+                        //           children: [
+                        //             const Icon(
+                        //               Icons.warning_rounded,
+                        //               color: Color(0xFFF8951D),
+                        //               size: 40,
+                        //             ),
+                        //             const SizedBox(height: 8),
+                        //             Text(
+                        //               'Remove Restaurant',
+                        //               style: Theme.of(context)
+                        //                   .textTheme
+                        //                   .titleLarge,
+                        //             ),
+                        //           ],
+                        //         ),
+                        //         contentPadding: const EdgeInsets.only(
+                        //           top: 5,
+                        //           left: 24,
+                        //           right: 24,
+                        //           bottom: 20,
+                        //         ),
+                        //         content: Text(
+                        //           'Remove ${widget.name} from saved?',
+                        //           textAlign: TextAlign.center,
+                        //           style: Theme.of(context)
+                        //               .textTheme
+                        //               .labelLarge
+                        //               ?.copyWith(
+                        //                 color: const Color(0xFF666666),
+                        //               ),
+                        //         ),
+                        //         actions: [
+                        //           Padding(
+                        //             padding:
+                        //                 const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                        //             child: Row(
+                        //               children: [
+                        //                 Expanded(
+                        //                   child: TextButton(
+                        //                     onPressed: () =>
+                        //                         Navigator.pop(context, false),
+                        //                     style: TextButton.styleFrom(
+                        //                       backgroundColor: Colors.white,
+                        //                       padding:
+                        //                           const EdgeInsets.symmetric(
+                        //                               vertical: 12),
+                        //                       side: const BorderSide(
+                        //                         color: Color(0xFFF8951D),
+                        //                         width: 1,
+                        //                       ),
+                        //                       shape: RoundedRectangleBorder(
+                        //                         borderRadius:
+                        //                             BorderRadius.circular(10),
+                        //                       ),
+                        //                     ),
+                        //                     child: Text(
+                        //                       'Cancel',
+                        //                       style: Theme.of(context)
+                        //                           .textTheme
+                        //                           .labelMedium
+                        //                           ?.copyWith(
+                        //                             color:
+                        //                                 const Color(0xFFF8951D),
+                        //                             fontWeight: FontWeight.w600,
+                        //                           ),
+                        //                     ),
+                        //                   ),
+                        //                 ),
+                        //                 const SizedBox(width: 10),
+                        //                 Expanded(
+                        //                   child: TextButton(
+                        //                     onPressed: () =>
+                        //                         Navigator.pop(context, true),
+                        //                     style: TextButton.styleFrom(
+                        //                       backgroundColor:
+                        //                           const Color(0xFFF8951D),
+                        //                       padding:
+                        //                           const EdgeInsets.symmetric(
+                        //                               vertical: 12),
+                        //                       shape: RoundedRectangleBorder(
+                        //                         borderRadius:
+                        //                             BorderRadius.circular(10),
+                        //                       ),
+                        //                     ),
+                        //                     child: Text(
+                        //                       'Remove',
+                        //                       style: Theme.of(context)
+                        //                           .textTheme
+                        //                           .labelMedium
+                        //                           ?.copyWith(
+                        //                             color: Colors.white,
+                        //                             fontWeight: FontWeight.w600,
+                        //                           ),
+                        //                     ),
+                        //                   ),
+                        //                 ),
+                        //               ],
+                        //             ),
+                        //           ),
+                        //         ],
+                        //       ),
+                        //     );
+
+                        //     if (remove == true) {
+                        //       await savedProvider.toggleSaveRestaurant(
+                        //         SavedRestaurant(
+                        //           id: widget.id,
+                        //           imageUrl: widget.imageUrl,
+                        //           restaurantName: widget.name,
+                        //           cuisineType: widget.cuisineType,
+                        //           priceRange: widget.priceRange,
+                        //           rating: widget.rating,
+                        //           location: widget.location,
+                        //           lat: widget.latitude,
+                        //           long: widget.longitude,
+                        //         ),
+                        //       );
+                        //     }
+                        //   } else {
+                        //     // Direct save
+                        //     await savedProvider.toggleSaveRestaurant(
+                        //       SavedRestaurant(
+                        //         id: widget.id,
+                        //         imageUrl: widget.imageUrl,
+                        //         restaurantName: widget.name,
+                        //         cuisineType: widget.cuisineType,
+                        //         priceRange: widget.priceRange,
+                        //         rating: widget.rating,
+                        //         location: widget.location,
+                        //         lat: widget.latitude,
+                        //         long: widget.longitude,
+                        //       ),
+                        //     );
+                        //   }
+                        // },
+                        child: SvgPicture.asset(
+                          isSaved
+                              ? 'assets/svg/Saved.svg'
+                              : 'assets/svg/save_appbar.svg',
+                          width: 50,
+                          height: 50,
+                          fit: BoxFit.scaleDown,
+                        ),
+                      );
+                    },
+                  ),
                 ],
               )),
           body: isCheckingConditions
@@ -1016,7 +1180,13 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                                                     'name': widget.name,
                                                     'location': cartItems
                                                         .first.location,
-                                                    'id': widget.id
+                                                    'id': widget.id,
+                                                    'imageUrl': widget.imageUrl,
+                                                    'cuisineType':
+                                                        widget.cuisineType,
+                                                    'priceRange':
+                                                        widget.priceRange,
+                                                    'rating': widget.rating,
                                                   });
                                             },
                                             child: const Row(

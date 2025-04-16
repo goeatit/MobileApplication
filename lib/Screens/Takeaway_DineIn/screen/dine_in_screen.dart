@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widget/bottom_cart.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import 'dart:async';
 
@@ -75,14 +76,14 @@ class _DineInScreen extends State<DineInScreen> {
       } else if (mounted && !_cancelToken.isCancelled) {
         setState(() {
           restaurants = [];
-          errorMessage = "We are expanding soon in your city.";
+          errorMessage = "assets/images/expand-your-city.png";
           isLoading = false;
         });
       }
     } catch (e) {
       if (mounted && !_cancelToken.isCancelled) {
         setState(() {
-          errorMessage = "We are expanding soon in your city.";
+          errorMessage = "assets/images/expand-your-city.png";
           isLoading = false;
         });
       }
@@ -150,7 +151,13 @@ class _DineInScreen extends State<DineInScreen> {
           isLoading
               ? const Center(child: CircularProgressIndicator())
               : errorMessage.isNotEmpty
-                  ? Center(child: Text(errorMessage))
+                  ? Center(
+                      child: Image.asset(
+                        errorMessage, // Using errorMessage as image path
+                        fit: BoxFit.contain,
+                        height: 350,
+                      ),
+                    )
                   : SingleChildScrollView(
                       child: restaurants.isNotEmpty
                           ? Column(
@@ -289,10 +296,22 @@ class _DineInScreen extends State<DineInScreen> {
                                 ),
                                 // Add bottom padding for cart
                                 const SizedBox(height: 80),
+                                // Add the SVG image after RestaurantWidget
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16),
+                                  child: SvgPicture.asset(
+                                    'assets/svg/first_Default.svg',
+                                  ),
+                                ),
+                                const SizedBox(height: 100),
                               ],
                             )
-                          : const Center(
-                              child: Text("We are expanding soon"),
+                          : Center(
+                              child: Image.asset(
+                                'assets/images/expand-your-city.png',
+                                fit: BoxFit.contain,
+                              ),
                             ),
                     ),
           // Bottom Cart
