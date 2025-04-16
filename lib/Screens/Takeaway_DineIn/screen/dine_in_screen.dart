@@ -76,14 +76,14 @@ class _DineInScreen extends State<DineInScreen> {
       } else if (mounted && !_cancelToken.isCancelled) {
         setState(() {
           restaurants = [];
-          errorMessage = "We are expanding soon in your city.";
+          errorMessage = "assets/images/expand-your-city.png";
           isLoading = false;
         });
       }
     } catch (e) {
       if (mounted && !_cancelToken.isCancelled) {
         setState(() {
-          errorMessage = "We are expanding soon in your city.";
+          errorMessage = "assets/images/expand-your-city.png";
           isLoading = false;
         });
       }
@@ -151,7 +151,13 @@ class _DineInScreen extends State<DineInScreen> {
           isLoading
               ? const Center(child: CircularProgressIndicator())
               : errorMessage.isNotEmpty
-                  ? Center(child: Text(errorMessage))
+                  ? Center(
+                      child: Image.asset(
+                        errorMessage, // Using errorMessage as image path
+                        fit: BoxFit.contain,
+                        height: 350,
+                      ),
+                    )
                   : SingleChildScrollView(
                       child: restaurants.isNotEmpty
                           ? Column(
@@ -301,8 +307,11 @@ class _DineInScreen extends State<DineInScreen> {
                                 const SizedBox(height: 100),
                               ],
                             )
-                          : const Center(
-                              child: Text("We are expanding soon"),
+                          : Center(
+                              child: Image.asset(
+                                'assets/images/expand-your-city.png',
+                                fit: BoxFit.contain,
+                              ),
                             ),
                     ),
           // Bottom Cart
