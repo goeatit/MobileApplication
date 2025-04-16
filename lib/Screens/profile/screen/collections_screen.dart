@@ -1,3 +1,4 @@
+import 'package:eatit/Screens/homes/screen/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
@@ -43,8 +44,49 @@ class CollectionsScreen extends StatelessWidget {
           final savedRestaurants = savedRestaurantsProvider.savedRestaurants;
 
           if (savedRestaurants.isEmpty) {
-            return const Center(
-              child: Text('No saved restaurants yet'),
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    'assets/images/emptyCollection.png',
+                    width: 200,
+                    height: 200,
+                    fit: BoxFit.contain,
+                  ),
+
+                  const Text(
+                    'No Restaurants Found',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFFF8951D),
+                    ),
+                  ),
+                  const SizedBox(height: 30), // Add spacing before the button
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const HomePage()),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFF8951D),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 40, vertical: 12),
+                    ),
+                    child: const Text(
+                      'Explore Restaurants',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             );
           }
 
