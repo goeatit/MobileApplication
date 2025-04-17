@@ -30,8 +30,8 @@ class SavedRestaurant {
       'priceRange': priceRange,
       'rating': rating,
       'location': location,
-      'lat': lat,
-      'long': long,
+      // 'lat': lat,
+      // 'long': long,
     };
   }
 
@@ -44,8 +44,8 @@ class SavedRestaurant {
       priceRange: map['priceRange'],
       rating: map['rating'],
       location: map['location'],
-      lat: map['lat'],
-      long: map['long'],
+      // lat: map['lat'],
+      // long: map['long'],
     );
   }
 }
