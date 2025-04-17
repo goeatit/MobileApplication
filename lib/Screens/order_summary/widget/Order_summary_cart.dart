@@ -137,7 +137,7 @@ class CartItemOrderSummary extends StatelessWidget {
             ),
           ),
           GestureDetector(
-            onTap: onRemove,
+            onTap: () {},
             child: const Row(
               children: [
                 Text(
