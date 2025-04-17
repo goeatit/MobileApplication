@@ -54,6 +54,7 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
   bool isRestaurantClosed = false;
   RestaurantService restaurantService = RestaurantService();
   CurrentData? currentData;
+  String? currentLocation;
   // Add cancellation token for API requests
   final _cancelToken = CancelToken();
 
@@ -145,6 +146,7 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
 
       if (response != null && !_cancelToken.isCancelled) {
         currentData = CurrentData.fromJson(response.data);
+        currentLocation = currentData!.location;
 
         // Update order provider with current data
         final orderProvider =
@@ -923,10 +925,10 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                             const SizedBox(
                               width: 6,
                             ),
-                            const Flexible(
+                             Flexible(
                               child: Text(
-                                "Location",
-                                style: TextStyle(
+                                currentLocation??"Fetching location",
+                                style: const TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.black),
