@@ -74,8 +74,8 @@ class _SelectPeopleScreenState extends State<SelectNoPeopleWidget> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: isSmallScreen ? 2 : 3,
-                childAspectRatio: 2.5,
+                crossAxisCount: isSmallScreen ? 2 : 2,
+                childAspectRatio: 3.7,
                 crossAxisSpacing: spacing,
                 mainAxisSpacing: spacing,
               ),
