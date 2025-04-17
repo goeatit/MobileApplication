@@ -29,6 +29,7 @@ class BillSummaryScreen extends StatefulWidget {
   final String cuisineType;
   final String priceRange;
   final double rating;
+  final String locationOfRestaurant;
 
   const BillSummaryScreen({
     super.key,
@@ -39,6 +40,7 @@ class BillSummaryScreen extends StatefulWidget {
     required this.cuisineType,
     required this.priceRange,
     required this.rating,
+    required this.locationOfRestaurant,
   });
 
   @override
@@ -54,6 +56,7 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
   bool isRestaurantClosed = false;
   RestaurantService restaurantService = RestaurantService();
   CurrentData? currentData;
+  String? currentLocation;
   // Add cancellation token for API requests
   final _cancelToken = CancelToken();
 
@@ -145,6 +148,7 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
 
       if (response != null && !_cancelToken.isCancelled) {
         currentData = CurrentData.fromJson(response.data);
+        currentLocation = currentData!.location;
 
         // Update order provider with current data
         final orderProvider =
@@ -923,10 +927,10 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                             const SizedBox(
                               width: 6,
                             ),
-                            const Flexible(
+                            Flexible(
                               child: Text(
-                                "Location",
-                                style: TextStyle(
+                                currentLocation ?? "Fetching location",
+                                style: const TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.black),
@@ -944,151 +948,151 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                       final isSaved =
                           savedProvider.isRestaurantSaved(widget.id);
                       return GestureDetector(
-                        // onTap: () async {
-                        //   if (isSaved) {
-                        //     // Show delete confirmation
-                        //     bool? remove = await showDialog<bool>(
-                        //       context: context,
-                        //       builder: (context) => AlertDialog(
-                        //         backgroundColor: Colors.white,
-                        //         titlePadding:
-                        //             const EdgeInsets.only(top: 20, bottom: 5),
-                        //         title: Column(
-                        //           children: [
-                        //             const Icon(
-                        //               Icons.warning_rounded,
-                        //               color: Color(0xFFF8951D),
-                        //               size: 40,
-                        //             ),
-                        //             const SizedBox(height: 8),
-                        //             Text(
-                        //               'Remove Restaurant',
-                        //               style: Theme.of(context)
-                        //                   .textTheme
-                        //                   .titleLarge,
-                        //             ),
-                        //           ],
-                        //         ),
-                        //         contentPadding: const EdgeInsets.only(
-                        //           top: 5,
-                        //           left: 24,
-                        //           right: 24,
-                        //           bottom: 20,
-                        //         ),
-                        //         content: Text(
-                        //           'Remove ${widget.name} from saved?',
-                        //           textAlign: TextAlign.center,
-                        //           style: Theme.of(context)
-                        //               .textTheme
-                        //               .labelLarge
-                        //               ?.copyWith(
-                        //                 color: const Color(0xFF666666),
-                        //               ),
-                        //         ),
-                        //         actions: [
-                        //           Padding(
-                        //             padding:
-                        //                 const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                        //             child: Row(
-                        //               children: [
-                        //                 Expanded(
-                        //                   child: TextButton(
-                        //                     onPressed: () =>
-                        //                         Navigator.pop(context, false),
-                        //                     style: TextButton.styleFrom(
-                        //                       backgroundColor: Colors.white,
-                        //                       padding:
-                        //                           const EdgeInsets.symmetric(
-                        //                               vertical: 12),
-                        //                       side: const BorderSide(
-                        //                         color: Color(0xFFF8951D),
-                        //                         width: 1,
-                        //                       ),
-                        //                       shape: RoundedRectangleBorder(
-                        //                         borderRadius:
-                        //                             BorderRadius.circular(10),
-                        //                       ),
-                        //                     ),
-                        //                     child: Text(
-                        //                       'Cancel',
-                        //                       style: Theme.of(context)
-                        //                           .textTheme
-                        //                           .labelMedium
-                        //                           ?.copyWith(
-                        //                             color:
-                        //                                 const Color(0xFFF8951D),
-                        //                             fontWeight: FontWeight.w600,
-                        //                           ),
-                        //                     ),
-                        //                   ),
-                        //                 ),
-                        //                 const SizedBox(width: 10),
-                        //                 Expanded(
-                        //                   child: TextButton(
-                        //                     onPressed: () =>
-                        //                         Navigator.pop(context, true),
-                        //                     style: TextButton.styleFrom(
-                        //                       backgroundColor:
-                        //                           const Color(0xFFF8951D),
-                        //                       padding:
-                        //                           const EdgeInsets.symmetric(
-                        //                               vertical: 12),
-                        //                       shape: RoundedRectangleBorder(
-                        //                         borderRadius:
-                        //                             BorderRadius.circular(10),
-                        //                       ),
-                        //                     ),
-                        //                     child: Text(
-                        //                       'Remove',
-                        //                       style: Theme.of(context)
-                        //                           .textTheme
-                        //                           .labelMedium
-                        //                           ?.copyWith(
-                        //                             color: Colors.white,
-                        //                             fontWeight: FontWeight.w600,
-                        //                           ),
-                        //                     ),
-                        //                   ),
-                        //                 ),
-                        //               ],
-                        //             ),
-                        //           ),
-                        //         ],
-                        //       ),
-                        //     );
+                        onTap: () async {
+                          if (isSaved) {
+                            // Show delete confirmation
+                            bool? remove = await showDialog<bool>(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                backgroundColor: Colors.white,
+                                titlePadding:
+                                    const EdgeInsets.only(top: 20, bottom: 5),
+                                title: Column(
+                                  children: [
+                                    const Icon(
+                                      Icons.warning_rounded,
+                                      color: Color(0xFFF8951D),
+                                      size: 40,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Remove Restaurant',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleLarge,
+                                    ),
+                                  ],
+                                ),
+                                contentPadding: const EdgeInsets.only(
+                                  top: 5,
+                                  left: 24,
+                                  right: 24,
+                                  bottom: 20,
+                                ),
+                                content: Text(
+                                  'Remove ${widget.name} from saved?',
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelLarge
+                                      ?.copyWith(
+                                        color: const Color(0xFF666666),
+                                      ),
+                                ),
+                                actions: [
+                                  Padding(
+                                    padding:
+                                        const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context, false),
+                                            style: TextButton.styleFrom(
+                                              backgroundColor: Colors.white,
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      vertical: 12),
+                                              side: const BorderSide(
+                                                color: Color(0xFFF8951D),
+                                                width: 1,
+                                              ),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                              ),
+                                            ),
+                                            child: Text(
+                                              'Cancel',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .labelMedium
+                                                  ?.copyWith(
+                                                    color:
+                                                        const Color(0xFFF8951D),
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context, true),
+                                            style: TextButton.styleFrom(
+                                              backgroundColor:
+                                                  const Color(0xFFF8951D),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      vertical: 12),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                              ),
+                                            ),
+                                            child: Text(
+                                              'Remove',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .labelMedium
+                                                  ?.copyWith(
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
 
-                        //     if (remove == true) {
-                        //       await savedProvider.toggleSaveRestaurant(
-                        //         SavedRestaurant(
-                        //           id: widget.id,
-                        //           imageUrl: widget.imageUrl,
-                        //           restaurantName: widget.name,
-                        //           cuisineType: widget.cuisineType,
-                        //           priceRange: widget.priceRange,
-                        //           rating: widget.rating,
-                        //           location: widget.location,
-                        //           lat: widget.latitude,
-                        //           long: widget.longitude,
-                        //         ),
-                        //       );
-                        //     }
-                        //   } else {
-                        //     // Direct save
-                        //     await savedProvider.toggleSaveRestaurant(
-                        //       SavedRestaurant(
-                        //         id: widget.id,
-                        //         imageUrl: widget.imageUrl,
-                        //         restaurantName: widget.name,
-                        //         cuisineType: widget.cuisineType,
-                        //         priceRange: widget.priceRange,
-                        //         rating: widget.rating,
-                        //         location: widget.location,
-                        //         lat: widget.latitude,
-                        //         long: widget.longitude,
-                        //       ),
-                        //     );
-                        //   }
-                        // },
+                            if (remove == true) {
+                              await savedProvider.toggleSaveRestaurant(
+                                SavedRestaurant(
+                                  id: widget.id,
+                                  imageUrl: widget.imageUrl,
+                                  restaurantName: widget.name,
+                                  cuisineType: widget.cuisineType,
+                                  priceRange: widget.priceRange,
+                                  rating: widget.rating,
+                                  location: widget.locationOfRestaurant,
+                                  // lat: widget.latitude,
+                                  // long: widget.longitude,
+                                ),
+                              );
+                            }
+                          } else {
+                            // Direct save
+                            await savedProvider.toggleSaveRestaurant(
+                              SavedRestaurant(
+                                id: widget.id,
+                                imageUrl: widget.imageUrl,
+                                restaurantName: widget.name,
+                                cuisineType: widget.cuisineType,
+                                priceRange: widget.priceRange,
+                                rating: widget.rating,
+                                location: widget.locationOfRestaurant,
+                                // lat: widget.latitude,
+                                // long: widget.longitude,
+                              ),
+                            );
+                          }
+                        },
                         child: SvgPicture.asset(
                           isSaved
                               ? 'assets/svg/Saved.svg'

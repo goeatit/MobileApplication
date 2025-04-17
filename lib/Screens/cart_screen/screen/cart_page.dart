@@ -261,6 +261,7 @@ class CartPageState extends State<CartPage> {
               'name': cartItemWithDetails.restaurantName,
               'orderType': cartItemWithDetails.orderType,
               'id': cartItemWithDetails.id,
+              'locationOfRestaurant':cartItemWithDetails.cartItem.location,
               'imageUrl': restaurantImage, // Using the calculated image path
               'cuisineType': "Indian • Biryani", // Add appropriate cuisine type
               'priceRange': "₹1200-₹1500 for two",
