@@ -552,10 +552,10 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                                         .priceRange, // Add this
                                                     rating: widget
                                                         .rating, // Add this
-                                                    lat: dish?.restaurant
-                                                        .resturantLatitute, // Optional
-                                                    long: dish?.restaurant
-                                                        .resturantLongitute, // Optional
+                                                    // lat: dish?.restaurant
+                                                    //     .resturantLatitute, // Optional
+                                                    // long: dish?.restaurant
+                                                    //     .resturantLongitute, // Optional
                                                   ),
                                                 );
                                               }
@@ -574,10 +574,10 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                                       .priceRange, // Add this
                                                   rating:
                                                       widget.rating, // Add this
-                                                  lat: dish?.restaurant
-                                                      .resturantLatitute, // Optional
-                                                  long: dish?.restaurant
-                                                      .resturantLongitute, // Optional
+                                                  // lat: dish?.restaurant
+                                                  //     .resturantLatitute, // Optional
+                                                  // long: dish?.restaurant
+                                                  //     .resturantLongitute, // Optional
                                                 ),
                                               );
                                             }

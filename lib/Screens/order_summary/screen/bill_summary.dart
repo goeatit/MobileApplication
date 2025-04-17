@@ -1071,8 +1071,8 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                                   priceRange: widget.priceRange,
                                   rating: widget.rating,
                                   location: widget.locationOfRestaurant,
-                                  lat: widget.latitude,
-                                  long: widget.longitude,
+                                  // lat: widget.latitude,
+                                  // long: widget.longitude,
                                 ),
                               );
                             }
@@ -1087,8 +1087,8 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                                 priceRange: widget.priceRange,
                                 rating: widget.rating,
                                 location: widget.locationOfRestaurant,
-                                lat: widget.latitude,
-                                long: widget.longitude,
+                                // lat: widget.latitude,
+                                // long: widget.longitude,
                               ),
                             );
                           }
