@@ -409,8 +409,8 @@ class _RestaurantWidgetState extends State<RestaurantWidget> {
                                       priceRange: widget.priceRange,
                                       rating: widget.rating,
                                       location: widget.location,
-                                      lat: widget.lat,
-                                      long: widget.long,
+                                      // lat: widget.lat,
+                                      // long: widget.long,
                                     ),
                                   );
                                 }
@@ -425,8 +425,8 @@ class _RestaurantWidgetState extends State<RestaurantWidget> {
                                     priceRange: widget.priceRange,
                                     rating: widget.rating,
                                     location: widget.location,
-                                    lat: widget.lat,
-                                    long: widget.long,
+                                    // lat: widget.lat,
+                                    // long: widget.long,
                                   ),
                                 );
                               }
