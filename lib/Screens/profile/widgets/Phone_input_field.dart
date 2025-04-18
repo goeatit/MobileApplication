@@ -363,49 +363,53 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
           Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              Pinput(
-                controller: _otpController,
-                length: 6,
-                defaultPinTheme: defaultPinTheme,
-                focusedPinTheme: defaultPinTheme.copyWith(
-                  decoration: defaultPinTheme.decoration!.copyWith(
-                    border: Border.all(color: primaryColor),
+              Align(
+                alignment: Alignment.centerLeft, // Add this wrapper
+                child: Pinput(
+                  controller: _otpController,
+                  length: 6,
+                  defaultPinTheme: defaultPinTheme,
+                  focusedPinTheme: defaultPinTheme.copyWith(
+                    decoration: defaultPinTheme.decoration!.copyWith(
+                      border: Border.all(color: primaryColor),
+                    ),
                   ),
-                ),
-                onCompleted: (pin) => _verifyOtp(),
-                enabled: !_isVerifying,
-                keyboardType: TextInputType.number,
-                onChanged: (value) {
-                  // Get the current cursor position
-                  final currentIndex = _otpController.selection.baseOffset - 1;
-                  if (currentIndex >= 0 && currentIndex < value.length) {
-                    // Check if the last entered character is not a number
-                    final lastChar = value[currentIndex];
-                    if (!RegExp(r'[0-9]').hasMatch(lastChar)) {
-                      // Create a new string with the invalid character removed
-                      final newValue = value.substring(0, currentIndex) +
-                          (currentIndex < value.length - 1
-                              ? value.substring(currentIndex + 1)
-                              : '');
+                  onCompleted: (pin) => _verifyOtp(),
+                  enabled: !_isVerifying,
+                  keyboardType: TextInputType.number,
+                  onChanged: (value) {
+                    // Get the current cursor position
+                    final currentIndex =
+                        _otpController.selection.baseOffset - 1;
+                    if (currentIndex >= 0 && currentIndex < value.length) {
+                      // Check if the last entered character is not a number
+                      final lastChar = value[currentIndex];
+                      if (!RegExp(r'[0-9]').hasMatch(lastChar)) {
+                        // Create a new string with the invalid character removed
+                        final newValue = value.substring(0, currentIndex) +
+                            (currentIndex < value.length - 1
+                                ? value.substring(currentIndex + 1)
+                                : '');
 
-                      // Update the controller with the new value
-                      _otpController.text = newValue;
+                        // Update the controller with the new value
+                        _otpController.text = newValue;
 
-                      // Set cursor position
-                      _otpController.selection = TextSelection.fromPosition(
-                        TextPosition(offset: currentIndex),
-                      );
+                        // Set cursor position
+                        _otpController.selection = TextSelection.fromPosition(
+                          TextPosition(offset: currentIndex),
+                        );
 
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Please enter numbers only'),
-                          backgroundColor: Colors.red,
-                          duration: Duration(seconds: 1),
-                        ),
-                      );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Please enter numbers only'),
+                            backgroundColor: Colors.red,
+                            duration: Duration(seconds: 1),
+                          ),
+                        );
+                      }
                     }
-                  }
-                },
+                  },
+                ),
               ),
               if (_isVerifying) ...[
                 const SizedBox(height: 8),

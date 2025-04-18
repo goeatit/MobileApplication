@@ -1,4 +1,5 @@
 import 'package:eatit/Screens/first_time_screen/screen/first_time_screen.dart';
+import 'package:eatit/Screens/profile/screen/collections_screen.dart';
 import 'package:eatit/Screens/profile/screen/edit_profile.dart';
 import 'package:eatit/Screens/My_Booking/screen/my_bookings_screen.dart';
 import 'package:eatit/common/constants/colors.dart';
@@ -19,44 +20,110 @@ class ProfileScreen extends StatelessWidget {
       context: context,
       builder: (BuildContext ctx) {
         return AlertDialog(
-          title: const Text('Logout'),
-          content: const Text('Are you sure you want to logout?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(ctx).pop(); // Close the dialog
-              },
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () async {
-                Navigator.of(ctx).pop(); // Close the dialog
-
-                // Clear all tokens
-                final tokenManager = TokenManager();
-                await tokenManager.clearTokens();
-
-                // Clear user data from provider
-                await context.read<UserModelProvider>().clearUserModel();
-
-                // Sign out from social providers if needed
-                try {
-                  await GoogleSignIn().signOut();
-                  await FacebookAuth.instance.logOut();
-                } catch (e) {
-                  print('Error signing out from social providers: $e');
-                }
-
-                // Navigate to first time screen and clear all routes
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                  FirstTimeScreen.routeName,
-                  (Route<dynamic> route) => false,
-                );
-              },
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.red,
+          backgroundColor: Colors.white,
+          titlePadding: const EdgeInsets.only(top: 20, bottom: 5),
+          title: Column(
+            children: [
+              const Icon(
+                Icons.warning_rounded,
+                color: Color(0xFFF8951D),
+                size: 40,
               ),
-              child: const Text('Logout'),
+              const SizedBox(height: 8),
+              Text(
+                'Confirm Logout',
+                style: Theme.of(ctx).textTheme.titleLarge,
+              ),
+            ],
+          ),
+          contentPadding: const EdgeInsets.only(
+            top: 5,
+            left: 24,
+            right: 24,
+            bottom: 20,
+          ),
+          content: Text(
+            'Are you sure you want to logout?',
+            textAlign: TextAlign.center,
+            style: Theme.of(ctx).textTheme.labelLarge?.copyWith(
+                  color: const Color(0xFF666666),
+                ),
+          ),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        side: const BorderSide(
+                          color: Color(0xFFF8951D),
+                          width: 1,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Text(
+                        'Cancel',
+                        style: Theme.of(ctx).textTheme.labelMedium?.copyWith(
+                              color: const Color(0xFFF8951D),
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () async {
+                        Navigator.of(ctx).pop(); // Close the dialog
+
+                        // Clear all tokens
+                        final tokenManager = TokenManager();
+                        await tokenManager.clearTokens();
+
+                        // Clear user data from provider
+                        await context
+                            .read<UserModelProvider>()
+                            .clearUserModel();
+
+                        // Sign out from social providers if needed
+                        try {
+                          await GoogleSignIn().signOut();
+                          await FacebookAuth.instance.logOut();
+                        } catch (e) {
+                          print('Error signing out from social providers: $e');
+                        }
+
+                        // Navigate to first time screen and clear all routes
+                        Navigator.of(context).pushNamedAndRemoveUntil(
+                          FirstTimeScreen.routeName,
+                          (Route<dynamic> route) => false,
+                        );
+                      },
+                      style: TextButton.styleFrom(
+                        backgroundColor: const Color(0xFFF8951D),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Text(
+                        'Logout',
+                        style: Theme.of(ctx).textTheme.labelMedium?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         );
@@ -188,11 +255,14 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 4),
-                const Expanded(
+                Expanded(
                   child: OptionCard(
                     icon: Icons.bookmark_border,
-                    color: Color(0xFF417C71),
+                    color: const Color(0xFF417C71),
                     text: 'Collection',
+                    onTap: () {
+                      Navigator.pushNamed(context, CollectionsScreen.routeName);
+                    },
                   ),
                 ),
               ],
@@ -235,14 +305,13 @@ class OptionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+    return GestureDetector(
+      onTap: onTap,
+      child: Card(
+        elevation: 3,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
         child: Padding(
           padding: const EdgeInsets.all(10.0),
           child: Row(

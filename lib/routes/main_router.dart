@@ -11,9 +11,11 @@ import 'package:eatit/Screens/order_summary/screen/no_of_people.dart';
 import 'package:eatit/Screens/order_summary/screen/bill_summary.dart';
 import 'package:eatit/Screens/order_summary/screen/order_summary.dart';
 import 'package:eatit/Screens/order_summary/screen/reserve_time.dart';
+import 'package:eatit/Screens/profile/screen/collections_screen.dart';
 import 'package:eatit/Screens/profile/screen/edit_profile.dart';
 import 'package:eatit/Screens/profile/screen/profile_screen.dart';
 import 'package:eatit/Screens/search/screen/search_screen.dart';
+import 'package:eatit/Screens/location/screen/restaurant_address_screen.dart';
 import 'package:flutter/material.dart';
 
 Route<dynamic> generateRoute(RouteSettings routeSettings) {
@@ -44,11 +46,17 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
       break;
 
     case SingleRestaurantScreen.routeName:
-      final args = routeSettings.arguments as Map<String, String>;
+      final args = routeSettings.arguments as Map<String, dynamic>;
       page = SingleRestaurantScreen(
         name: args['name']!,
         location: args['location']!,
         id: args['id']!,
+        imageUrl: args['imageUrl']!,
+        cuisineType: args['cuisineType']!,
+        priceRange: args['priceRange']!,
+        rating: args['rating'] is String
+            ? double.parse(args['rating'])
+            : args['rating'],
       );
       break;
 
@@ -62,6 +70,11 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
         name: args['name']!,
         orderType: args['orderType']!,
         id: args['id']!,
+        imageUrl: args['imageUrl']!,
+        cuisineType: args['cuisineType']!,
+        locationOfRestaurant: args['locationOfRestaurant']!,
+        priceRange: args['priceRange']!,
+        rating: double.parse(args['rating']!),
       );
       break;
 
@@ -91,6 +104,11 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
     case CreateAccountScreen.routeName:
       page = const CreateAccountScreen();
       break;
+    case RestaurantAddressScreen.routeName:
+      page = const RestaurantAddressScreen();
+      break;
+    case CollectionsScreen.routeName:
+      page = const CollectionsScreen();
 
     case MyBookingsScreen.routeName:
       page = const MyBookingsScreen();

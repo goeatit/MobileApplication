@@ -58,21 +58,27 @@ class _TimeSlotsReserveWidgetState extends State<TimeSlotsReserveWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
+        const Row(
           children: [
-            SvgPicture.asset(
-              'assets/svg/clock.svg',
-              width: 24,
-              height: 24,
+            // SvgPicture.asset(
+            //   'assets/svg/clock.svg',
+            //   width: 24,
+            //   height: 24,
+            // ),
+            Icon(
+              Icons.access_alarm, // or Icons.schedule
+              size: 24,
+              color: Colors.black,
             ),
-            const SizedBox(width: 10),
-            const Text(
+            SizedBox(width: 10),
+            Text(
               "Select Time",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ],
         ),
         const SizedBox(height: 16),
+        // In the build method, replace the Wrap widget with a GridView
         if (allSlotsClosed)
           const Text(
             "Sorry, this restaurant is currently not accepting orders. Please try again later.",
@@ -83,11 +89,20 @@ class _TimeSlotsReserveWidgetState extends State<TimeSlotsReserveWidget> {
             ),
           )
         else
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: timeSlots.map((time) {
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3, // 3 items per row
+              childAspectRatio: 2.5, // Adjust this value to control height
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+            ),
+            itemCount: timeSlots.length,
+            itemBuilder: (context, index) {
+              String time = timeSlots[index];
               bool isClosedSlot = time == "Closed";
+
               return GestureDetector(
                 onTap: isClosedSlot
                     ? null
@@ -99,8 +114,10 @@ class _TimeSlotsReserveWidgetState extends State<TimeSlotsReserveWidget> {
                         });
                       },
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 8,
+                    horizontal: 8, // Reduced horizontal padding
+                  ),
                   decoration: BoxDecoration(
                     color: selectedTime == time
                         ? Colors.green.shade100
@@ -114,23 +131,30 @@ class _TimeSlotsReserveWidgetState extends State<TimeSlotsReserveWidget> {
                               ? Colors.grey
                               : Colors.black,
                     ),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                  child: Text(
-                    time,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: selectedTime == time
-                          ? const Color(0xFF139456)
-                          : isClosedSlot
-                              ? Colors.grey
-                              : Colors.black,
+                  child: Center(
+                    // Center the text
+                    child: FittedBox(
+                      // Add FittedBox to handle text overflow
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        time,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                              color: selectedTime == time
+                                  ? const Color(0xFF139456)
+                                  : isClosedSlot
+                                      ? Colors.grey
+                                      : Colors.black,
+                            ),
+                      ),
                     ),
                   ),
                 ),
               );
-            }).toList(),
+            },
           ),
       ],
     );

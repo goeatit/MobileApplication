@@ -1,4 +1,5 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:eatit/Screens/Filter/filter_bottom_sheet.dart';
 import 'package:eatit/Screens/Takeaway_DineIn//widget/dish_card_widget.dart';
 import 'package:eatit/Screens/Takeaway_DineIn//widget/single_dish.dart';
 import 'package:eatit/Screens/Takeaway_DineIn//widget/toggle_widget.dart';
@@ -17,18 +18,28 @@ import 'package:provider/provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:dio/dio.dart';
+import 'package:eatit/provider/saved_restaurants_provider.dart';
+import 'package:eatit/models/saved_restaurant_model.dart';
 
 class SingleRestaurantScreen extends StatefulWidget {
   static const routeName = "/single-restaurant-screen";
   final String name;
   final String location;
   final String id;
+  final String imageUrl;
+  final String cuisineType;
+  final String priceRange;
+  final double rating;
 
   const SingleRestaurantScreen({
     super.key,
     required this.name,
     required this.location,
     required this.id,
+    required this.imageUrl,
+    required this.cuisineType,
+    required this.priceRange,
+    required this.rating,
   });
 
   @override
@@ -44,7 +55,16 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
     "assets/images/pizza.png",
     "assets/images/healthy.png",
     "assets/images/home_style.png",
-    "assets/images/chicken.png"
+    "assets/images/image1.png",
+    "assets/images/image2.png",
+    "assets/images/image3.png",
+    "assets/images/image4.png",
+    "assets/images/image5.png",
+    "assets/images/image6.png",
+    "assets/images/image7.png",
+    "assets/images/image8.png",
+    "assets/images/image9.png",
+    "assets/images/image10.png",
   ];
   bool _isVisible = false;
   DishSchema? dish;
@@ -59,6 +79,28 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
   final TextEditingController _searchController = TextEditingController();
   // Add CancelToken for API requests
   final CancelToken _cancelToken = CancelToken();
+  List<String> buttonLabels = ["Best Seller", "Top Rated", "Veg", "Non-Veg"];
+  List<bool> isSelected = [false, false, false, false];
+
+  String selectedSection = 'Sort By';
+  String selectedSortOption = '';
+  String selectedRatingOption = '';
+  String selectedOfferOption = '';
+  String selectedPriceOption = '';
+  bool isFilterOpen = false;
+  Map<String, bool> selectedFilters = {
+    'Sort By': false,
+    'Rating': false,
+    'Veg / Non-Veg': false,
+    'Offers': false,
+    'Price': false,
+  };
+  bool _isAnyOptionSelected() {
+    return selectedSortOption.isNotEmpty ||
+        selectedRatingOption.isNotEmpty ||
+        selectedOfferOption.isNotEmpty ||
+        selectedPriceOption.isNotEmpty;
+  }
 
   void _openMap(dynamic latitude, dynamic longitude, {String? name}) async {
     Uri googleMapsUrl;
@@ -251,6 +293,42 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
     });
   }
 
+  void _showFilterBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => FilterBottomSheet(
+        selectedSection: selectedSection,
+        selectedSortOption: selectedSortOption,
+        selectedRatingOption: selectedRatingOption,
+        selectedOfferOption: selectedOfferOption,
+        selectedPriceOption: selectedPriceOption,
+        onApplyFilters: (sortOption, ratingOption, offerOption, priceOption) {
+          setState(() {
+            selectedSortOption = sortOption;
+            selectedRatingOption = ratingOption;
+            selectedOfferOption = offerOption;
+            selectedPriceOption = priceOption;
+            isFilterOpen = false;
+          });
+        },
+        onClearFilters: () {
+          setState(() {
+            selectedSortOption = '';
+            selectedRatingOption = '';
+            selectedOfferOption = '';
+            selectedPriceOption = '';
+            selectedFilters.updateAll((key, value) => false);
+          });
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     screenWidth = MediaQuery.sizeOf(context).width * 0.35;
@@ -332,14 +410,17 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                               Stack(
                                 children: [
                                   // Restaurant Image
+                                  // Replace this part in the Stack
                                   SizedBox(
                                     width: double.infinity,
                                     height: 200,
                                     child: Image.asset(
-                                      "assets/images/singerestaurant.png",
+                                      widget
+                                          .imageUrl, // Use the passed imageUrl
                                       fit: BoxFit.cover,
                                     ),
                                   ),
+
                                   // Back Button
                                   Positioned(
                                     top: 10,
@@ -356,20 +437,221 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                     ),
                                   ),
                                   // Bookmark Button
+                                  // In SingleRestaurantScreen class, replace the existing bookmark button with:
+
                                   Positioned(
                                     top: 10,
                                     right: 10,
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        // Your onTap functionality here
+                                    child: Consumer<SavedRestaurantsProvider>(
+                                      builder: (context, savedProvider, child) {
+                                        bool isSaved = savedProvider
+                                            .isRestaurantSaved(widget.id);
+
+                                        return GestureDetector(
+                                          onTap: () async {
+                                            if (isSaved) {
+                                              // Show delete confirmation dialog
+                                              bool? remove =
+                                                  await showDialog<bool>(
+                                                context: context,
+                                                builder: (context) =>
+                                                    AlertDialog(
+                                                  backgroundColor: Colors.white,
+                                                  titlePadding:
+                                                      const EdgeInsets.only(
+                                                          top: 20, bottom: 5),
+                                                  title: Column(
+                                                    children: [
+                                                      const Icon(
+                                                        Icons.warning_rounded,
+                                                        color:
+                                                            Color(0xFFF8951D),
+                                                        size: 40,
+                                                      ),
+                                                      const SizedBox(height: 8),
+                                                      Text(
+                                                        'Remove Restaurant',
+                                                        style: Theme.of(context)
+                                                            .textTheme
+                                                            .titleLarge,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  contentPadding:
+                                                      const EdgeInsets.only(
+                                                    top: 5,
+                                                    left: 24,
+                                                    right: 24,
+                                                    bottom: 20,
+                                                  ),
+                                                  content: Text(
+                                                    'Remove ${widget.name} from saved?',
+                                                    textAlign: TextAlign.center,
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .labelLarge
+                                                        ?.copyWith(
+                                                          color: const Color(
+                                                              0xFF666666),
+                                                        ),
+                                                  ),
+                                                  actions: [
+                                                    Padding(
+                                                      padding: const EdgeInsets
+                                                          .fromLTRB(0, 0, 0, 0),
+                                                      child: Row(
+                                                        children: [
+                                                          Expanded(
+                                                            child: TextButton(
+                                                              onPressed: () =>
+                                                                  Navigator.pop(
+                                                                      context,
+                                                                      false),
+                                                              style: TextButton
+                                                                  .styleFrom(
+                                                                backgroundColor:
+                                                                    Colors
+                                                                        .white,
+                                                                padding:
+                                                                    const EdgeInsets
+                                                                        .symmetric(
+                                                                        vertical:
+                                                                            12),
+                                                                side:
+                                                                    const BorderSide(
+                                                                  color: Color(
+                                                                      0xFFF8951D),
+                                                                  width: 1,
+                                                                ),
+                                                                shape:
+                                                                    RoundedRectangleBorder(
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              10),
+                                                                ),
+                                                              ),
+                                                              child: Text(
+                                                                'Cancel',
+                                                                style: Theme.of(
+                                                                        context)
+                                                                    .textTheme
+                                                                    .labelMedium
+                                                                    ?.copyWith(
+                                                                      color: const Color(
+                                                                          0xFFF8951D),
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w600,
+                                                                    ),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          const SizedBox(
+                                                              width: 10),
+                                                          Expanded(
+                                                            child: TextButton(
+                                                              onPressed: () =>
+                                                                  Navigator.pop(
+                                                                      context,
+                                                                      true),
+                                                              style: TextButton
+                                                                  .styleFrom(
+                                                                backgroundColor:
+                                                                    const Color(
+                                                                        0xFFF8951D),
+                                                                padding:
+                                                                    const EdgeInsets
+                                                                        .symmetric(
+                                                                        vertical:
+                                                                            12),
+                                                                shape:
+                                                                    RoundedRectangleBorder(
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              10),
+                                                                ),
+                                                              ),
+                                                              child: Text(
+                                                                'Remove',
+                                                                style: Theme.of(
+                                                                        context)
+                                                                    .textTheme
+                                                                    .labelMedium
+                                                                    ?.copyWith(
+                                                                      color: Colors
+                                                                          .white,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w600,
+                                                                    ),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+
+                                              if (remove == true) {
+                                                await savedProvider
+                                                    .toggleSaveRestaurant(
+                                                  SavedRestaurant(
+                                                    id: widget.id,
+                                                    imageUrl: widget.imageUrl,
+                                                    restaurantName: widget.name,
+                                                    location: widget.location,
+                                                    cuisineType: widget
+                                                        .cuisineType, // Add this
+                                                    priceRange: widget
+                                                        .priceRange, // Add this
+                                                    rating: widget
+                                                        .rating, // Add this
+                                                    // lat: dish?.restaurant
+                                                    //     .resturantLatitute, // Optional
+                                                    // long: dish?.restaurant
+                                                    //     .resturantLongitute, // Optional
+                                                  ),
+                                                );
+                                              }
+                                            } else {
+                                              // Direct save
+                                              await savedProvider
+                                                  .toggleSaveRestaurant(
+                                                SavedRestaurant(
+                                                  id: widget.id,
+                                                  imageUrl: widget.imageUrl,
+                                                  restaurantName: widget.name,
+                                                  location: widget.location,
+                                                  cuisineType: widget
+                                                      .cuisineType, // Add this
+                                                  priceRange: widget
+                                                      .priceRange, // Add this
+                                                  rating:
+                                                      widget.rating, // Add this
+                                                  // lat: dish?.restaurant
+                                                  //     .resturantLatitute, // Optional
+                                                  // long: dish?.restaurant
+                                                  //     .resturantLongitute, // Optional
+                                                ),
+                                              );
+                                            }
+                                          },
+                                          child: SvgPicture.asset(
+                                            isSaved
+                                                ? "assets/svg/Saved.svg"
+                                                : "assets/svg/bookmark.svg",
+                                            width: 50,
+                                            height: 50,
+                                          ),
+                                        );
                                       },
-                                      child: SvgPicture.asset(
-                                        "assets/svg/bookmark.svg",
-                                        width: 50,
-                                        height: 50,
-                                      ),
                                     ),
                                   ),
+
                                   Positioned(
                                       bottom: 10,
                                       right: 10,
@@ -528,26 +810,43 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                             child: TextField(
                               controller: _searchController,
                               decoration: InputDecoration(
-                                prefixIcon: const Icon(
-                                  Icons.search,
-                                  color: primaryColor, // Search icon color
+                                icon: Padding(
+                                  padding: const EdgeInsets.only(left: 10.0),
+                                  child: SvgPicture.asset(
+                                    'assets/svg/search.svg',
+                                    width: 30,
+                                  ),
                                 ),
                                 hintText: "Search for Dishes",
                                 hintStyle: const TextStyle(
                                   color: Color(0xff737373),
-                                  fontWeight: FontWeight.w100,
-                                  fontFamily: 'Nunito Sans',
                                 ),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(
                                       8.0), // Match with the container
                                   borderSide: BorderSide.none, // No border
                                 ),
+                                suffixIcon: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        isFilterOpen = true;
+                                      });
+                                      _showFilterBottomSheet();
+                                    },
+                                    child: SvgPicture.asset(
+                                      'assets/svg/filter.svg', // replace with your actual asset path
+                                      width: 40, // adjust the size as needed
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                           ),
                         ),
-
+                        // Filter Buttons
+                        _buildFilterButtons(),
                         // Dishes Categories
                         isLoading
                             ? const Center(child: CircularProgressIndicator())
@@ -622,7 +921,7 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                                           price:
                                                               "₹${dish.resturantDishPrice}",
                                                           imageUrl: imgurls[
-                                                              index % 5],
+                                                              index % 9],
                                                           calories: "120 cal",
                                                           quantity: (ctx
                                                               .watch<
@@ -649,7 +948,10 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                                                 dish: dish,
                                                                 quantity: 1,
                                                                 location: widget
-                                                                    .location);
+                                                                    .location,
+                                                                restaurantImageUrl:
+                                                                    widget
+                                                                        .imageUrl);
                                                             cartProvider
                                                                 .addToCart(
                                                                     widget.id,
@@ -741,6 +1043,8 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                           final cartITem = CartItem(
                                               id: selectedDish!.id,
                                               restaurantName: widget.name,
+                                              restaurantImageUrl:
+                                                  widget.imageUrl,
                                               orderType: orderType,
                                               dish: selectedDish!,
                                               quantity: 1,
@@ -770,5 +1074,133 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
               ],
             ),
     );
+  }
+
+  Widget _buildFilterButtons() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10.0),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: List.generate(buttonLabels.length, (index) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 5.0),
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    isSelected[index] = !isSelected[index];
+                  });
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: isSelected[index]
+                        ? const Color(0xFFFFF3E0)
+                        : const Color(0xFFFFFFFF),
+                    border: Border.all(
+                      color: isSelected[index]
+                          ? const Color(0xFFF8951D)
+                          : const Color(0xFFE0E0E0),
+                      width: 1,
+                    ),
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: isSelected[index]
+                        ? [
+                            BoxShadow(
+                              color: const Color(0xFFF8951D).withOpacity(0.3),
+                              blurRadius: 6,
+                              offset: const Offset(0, 3),
+                            )
+                          ]
+                        : [],
+                  ),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildFilterIcon(index),
+                      const SizedBox(width: 8),
+                      Text(
+                        buttonLabels[index],
+                        style: TextStyle(
+                          color: isSelected[index]
+                              ? Colors.black
+                              : const Color(0xFF757575),
+                          fontSize: 14,
+                          fontWeight: isSelected[index]
+                              ? FontWeight.w600
+                              : FontWeight.w400,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }),
+        ),
+      ),
+    );
+  }
+
+// Custom icon builder based on index
+  Widget _buildFilterIcon(int index) {
+    if (index == 0) {
+      // Best Seller Icon
+      return const Icon(
+        Icons.local_fire_department,
+        size: 18,
+        color: Color(0xFFF8951D),
+      );
+    } else if (index == 1) {
+      // Top Rated Star Icon
+      return const Icon(
+        Icons.star,
+        size: 18,
+        color: Color(0xFF139456),
+      );
+    } else if (index == 2) {
+      // Veg Icon
+      return Container(
+        width: 16,
+        height: 16,
+        decoration: BoxDecoration(
+          shape: BoxShape.rectangle,
+          borderRadius: BorderRadius.circular(5),
+          border: Border.all(
+            color: const Color(0xFF36F456),
+            width: 1.5,
+          ),
+        ),
+        child: const Center(
+          child: Icon(
+            Icons.circle,
+            size: 10,
+            color: Color(0xFF36F456),
+          ),
+        ),
+      );
+    } else {
+      // Non-Veg Icon
+      return Container(
+        width: 16,
+        height: 16,
+        decoration: BoxDecoration(
+          shape: BoxShape.rectangle,
+          borderRadius: BorderRadius.circular(5),
+          border: Border.all(
+            color: Color(0xFFF44336),
+            width: 1.5,
+          ),
+        ),
+        child: const Center(
+          child: Icon(
+            Icons.circle,
+            size: 10,
+            color: Color(0xFFF44336),
+          ),
+        ),
+      );
+    }
   }
 }

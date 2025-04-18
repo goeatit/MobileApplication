@@ -9,6 +9,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:eatit/Screens/location/screen/restaurant_address_screen.dart';
 
 class LocationScreen extends StatefulWidget {
   static const routeName = "/location-screen";
@@ -60,6 +61,17 @@ class _LocationScreenState extends State<LocationScreen> {
     }
   }
 
+  String cleanAddress(String address) {
+    // Split the address by comma
+    List<String> parts = address.split(',');
+
+    // Remove any part that looks like a plus code (typically has a + symbol)
+    parts = parts.where((part) => !part.trim().contains('+')).toList();
+
+    // Rejoin the parts with commas
+    return parts.join(',').trim();
+  }
+
   Future<void> _fetchLocation() async {
     setState(() => isLoading = true);
 
@@ -90,6 +102,8 @@ class _LocationScreenState extends State<LocationScreen> {
           currentPosition.latitude, currentPosition.longitude);
 
       if (location != null) {
+        String cleanedAddress = cleanAddress(location['fullAddress'] ?? '');
+
         setState(() {
           _currentLatLng =
               LatLng(currentPosition.latitude, currentPosition.longitude);
@@ -97,11 +111,10 @@ class _LocationScreenState extends State<LocationScreen> {
               CameraPosition(target: _currentLatLng, zoom: 15);
           city = location['city'] ?? '';
           country = location['country'] ?? '';
-          String address = location['fullAddress'] ?? '';
-          prefs.setString("full_address", address);
+          prefs.setString("full_address", cleanedAddress);
           prefs.setString("city", city);
           prefs.setString("country", country);
-          _controller.text = address;
+          _controller.text = cleanedAddress;
           isLoading = false;
         });
         final GoogleMapController controller = await _controllerMap.future;
@@ -202,6 +215,22 @@ class _LocationScreenState extends State<LocationScreen> {
                           style: TextStyle(color: Colors.white)),
                     ),
                   ),
+                  const SizedBox(height: 10),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pushNamed(
+                          context, RestaurantAddressScreen.routeName);
+                    },
+                    child: const Text(
+                      'Enter manually',
+                      style: TextStyle(
+                        color: Color(0xFFF8951D),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
                 ],
               ),
             ),

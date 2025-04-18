@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/screen/singe_restaurant_screen.dart';
+import 'package:eatit/Screens/Takeaway_DineIn/widget/dish_card_widget.dart';
 import 'package:eatit/Screens/order_summary/screen/no_of_people.dart';
 import 'package:eatit/Screens/order_summary/screen/order_summary.dart';
 import 'package:eatit/Screens/order_summary/screen/reserve_time.dart';
@@ -10,23 +11,37 @@ import 'package:eatit/Screens/order_summary/widget/Time_slot_reserve_widget.dart
 import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/models/cart_items.dart';
 import 'package:eatit/models/dish_retaurant.dart';
+import 'package:eatit/models/saved_restaurant_model.dart';
 import 'package:eatit/provider/cart_dish_provider.dart';
 import 'package:eatit/provider/order_provider.dart';
+import 'package:eatit/provider/saved_restaurants_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart' show SvgPicture;
 import 'package:provider/provider.dart';
+import 'package:eatit/Screens/order_summary/widget/coupon_section_widget.dart';
 
 class BillSummaryScreen extends StatefulWidget {
   static const routeName = "/bill-summary";
   final String name;
   final String orderType;
   final String id;
+  final String imageUrl;
+  final String cuisineType;
+  final String priceRange;
+  final double rating;
+  final String locationOfRestaurant;
 
-  const BillSummaryScreen(
-      {super.key,
-      required this.name,
-      required this.orderType,
-      required this.id});
+  const BillSummaryScreen({
+    super.key,
+    required this.name,
+    required this.orderType,
+    required this.id,
+    required this.imageUrl,
+    required this.cuisineType,
+    required this.priceRange,
+    required this.rating,
+    required this.locationOfRestaurant,
+  });
 
   @override
   State<StatefulWidget> createState() => _BillSummaryScreen();
@@ -41,6 +56,7 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
   bool isRestaurantClosed = false;
   RestaurantService restaurantService = RestaurantService();
   CurrentData? currentData;
+  String? currentLocation;
   // Add cancellation token for API requests
   final _cancelToken = CancelToken();
 
@@ -59,13 +75,13 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
       fetchCurrentData();
     });
   }
+
   late OrderProvider orderProvider;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     orderProvider = Provider.of<OrderProvider>(context, listen: false);
-
   }
 
   @override
@@ -79,7 +95,7 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
     // Do NOT clear cartItems as it's needed by the CartProvider
 
     // Only reset the order provider state which is temporary
-    if(!mounted) return;
+    if (!mounted) return;
     orderProvider.clearOrder();
 
     super.dispose();
@@ -132,6 +148,7 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
 
       if (response != null && !_cancelToken.isCancelled) {
         currentData = CurrentData.fromJson(response.data);
+        currentLocation = currentData!.location;
 
         // Update order provider with current data
         final orderProvider =
@@ -222,55 +239,130 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
         context: context,
         barrierDismissible: false,
         builder: (ctx) => PopScope(
-          canPop: false,
-          child: AlertDialog(
-            title: const Text('Unavailable Items'),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
+            canPop: false,
+            child: AlertDialog(
+              backgroundColor: Colors.white,
+              titlePadding: const EdgeInsets.only(top: 20, bottom: 5),
+              title: Column(
                 children: [
-                  const Text(
-                    'The following items are no longer available:',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  const Icon(
+                    Icons.warning_rounded,
+                    color: Color(0xFFF8951D),
+                    size: 40,
                   ),
-                  const SizedBox(height: 10),
-                  ...unavailableItems
-                      .map((item) => Padding(
-                            padding: const EdgeInsets.only(bottom: 8.0),
-                            child: Text('• ${item['dishName']}',
-                                style: const TextStyle(color: Colors.red)),
-                          ))
-                      .toList(),
-                  const SizedBox(height: 10),
-                  const Text(
-                      'Would you like to remove these items and continue?'),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Unavailable Items',
+                    style: Theme.of(ctx).textTheme.titleLarge,
+                  ),
                 ],
               ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(ctx).pop();
-                  Navigator.of(context).pop(); // Go back to previous screen
-                },
-                child: const Text('Cancel Order'),
+              contentPadding: const EdgeInsets.only(
+                top: 5,
+                left: 24,
+                right: 24,
+                bottom: 20,
               ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(ctx).pop();
-                  _removeUnavailableItems();
-                  // Show price changes dialog if there are any
-                  if (changedPrices
-                      .any((change) => change.containsKey('newPrice'))) {
-                    _showPriceChangesDialog();
-                  }
-                },
-                child: const Text('Remove Items & Continue'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'The following items are no longer available:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF666666),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 10),
+                    ...unavailableItems
+                        .map((item) => Padding(
+                              padding: const EdgeInsets.only(bottom: 8.0),
+                              child: Text(
+                                '• ${item['dishName']}',
+                                style: const TextStyle(color: Colors.red),
+                                textAlign: TextAlign.center,
+                              ),
+                            ))
+                        .toList(),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Would you like to remove these items and continue?',
+                      style: Theme.of(ctx).textTheme.labelLarge?.copyWith(
+                            color: const Color(0xFF666666),
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
               ),
-            ],
-          ),
-        ),
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.of(ctx).pop();
+                            Navigator.of(context).pop();
+                          },
+                          style: TextButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            side: const BorderSide(
+                              color: Color(0xFFF8951D),
+                              width: 1,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: Text(
+                            'Cancel Order',
+                            style:
+                                Theme.of(ctx).textTheme.labelMedium?.copyWith(
+                                      color: const Color(0xFFF8951D),
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.of(ctx).pop();
+                            _removeUnavailableItems();
+                            if (changedPrices.any(
+                                (change) => change.containsKey('newPrice'))) {
+                              _showPriceChangesDialog();
+                            }
+                          },
+                          style: TextButton.styleFrom(
+                            backgroundColor: const Color(0xFFF8951D),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: Text(
+                            'Remove Items',
+                            style:
+                                Theme.of(ctx).textTheme.labelMedium?.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            )),
       );
     } else if (changedPrices.isNotEmpty) {
       // If there are only price changes, show that dialog
@@ -312,15 +404,40 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
         builder: (ctx) => PopScope(
           canPop: false,
           child: AlertDialog(
-            title: const Text('Price Changes'),
+            backgroundColor: Colors.white,
+            titlePadding: const EdgeInsets.only(top: 20, bottom: 5),
+            title: Column(
+              children: [
+                const Icon(
+                  Icons.warning_rounded,
+                  color: Color(0xFFF8951D),
+                  size: 40,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Price Changes',
+                  style: Theme.of(ctx).textTheme.titleLarge,
+                ),
+              ],
+            ),
+            contentPadding: const EdgeInsets.only(
+              top: 5,
+              left: 24,
+              right: 24,
+              bottom: 20,
+            ),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const Text(
                     'The following price changes have been detected:',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF666666),
+                    ),
+                    textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 10),
                   ...priceChanges
@@ -329,28 +446,77 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                             child: Text(
                               '• ${change['dishName']} price changed from ₹${change['oldPrice']} to ₹${change['newPrice']}',
                               style: const TextStyle(color: Colors.red),
+                              textAlign: TextAlign.center,
                             ),
                           ))
                       .toList(),
                   const SizedBox(height: 10),
-                  const Text('Would you like to continue with the new prices?'),
+                  Text(
+                    'Would you like to continue with the new prices?',
+                    style: Theme.of(ctx).textTheme.labelLarge?.copyWith(
+                          color: const Color(0xFF666666),
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
                 ],
               ),
             ),
             actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(ctx).pop();
-                  Navigator.of(context).pop(); // Go back to previous screen
-                },
-                child: const Text('Cancel Order'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(ctx).pop();
-                  _updatePriceChanges(); // Apply the price changes only when user accepts
-                },
-                child: const Text('Accept & Continue'),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.of(ctx).pop();
+                          Navigator.of(context).pop();
+                        },
+                        style: TextButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          side: const BorderSide(
+                            color: Color(0xFFF8951D),
+                            width: 1,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: Text(
+                          'Cancel Order',
+                          style: Theme.of(ctx).textTheme.labelSmall?.copyWith(
+                                color: const Color(0xFFF8951D),
+                                fontWeight: FontWeight.w600,
+                              ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.of(ctx).pop();
+                          _updatePriceChanges();
+                        },
+                        style: TextButton.styleFrom(
+                          backgroundColor: const Color(0xFFF8951D),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: Text(
+                          'Accept & Continue',
+                          style: Theme.of(ctx).textTheme.labelSmall?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -366,18 +532,62 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
       builder: (ctx) => PopScope(
         canPop: false,
         child: AlertDialog(
-          title: const Text('Restaurant Closed'),
+          backgroundColor: Colors.white,
+          titlePadding: const EdgeInsets.only(top: 20, bottom: 5),
+          title: Column(
+            children: [
+              const Icon(
+                Icons.warning_rounded,
+                color: Color(0xFFF8951D),
+                size: 40,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Restaurant Closed',
+                style: Theme.of(ctx).textTheme.titleLarge,
+              ),
+            ],
+          ),
+          contentPadding: const EdgeInsets.only(
+            top: 5,
+            left: 24,
+            right: 24,
+            bottom: 20,
+          ),
           content: const Text(
             'This restaurant is currently closed. Please try again later or choose another restaurant.',
-            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF666666),
+            ),
+            textAlign: TextAlign.center,
           ),
           actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(ctx).pop();
-                Navigator.of(context).pop(); // Go back to previous screen
-              },
-              child: const Text('OK'),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+              child: SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                    Navigator.of(context).pop();
+                  },
+                  style: TextButton.styleFrom(
+                    backgroundColor: const Color(0xFFF8951D),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: Text(
+                    'OK',
+                    style: Theme.of(ctx).textTheme.labelMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -439,8 +649,6 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
       _showPriceChangesDialog();
     }
   }
-
-
 
   void _removeItem(CartItem item) {
     final cartProvider = Provider.of<CartProvider>(context, listen: false);
@@ -511,33 +719,102 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
     if (item.quantity == 1) {
       showDialog(
         context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Remove Item'),
-          content: Text('Remove ${item.dish.dishId.dishName} from your cart?'),
+        builder: (BuildContext ctx) => AlertDialog(
+          backgroundColor: Colors.white,
+          titlePadding: const EdgeInsets.only(top: 20, bottom: 5),
+          title: Column(
+            children: [
+              const Icon(
+                Icons.warning_rounded,
+                color: Color(0xFFF8951D),
+                size: 40,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Remove Item',
+                style: Theme.of(ctx).textTheme.titleLarge,
+              ),
+            ],
+          ),
+          contentPadding: const EdgeInsets.only(
+            top: 5,
+            left: 24,
+            right: 24,
+            bottom: 20,
+          ),
+          content: Text(
+            'Are you sure you want to remove ${item.dish.dishId.dishName} from your cart?',
+            textAlign: TextAlign.center,
+            style: Theme.of(ctx).textTheme.labelLarge?.copyWith(
+                  color: const Color(0xFF666666),
+                ),
+          ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(ctx).pop();
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        side: const BorderSide(
+                          color: Color(0xFFF8951D),
+                          width: 1,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Text(
+                        'Cancel',
+                        style: Theme.of(ctx).textTheme.labelMedium?.copyWith(
+                              color: const Color(0xFFF8951D),
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.of(ctx).pop();
 
-                // Check if this is the last item in the cart
-                if (cartItems.length == 1) {
-                  // Remove the item
-                  cartProvider.removeItem(widget.id, item.dish.id);
+                        // Check if this is the last item in the cart
+                        if (cartItems.length == 1) {
+                          // Remove the item
+                          cartProvider.removeItem(widget.id, item.dish.id);
 
-                  // Clear the order provider
-                  orderProvider.clearOrder();
+                          // Clear the order provider
+                          orderProvider.clearOrder();
 
-                  // Pop back to previous screen
-                  Navigator.of(context).pop();
-                } else {
-                  _removeItem(item);
-                }
-              },
-              child: const Text('Remove'),
+                          // Pop back to previous screen
+                          Navigator.of(context).pop();
+                        } else {
+                          _removeItem(item);
+                        }
+                      },
+                      style: TextButton.styleFrom(
+                        backgroundColor: const Color(0xFFF8951D),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Text(
+                        'Remove',
+                        style: Theme.of(ctx).textTheme.labelMedium?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -587,6 +864,7 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
         },
         canPop: true,
         child: Scaffold(
+          backgroundColor: const Color(0xFFF5F5F5),
           appBar: AppBar(
               backgroundColor: Colors.white,
               elevation: 0,
@@ -619,10 +897,13 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                         Text(
                           widget.name,
                           textAlign: TextAlign.right,
-                          style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black),
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleSmall
+                              ?.copyWith(
+                                  color: const Color(0xFF737373),
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w100),
                         ),
                         Row(
                           mainAxisSize: MainAxisSize
@@ -631,8 +912,8 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                             const Text(
                               "25 Min from location",
                               style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                             const SizedBox(
@@ -646,10 +927,10 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                             const SizedBox(
                               width: 6,
                             ),
-                            const Flexible(
+                            Flexible(
                               child: Text(
-                                "Location",
-                                style: TextStyle(
+                                currentLocation ?? "Fetching location",
+                                style: const TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.black),
@@ -662,14 +943,167 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                       ],
                     ),
                   ),
-                  GestureDetector(
-                      onTap: () {},
-                      child: SvgPicture.asset(
-                        'assets/svg/save_appbar.svg',
-                        width: 50,
-                        height: 50,
-                        fit: BoxFit.scaleDown,
-                      ))
+                  Consumer<SavedRestaurantsProvider>(
+                    builder: (context, savedProvider, child) {
+                      final isSaved =
+                          savedProvider.isRestaurantSaved(widget.id);
+                      return GestureDetector(
+                        onTap: () async {
+                          if (isSaved) {
+                            // Show delete confirmation
+                            bool? remove = await showDialog<bool>(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                backgroundColor: Colors.white,
+                                titlePadding:
+                                    const EdgeInsets.only(top: 20, bottom: 5),
+                                title: Column(
+                                  children: [
+                                    const Icon(
+                                      Icons.warning_rounded,
+                                      color: Color(0xFFF8951D),
+                                      size: 40,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Remove Restaurant',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleLarge,
+                                    ),
+                                  ],
+                                ),
+                                contentPadding: const EdgeInsets.only(
+                                  top: 5,
+                                  left: 24,
+                                  right: 24,
+                                  bottom: 20,
+                                ),
+                                content: Text(
+                                  'Remove ${widget.name} from saved?',
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelLarge
+                                      ?.copyWith(
+                                        color: const Color(0xFF666666),
+                                      ),
+                                ),
+                                actions: [
+                                  Padding(
+                                    padding:
+                                        const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context, false),
+                                            style: TextButton.styleFrom(
+                                              backgroundColor: Colors.white,
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      vertical: 12),
+                                              side: const BorderSide(
+                                                color: Color(0xFFF8951D),
+                                                width: 1,
+                                              ),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                              ),
+                                            ),
+                                            child: Text(
+                                              'Cancel',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .labelMedium
+                                                  ?.copyWith(
+                                                    color:
+                                                        const Color(0xFFF8951D),
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context, true),
+                                            style: TextButton.styleFrom(
+                                              backgroundColor:
+                                                  const Color(0xFFF8951D),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      vertical: 12),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                              ),
+                                            ),
+                                            child: Text(
+                                              'Remove',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .labelMedium
+                                                  ?.copyWith(
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+
+                            if (remove == true) {
+                              await savedProvider.toggleSaveRestaurant(
+                                SavedRestaurant(
+                                  id: widget.id,
+                                  imageUrl: widget.imageUrl,
+                                  restaurantName: widget.name,
+                                  cuisineType: widget.cuisineType,
+                                  priceRange: widget.priceRange,
+                                  rating: widget.rating,
+                                  location: widget.locationOfRestaurant,
+                                  // lat: widget.latitude,
+                                  // long: widget.longitude,
+                                ),
+                              );
+                            }
+                          } else {
+                            // Direct save
+                            await savedProvider.toggleSaveRestaurant(
+                              SavedRestaurant(
+                                id: widget.id,
+                                imageUrl: widget.imageUrl,
+                                restaurantName: widget.name,
+                                cuisineType: widget.cuisineType,
+                                priceRange: widget.priceRange,
+                                rating: widget.rating,
+                                location: widget.locationOfRestaurant,
+                                // lat: widget.latitude,
+                                // long: widget.longitude,
+                              ),
+                            );
+                          }
+                        },
+                        child: SvgPicture.asset(
+                          isSaved
+                              ? 'assets/svg/Saved.svg'
+                              : 'assets/svg/save_appbar.svg',
+                          width: 50,
+                          height: 50,
+                          fit: BoxFit.scaleDown,
+                        ),
+                      );
+                    },
+                  ),
                 ],
               )),
           body: isCheckingConditions
@@ -706,13 +1140,13 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                                       padding: const EdgeInsets.all(12),
                                       decoration: BoxDecoration(
                                         color: Colors.white,
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(18),
                                         boxShadow: const [
-                                          BoxShadow(
-                                            color: Colors.black12,
-                                            blurRadius: 6,
-                                            offset: Offset(0, 3),
-                                          ),
+                                          // BoxShadow(
+                                          //   color: Colors.black12,
+                                          //   blurRadius: 6,
+                                          //   offset: Offset(0, 3),
+                                          // ),
                                         ],
                                       ),
                                       child: Column(
@@ -750,7 +1184,13 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                                                     'name': widget.name,
                                                     'location': cartItems
                                                         .first.location,
-                                                    'id': widget.id
+                                                    'id': widget.id,
+                                                    'imageUrl': widget.imageUrl,
+                                                    'cuisineType':
+                                                        widget.cuisineType,
+                                                    'priceRange':
+                                                        widget.priceRange,
+                                                    'rating': widget.rating,
                                                   });
                                             },
                                             child: const Row(
@@ -777,73 +1217,128 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                                       padding: const EdgeInsets.all(16),
                                       decoration: BoxDecoration(
                                         color: Colors.white,
-                                        borderRadius: BorderRadius.circular(12),
-                                        boxShadow: const [
-                                          BoxShadow(
-                                            color: Colors.black12,
-                                            blurRadius: 6,
-                                            offset: Offset(0, 3),
-                                          ),
-                                        ],
+                                        borderRadius: BorderRadius.circular(18),
                                       ),
                                       child: Column(
                                         children: [
-                                          _buildSummaryRow("Sub Total",
-                                              "₹${subTotal.toStringAsFixed(2)}"),
-                                          _buildSummaryRow("GST (18%)",
-                                              "₹${gst.toStringAsFixed(2)}"),
-                                          const Divider(),
-                                          _buildSummaryRow(
-                                            "Grand Total",
-                                            "₹${grandTotal.toStringAsFixed(2)}",
-                                            isBold: true,
+                                          Row(
+                                            children: [
+                                              SvgPicture.asset(
+                                                'assets/svg/WidgetAdd.svg',
+                                                width: 24,
+                                                height: 24,
+                                                fit: BoxFit.scaleDown,
+                                              ),
+                                              const SizedBox(width: 5),
+                                              const Text(
+                                                "Complete your meal with",
+                                                style: TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 10),
+                                          // Add SingleChildScrollView for horizontal scrolling
+                                          SizedBox(
+                                            height:
+                                                190, // Adjust height as needed for your DishCard
+                                            child: SingleChildScrollView(
+                                              scrollDirection: Axis.horizontal,
+                                              child: Row(
+                                                children: [
+                                                  for (int i = 0;
+                                                      i < 10;
+                                                      i++) ...[
+                                                    if (i > 0)
+                                                      const SizedBox(
+                                                          width:
+                                                              2), // 2px gap between cards
+                                                    SizedBox(
+                                                      width:
+                                                          150, // Adjust width as needed for your DishCard
+                                                      child: DishCard(
+                                                          name: 'Briyani',
+                                                          quantity: 1,
+                                                          price: '200',
+                                                          imageUrl:
+                                                              'assets/images/home_style.png',
+                                                          calories: "200",
+                                                          onAddToCart: () {},
+                                                          onIncrement: () {},
+                                                          onDecrement: () {}),
+                                                    ),
+                                                  ],
+                                                ],
+                                              ),
+                                            ),
                                           ),
                                         ],
                                       ),
                                     ),
+                                    const SizedBox(height: 10),
 
                                     // Only show number of people for dine-in orders
                                     if (widget.orderType.toLowerCase() ==
                                         "dine-in")
                                       Container(
                                         margin: const EdgeInsets.symmetric(
-                                            vertical: 20),
+                                            vertical: 10),
                                         padding: const EdgeInsets.all(16),
                                         decoration: BoxDecoration(
                                           color: Colors.white,
                                           borderRadius:
-                                              BorderRadius.circular(12),
+                                              BorderRadius.circular(18),
                                           boxShadow: const [
-                                            BoxShadow(
-                                              color: Colors.black12,
-                                              blurRadius: 6,
-                                              offset: Offset(0, 3),
-                                            ),
+                                            // BoxShadow(
+                                            //   color: Colors.black12,
+                                            //   blurRadius: 6,
+                                            //   offset: Offset(0, 3),
+                                            // ),
                                           ],
                                         ),
                                         child: const SelectNoPeopleWidget(),
                                       ),
-
+                                    const SizedBox(height: 10),
                                     // Show time slots for all order types
                                     Container(
                                       margin: const EdgeInsets.symmetric(
-                                          vertical: 20),
+                                          vertical: 0),
                                       padding: const EdgeInsets.all(16),
                                       decoration: BoxDecoration(
                                         color: Colors.white,
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(18),
                                         boxShadow: const [
-                                          BoxShadow(
-                                            color: Colors.black12,
-                                            blurRadius: 6,
-                                            offset: Offset(0, 3),
-                                          ),
+                                          // BoxShadow(
+                                          //   color: Colors.black12,
+                                          //   blurRadius: 6,
+                                          //   offset: Offset(0, 3),
+                                          // ),
                                         ],
                                       ),
                                       child: const TimeSlotsReserveWidget(),
                                     ),
-
                                     // Add bottom padding to ensure content isn't hidden behind the fixed button
+                                    const SizedBox(height: 20),
+
+                                    Container(
+                                      margin: const EdgeInsets.symmetric(
+                                          vertical: 0),
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(18),
+                                        boxShadow: const [
+                                          // BoxShadow(
+                                          //   color: Colors.black12,
+                                          //   blurRadius: 6,
+                                          //   offset: Offset(0, 3),
+                                          // ),
+                                        ],
+                                      ),
+                                      child: const CouponSectionWidget(),
+                                    ),
                                     const SizedBox(height: 80),
                                   ],
                                 ),
@@ -855,14 +1350,14 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                         // Fixed button at the bottom
                         Container(
                           decoration: const BoxDecoration(
-                            color: Colors.white,
+                            //color: Colors.white,
                             boxShadow: [
-                              BoxShadow(
-                                color: Colors.black12,
-                                offset: Offset(0, -2),
-                                blurRadius: 4,
-                                spreadRadius: 1,
-                              ),
+                              // BoxShadow(
+                              //   color: Colors.black12,
+                              //   offset: Offset(0, -2),
+                              //   blurRadius: 4,
+                              //   spreadRadius: 1,
+                              // ),
                             ],
                           ),
                           padding: const EdgeInsets.all(16.0),

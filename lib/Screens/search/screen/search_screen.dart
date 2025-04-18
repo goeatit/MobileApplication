@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:eatit/Screens/Filter/filter_bottom_sheet.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/screen/singe_restaurant_screen.dart';
+import 'package:eatit/Screens/location/screen/Restaurant_address_screen.dart';
 import 'package:eatit/api/api_repository.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/models/search_model.dart';
@@ -21,6 +23,26 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
+  String selectedSection = 'Sort By';
+  String selectedSortOption = '';
+  String selectedRatingOption = '';
+  String selectedOfferOption = '';
+  String selectedPriceOption = '';
+  bool isFilterOpen = false;
+  Map<String, bool> selectedFilters = {
+    'Sort By': false,
+    'Rating': false,
+    'Veg / Non-Veg': false,
+    'Offers': false,
+    'Price': false,
+  };
+  bool _isAnyOptionSelected() {
+    return selectedSortOption.isNotEmpty ||
+        selectedRatingOption.isNotEmpty ||
+        selectedOfferOption.isNotEmpty ||
+        selectedPriceOption.isNotEmpty;
+  }
+
   List<String> recentSearches = ["Indian", "KFC", "Continental"];
   List<dynamic> searchResultsRestaurant = []; // Stores API search results
   List<dynamic> topDishes = [];
@@ -34,6 +56,42 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Timer? _debounce;
+  void _showFilterBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => FilterBottomSheet(
+        selectedSection: selectedSection,
+        selectedSortOption: selectedSortOption,
+        selectedRatingOption: selectedRatingOption,
+        selectedOfferOption: selectedOfferOption,
+        selectedPriceOption: selectedPriceOption,
+        onApplyFilters: (sortOption, ratingOption, offerOption, priceOption) {
+          setState(() {
+            selectedSortOption = sortOption;
+            selectedRatingOption = ratingOption;
+            selectedOfferOption = offerOption;
+            selectedPriceOption = priceOption;
+            isFilterOpen = false;
+          });
+        },
+        onClearFilters: () {
+          setState(() {
+            selectedSortOption = '';
+            selectedRatingOption = '';
+            selectedOfferOption = '';
+            selectedPriceOption = '';
+            selectedFilters.updateAll((key, value) => false);
+          });
+        },
+      ),
+    );
+  }
+
   void onSearchChanged(String query) {
     try {
       final Connectivity connectivity = Connectivity();
@@ -138,6 +196,106 @@ class _SearchScreenState extends State<SearchScreen> {
     super.dispose();
   }
 
+  Future<void> _showNavigationConfirmDialog() async {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          titlePadding: const EdgeInsets.only(top: 20, bottom: 5),
+          title: Column(
+            children: [
+              const Icon(
+                Icons.location_on_rounded, // Changed to location icon
+                color: Color(0xFFF8951D),
+                size: 40,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Change Location',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+            ],
+          ),
+          contentPadding: const EdgeInsets.only(
+            top: 5,
+            left: 24,
+            right: 24,
+            bottom: 20,
+          ),
+          content: Text(
+            'Do you want to change your Current location?',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: const Color(0xFF666666),
+                ),
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        side: const BorderSide(
+                          color: Color(0xFFF8951D),
+                          width: 1,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Text(
+                        'Cancel',
+                        style:
+                            Theme.of(context).textTheme.labelMedium?.copyWith(
+                                  color: const Color(0xFFF8951D),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        Navigator.pushNamed(
+                            context, RestaurantAddressScreen.routeName);
+                      },
+                      style: TextButton.styleFrom(
+                        backgroundColor: const Color(0xFFF8951D),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Text(
+                        'Continue',
+                        style:
+                            Theme.of(context).textTheme.labelMedium?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     textTheme = Theme.of(context).textTheme;
@@ -160,54 +318,61 @@ class _SearchScreenState extends State<SearchScreen> {
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Container(
-                            width: 50,
-                            height: 50,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF8951D),
-                              borderRadius: BorderRadius.circular(25),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: SvgPicture.asset(
-                                'assets/svg/location.svg',
+                          GestureDetector(
+                            onTap: _showNavigationConfirmDialog,
+                            child: Container(
+                              width: 50,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF8951D),
+                                borderRadius: BorderRadius.circular(25),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: SvgPicture.asset(
+                                  'assets/svg/location.svg',
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                           ),
                           const SizedBox(width: 8),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    'Home',
-                                    style: textTheme?.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 20,
+                          GestureDetector(
+                            onTap: _showNavigationConfirmDialog,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      'Home',
+                                      style: textTheme?.titleMedium?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 20,
+                                      ),
                                     ),
-                                  ),
-                                  const Icon(Icons.keyboard_arrow_down),
-                                ],
-                              ),
-                              SizedBox(
-                                width: MediaQuery.of(context).size.width *
-                                    0.47, // Constrain width
-                                child: Text(
-                                  fullAddress,
-                                  style: textTheme?.bodySmall?.copyWith(
-                                    color: Colors.black,
-                                  ),
-                                  overflow:
-                                      TextOverflow.ellipsis, // Adds ellipsis
-                                  maxLines: 1, // Restricts to one line
+                                    const Icon(Icons.keyboard_arrow_down),
+                                  ],
                                 ),
-                              ),
-                            ],
+                                SizedBox(
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.47,
+                                  child: Text(
+                                    fullAddress,
+                                    style: textTheme?.bodySmall?.copyWith(
+                                      color: Colors.black,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
+
                       // Container(
                       //   decoration: BoxDecoration(
                       //     border: Border.all(width: 2),
@@ -271,30 +436,38 @@ class _SearchScreenState extends State<SearchScreen> {
                     Expanded(
                       child: TextField(
                         decoration: InputDecoration(
-                          prefixIcon:
-                              const Icon(Icons.search, color: primaryColor),
+                          icon: Padding(
+                            padding: const EdgeInsets.only(left: 10.0),
+                            child: SvgPicture.asset(
+                              'assets/svg/search.svg',
+                              width: 30,
+                            ),
+                          ),
                           hintText: "Search food or restaurant...",
                           hintStyle: const TextStyle(color: Colors.grey),
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.circular(15),
                             borderSide: BorderSide.none,
                           ),
                           contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 12),
+                            vertical: 12,
+                          ),
                         ),
                         onChanged: onSearchChanged,
                       ),
                     ),
                     Container(
-                      margin: const EdgeInsets.only(right: 8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF4F4F4F),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
+                      margin: const EdgeInsets.only(right: 1),
                       child: IconButton(
-                        icon: const Icon(Icons.tune, color: white),
+                        icon: SvgPicture.asset(
+                          'assets/svg/filter.svg',
+                          width: 40,
+                        ),
                         onPressed: () {
-                          // Add your filter functionality here
+                          setState(() {
+                            isFilterOpen = true;
+                          });
+                          _showFilterBottomSheet();
                         },
                       ),
                     ),
@@ -327,31 +500,49 @@ class _SearchScreenState extends State<SearchScreen> {
                     final item = searchResultsRestaurant[index];
                     return InkWell(
                         onTap: () {
-                          Navigator.pushReplacementNamed(
-                              context, SingleRestaurantScreen.routeName,
-                              arguments: {
-                                'name': item.restaurantName.toString(),
-                                'location':
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => SingleRestaurantScreen(
+                                name: item.restaurantName.toString(),
+                                location:
                                     item.restaurantAddress.city.toString(),
-                                'id': item.id.toString(),
-                              });
+                                id: item.id.toString(),
+                                imageUrl:
+                                    "assets/images/restaurant${(index % 9) + 1}.png",
+
+                                cuisineType:
+                                    "Indian • Biryani", // Add appropriate cuisine type
+                                priceRange:
+                                    "₹1200-₹1500 for two", // Add appropriate price range
+                                rating: double.parse(item.restaurantRating
+                                    .toString()), // Convert rating to double
+                              ),
+                            ),
+                          );
                         },
                         child: Card(
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
+                              borderRadius: BorderRadius.circular(15)),
                           elevation: 7,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               ClipRRect(
                                 borderRadius: const BorderRadius.vertical(
-                                    top: Radius.circular(12)),
+                                    top: Radius.circular(16)),
                                 child: AspectRatio(
-                                  aspectRatio:
-                                      16 / 9, // Fixed aspect ratio for image
+                                  aspectRatio: 16 / 9,
                                   child: Image.asset(
-                                    "assets/images/restaurant.png",
+                                    "assets/images/restaurant${(index % 9) + 1}.png", // This will cycle through restaurant1.png to restaurant9.png
                                     fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      // Fallback image in case the numbered image is not found
+                                      return Image.asset(
+                                        "assets/images/restaurant.png",
+                                        fit: BoxFit.cover,
+                                      );
+                                    },
                                   ),
                                 ),
                               ),
@@ -466,16 +657,26 @@ class _SearchScreenState extends State<SearchScreen> {
                     final item = topDishes[index];
                     return InkWell(
                       onTap: () {
-                        Navigator.pushReplacementNamed(
-                            context, SingleRestaurantScreen.routeName,
-                            arguments: {
-                              'name': item.restaurantIdDetails.restaurantName
-                                  .toString(),
-                              'location': item
-                                  .restaurantIdDetails.restaurantAddress.city
-                                  .toString(),
-                              'id': item.restaurantIdDetails.id.toString(),
-                            });
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SingleRestaurantScreen(
+                              name: item.restaurantIdDetails.restaurantName,
+                              location: item
+                                  .restaurantIdDetails.restaurantAddress.city,
+                              id: item.restaurantIdDetails.id.toString(),
+                              imageUrl:
+                                  "assets/images/restaurant${(index % 9) + 1}.png",
+
+                              cuisineType:
+                                  "Indian • Biryani", // Add appropriate cuisine type
+                              priceRange:
+                                  "₹1200-₹1500 for two", // Add appropriate price range
+                              rating: double.parse(item.rating
+                                  .toString()), // Convert rating to double
+                            ),
+                          ),
+                        );
                       },
                       child: Card(
                         shape: RoundedRectangleBorder(
@@ -486,13 +687,19 @@ class _SearchScreenState extends State<SearchScreen> {
                           children: [
                             ClipRRect(
                               borderRadius: const BorderRadius.vertical(
-                                  top: Radius.circular(8)),
+                                  top: Radius.circular(16)),
                               child: AspectRatio(
-                                aspectRatio:
-                                    16 / 9, // Fixed aspect ratio for image
+                                aspectRatio: 16 / 9,
                                 child: Image.asset(
-                                  "assets/images/restaurant.png",
+                                  "assets/images/restaurant${(index % 9) + 1}.png", // This will cycle through restaurant1.png to restaurant9.png
                                   fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    // Fallback image in case the numbered image is not found
+                                    return Image.asset(
+                                      "assets/images/restaurant.png",
+                                      fit: BoxFit.cover,
+                                    );
+                                  },
                                 ),
                               ),
                             ),
@@ -547,9 +754,9 @@ class _SearchScreenState extends State<SearchScreen> {
                                           ],
                                         ),
                                         const SizedBox(height: 4),
-                                        Text(
+                                        const Text(
                                           "Indian • Biryani",
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             color: Colors.grey,
                                             fontSize: 13,
                                           ),
@@ -558,12 +765,12 @@ class _SearchScreenState extends State<SearchScreen> {
                                         ),
                                       ],
                                     ),
-                                    Column(
+                                    const Column(
                                       children: [
-                                        const SizedBox(height: 4),
+                                        SizedBox(height: 4),
                                         Text(
                                           "₹200",
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             color: Colors.grey,
                                             fontSize: 12,
                                           ),

@@ -2,6 +2,7 @@ import 'package:eatit/Screens/My_Booking/screen/order_details_container.dart';
 import 'package:flutter/material.dart';
 import 'package:eatit/models/my_booking_modal.dart';
 import 'package:eatit/Screens/My_Booking/service/My_Booking_service.dart';
+import 'package:flutter_svg/svg.dart';
 
 class MyBookingsScreen extends StatefulWidget {
   static const routeName = "/my-bookings-screen";
@@ -61,18 +62,32 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 5),
+          child: GestureDetector(
+            onTap: () {
+              Navigator.of(context).pop();
+            },
+            child: SvgPicture.asset(
+              'assets/svg/graybackArrow.svg',
+              width: 31,
+              height: 30,
+              fit: BoxFit.scaleDown,
+            ),
+          ),
+        ),
         title: const Text(
           'My Bookings',
           style: TextStyle(
+            fontSize: 27,
+            fontWeight: FontWeight.w700,
             color: Colors.black,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
       ),
+      backgroundColor: const Color(0xFFF4F4F4),
       body: _buildBody(),
     );
   }
@@ -113,23 +128,15 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
     }
 
     if (_orders.isEmpty) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.receipt_long_outlined,
-              size: 64,
-              color: Colors.grey,
-            ),
-            SizedBox(height: 16),
-            Text(
-              'No Bookings Found',
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.grey,
-                fontWeight: FontWeight.w500,
-              ),
+            Image.asset(
+              'assets/images/emptyBooking.png',
+              width: 400, // Adjust the width as needed
+              height: 400, // Adjust the height as needed
+              fit: BoxFit.contain,
             ),
           ],
         ),
