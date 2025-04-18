@@ -34,6 +34,12 @@ class CartItemWidget extends StatefulWidget {
 
 class _CartItemWidgetState extends State<CartItemWidget> {
   bool _isExpanded = false;
+  // In the _CartItemWidgetState class, add this method to get a random restaurant image
+  String getRestaurantImage(int index) {
+    // Use modulo to cycle through images 0-9
+    final imageIndex = index % 10;
+    return 'assets/images/restaurant$imageIndex.png';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,13 +53,24 @@ class _CartItemWidgetState extends State<CartItemWidget> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                // Then modify the Image.asset widget in the build method
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
                   child: Image.asset(
-                    'assets/images/restaurant.png',
+                    // Use the widget.index passed from parent to get different images
+                    getRestaurantImage(widget.index),
                     width: 85,
                     height: 85,
                     fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      // Fallback to default image if the numbered image is not found
+                      return Image.asset(
+                        'assets/images/restaurant.png',
+                        width: 85,
+                        height: 85,
+                        fit: BoxFit.cover,
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -160,41 +177,133 @@ class _CartItemWidgetState extends State<CartItemWidget> {
                             onTap: () {
                               showDialog(
                                 context: context,
-                                builder: (ctx) => AlertDialog(
-                                  title: const Text('Remove Items'),
-                                  content: const Text(
-                                      'Are you sure you want to remove all items from this restaurant?'),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.of(ctx).pop();
-                                      },
-                                      child: const Text('Cancel'),
+                                builder: (BuildContext ctx) {
+                                  return AlertDialog(
+                                    backgroundColor: Colors.white,
+                                    titlePadding: const EdgeInsets.only(
+                                        top: 20, bottom: 5),
+                                    title: Column(
+                                      children: [
+                                        const Icon(
+                                          Icons.warning_rounded,
+                                          color: Color(0xFFF8951D),
+                                          size: 40,
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          'Remove Items',
+                                          style: Theme.of(ctx)
+                                              .textTheme
+                                              .titleLarge,
+                                        ),
+                                      ],
                                     ),
-                                    TextButton(
-                                      onPressed: () {
-                                        final cartProvider =
-                                            Provider.of<CartProvider>(context,
-                                                listen: false);
-                                        cartProvider.clearCart(
-                                            widget.restaurantId,
-                                            widget.orderType);
-                                        Navigator.of(ctx).pop();
-                                        // Find the CartPage state and call removeItem
-                                        if (context.mounted) {
-                                          final cartPageState =
-                                              context.findAncestorStateOfType<
-                                                  CartPageState>();
-                                          if (cartPageState != null) {
-                                            cartPageState
-                                                .removeItem(widget.index);
-                                          }
-                                        }
-                                      },
-                                      child: const Text('Remove'),
+                                    contentPadding: const EdgeInsets.only(
+                                      top: 5,
+                                      left: 24,
+                                      right: 24,
+                                      bottom: 20,
                                     ),
-                                  ],
-                                ),
+                                    content: Text(
+                                      'Are you sure you want to remove all items from ${widget.restaurantName}?',
+                                      textAlign: TextAlign.center,
+                                      style: Theme.of(ctx)
+                                          .textTheme
+                                          .labelLarge
+                                          ?.copyWith(
+                                            color: const Color(0xFF666666),
+                                          ),
+                                    ),
+                                    actions: [
+                                      Padding(
+                                        padding: const EdgeInsets.fromLTRB(
+                                            0, 0, 0, 0),
+                                        child: Row(
+                                          children: [
+                                            Expanded(
+                                              child: TextButton(
+                                                onPressed: () =>
+                                                    Navigator.of(ctx).pop(),
+                                                style: TextButton.styleFrom(
+                                                  backgroundColor: Colors.white,
+                                                  padding: const EdgeInsets
+                                                      .symmetric(vertical: 12),
+                                                  side: const BorderSide(
+                                                    color: Color(0xFFF8951D),
+                                                    width: 1,
+                                                  ),
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            10),
+                                                  ),
+                                                ),
+                                                child: Text(
+                                                  'Cancel',
+                                                  style: Theme.of(ctx)
+                                                      .textTheme
+                                                      .labelMedium
+                                                      ?.copyWith(
+                                                        color: const Color(
+                                                            0xFFF8951D),
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                      ),
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 10),
+                                            Expanded(
+                                              child: TextButton(
+                                                onPressed: () {
+                                                  final cartProvider =
+                                                      Provider.of<CartProvider>(
+                                                          context,
+                                                          listen: false);
+                                                  cartProvider.clearCart(
+                                                      widget.restaurantId,
+                                                      widget.orderType);
+                                                  Navigator.of(ctx).pop();
+                                                  if (context.mounted) {
+                                                    final cartPageState = context
+                                                        .findAncestorStateOfType<
+                                                            CartPageState>();
+                                                    if (cartPageState != null) {
+                                                      cartPageState.removeItem(
+                                                          widget.index);
+                                                    }
+                                                  }
+                                                },
+                                                style: TextButton.styleFrom(
+                                                  backgroundColor:
+                                                      const Color(0xFFF8951D),
+                                                  padding: const EdgeInsets
+                                                      .symmetric(vertical: 12),
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            10),
+                                                  ),
+                                                ),
+                                                child: Text(
+                                                  'Remove',
+                                                  style: Theme.of(ctx)
+                                                      .textTheme
+                                                      .labelMedium
+                                                      ?.copyWith(
+                                                        color: Colors.white,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                      ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
                               );
                             },
                             child: SvgPicture.asset('assets/svg/delete.svg'),

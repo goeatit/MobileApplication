@@ -54,8 +54,10 @@ class TimeSlotGenerator {
 
   String formatTime(DateTime time) {
     int hours = time.hour % 12 == 0 ? 12 : time.hour % 12;
+    String formattedHours =
+        hours.toString().padLeft(2, '0'); // Add padding to hours
     String minutes = time.minute.toString().padLeft(2, '0');
     String period = time.hour >= 12 ? "PM" : "AM";
-    return "$hours:$minutes $period";
+    return "$formattedHours:$minutes $period";
   }
 }

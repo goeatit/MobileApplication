@@ -35,17 +35,23 @@ class CartItemOrderSummary extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 16,
-                height: 16,
+                width: 20,
+                height: 20,
                 decoration: BoxDecoration(
                   shape: BoxShape.rectangle,
-                  border: Border.all(color: isVeg ? Colors.green : Colors.red),
+                  borderRadius: BorderRadius.circular(5),
+                  border: Border.all(
+                      color: isVeg
+                          ? const Color(0xFF36F456)
+                          : const Color(0xFFF44336)), // Updated hex colors
                 ),
                 child: Center(
                   child: Icon(
                     Icons.circle,
-                    size: 10,
-                    color: isVeg ? Colors.green : Colors.red,
+                    size: 12,
+                    color: isVeg
+                        ? const Color(0xFF36F456)
+                        : const Color(0xFFF44336), // Updated hex colors
                   ),
                 ),
               ),
@@ -53,10 +59,10 @@ class CartItemOrderSummary extends StatelessWidget {
               Expanded(
                 child: Text(
                   dishName,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: const Color(0xFF1D1929),
+                        fontSize: 18,
+                      ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -109,18 +115,17 @@ class CartItemOrderSummary extends StatelessWidget {
             children: [
               Text(
                 "₹$price",
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: fontColor7979,
-                ),
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: const Color(0xFF737373),
+                      fontSize: 16,
+                    ),
               ),
               Text(
                 "₹$totalPrice",
-                style: const TextStyle(
-                  color: fontColor7979,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: black,
+                      fontSize: 16,
+                    ),
               ),
             ],
           ),
@@ -132,14 +137,24 @@ class CartItemOrderSummary extends StatelessWidget {
             ),
           ),
           GestureDetector(
-            onTap: onRemove,
-            child: const Text(
-              "Edit >",
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.orange,
-                fontWeight: FontWeight.bold,
-              ),
+            onTap: () {},
+            child: const Row(
+              children: [
+                Text(
+                  "Edit",
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Color(0xFF737373),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(width: 4),
+                Icon(
+                  Icons.play_arrow,
+                  size: 14,
+                  color: Color(0xFFF8951D),
+                ),
+              ],
             ),
           ),
         ],

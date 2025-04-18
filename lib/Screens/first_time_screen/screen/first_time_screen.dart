@@ -151,6 +151,7 @@ class _FirstTimeScreen extends State<FirstTimeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(
@@ -160,7 +161,7 @@ class _FirstTimeScreen extends State<FirstTimeScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               SizedBox(
-                height: 530,
+                height: screenSize.height * 0.6,
                 width: double.infinity,
                 child: PageView.builder(
                   controller: _pageController,
@@ -177,10 +178,13 @@ class _FirstTimeScreen extends State<FirstTimeScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Image.asset(
-                            _images[index],
-                            height: 300,
-                            fit: BoxFit.cover,
+                          SizedBox(
+                            width: screenSize.width,
+                            height: screenSize.height * 0.3,
+                            child: Image.asset(
+                              _images[index],
+                              fit: BoxFit.contain,
+                            ),
                           ),
                           const SizedBox(height: 40),
                           Text(
