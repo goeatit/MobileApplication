@@ -23,6 +23,7 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
+  final TextEditingController _searchController = TextEditingController();
   String selectedSection = 'Sort By';
   String selectedSortOption = '';
   String selectedRatingOption = '';
@@ -190,6 +191,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   void dispose() {
+    _searchController.dispose(); // Add this line
     _debounce?.cancel();
     searchResultsRestaurant.clear();
     topDishes.clear();
@@ -435,6 +437,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   children: [
                     Expanded(
                       child: TextField(
+                        controller: _searchController,
                         decoration: InputDecoration(
                           icon: Padding(
                             padding: const EdgeInsets.only(left: 10.0),
@@ -478,6 +481,11 @@ class _SearchScreenState extends State<SearchScreen> {
               if (isLoading) const Center(child: CircularProgressIndicator()),
               if (errorMessage != null)
                 Text(errorMessage!, style: const TextStyle(color: Colors.red)),
+              if (!isLoading &&
+                  searchResultsRestaurant.isEmpty &&
+                  topDishes.isEmpty &&
+                  _searchController.text.isNotEmpty)
+                _buildEmptyState(),
               if (!isLoading && searchResultsRestaurant.isNotEmpty)
                 const Text("Trending near you",
                     style:
@@ -792,6 +800,26 @@ class _SearchScreenState extends State<SearchScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Container(
+      height:
+          MediaQuery.of(context).size.height * 0.6, // Adjust height as needed
+      width: double.infinity,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Image.asset(
+            'assets/images/no-item-found.png',
+            width: 250,
+            height: 250,
+            fit: BoxFit.contain,
+          ),
+        ],
       ),
     );
   }
