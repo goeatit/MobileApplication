@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:eatit/Screens/Filter/filter_bottom_sheet.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/screen/singe_restaurant_screen.dart';
 import 'package:eatit/Screens/location/screen/Restaurant_address_screen.dart';
 import 'package:eatit/api/api_repository.dart';
@@ -22,6 +23,26 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
+  String selectedSection = 'Sort By';
+  String selectedSortOption = '';
+  String selectedRatingOption = '';
+  String selectedOfferOption = '';
+  String selectedPriceOption = '';
+  bool isFilterOpen = false;
+  Map<String, bool> selectedFilters = {
+    'Sort By': false,
+    'Rating': false,
+    'Veg / Non-Veg': false,
+    'Offers': false,
+    'Price': false,
+  };
+  bool _isAnyOptionSelected() {
+    return selectedSortOption.isNotEmpty ||
+        selectedRatingOption.isNotEmpty ||
+        selectedOfferOption.isNotEmpty ||
+        selectedPriceOption.isNotEmpty;
+  }
+
   List<String> recentSearches = ["Indian", "KFC", "Continental"];
   List<dynamic> searchResultsRestaurant = []; // Stores API search results
   List<dynamic> topDishes = [];
@@ -35,6 +56,42 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Timer? _debounce;
+  void _showFilterBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => FilterBottomSheet(
+        selectedSection: selectedSection,
+        selectedSortOption: selectedSortOption,
+        selectedRatingOption: selectedRatingOption,
+        selectedOfferOption: selectedOfferOption,
+        selectedPriceOption: selectedPriceOption,
+        onApplyFilters: (sortOption, ratingOption, offerOption, priceOption) {
+          setState(() {
+            selectedSortOption = sortOption;
+            selectedRatingOption = ratingOption;
+            selectedOfferOption = offerOption;
+            selectedPriceOption = priceOption;
+            isFilterOpen = false;
+          });
+        },
+        onClearFilters: () {
+          setState(() {
+            selectedSortOption = '';
+            selectedRatingOption = '';
+            selectedOfferOption = '';
+            selectedPriceOption = '';
+            selectedFilters.updateAll((key, value) => false);
+          });
+        },
+      ),
+    );
+  }
+
   void onSearchChanged(String query) {
     try {
       final Connectivity connectivity = Connectivity();
@@ -379,30 +436,38 @@ class _SearchScreenState extends State<SearchScreen> {
                     Expanded(
                       child: TextField(
                         decoration: InputDecoration(
-                          prefixIcon:
-                              const Icon(Icons.search, color: primaryColor),
+                          icon: Padding(
+                            padding: const EdgeInsets.only(left: 10.0),
+                            child: SvgPicture.asset(
+                              'assets/svg/search.svg',
+                              width: 30,
+                            ),
+                          ),
                           hintText: "Search food or restaurant...",
                           hintStyle: const TextStyle(color: Colors.grey),
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.circular(15),
                             borderSide: BorderSide.none,
                           ),
                           contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 12),
+                            vertical: 12,
+                          ),
                         ),
                         onChanged: onSearchChanged,
                       ),
                     ),
                     Container(
-                      margin: const EdgeInsets.only(right: 8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF4F4F4F),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
+                      margin: const EdgeInsets.only(right: 1),
                       child: IconButton(
-                        icon: const Icon(Icons.tune, color: white),
+                        icon: SvgPicture.asset(
+                          'assets/svg/filter.svg',
+                          width: 40,
+                        ),
                         onPressed: () {
-                          // Add your filter functionality here
+                          setState(() {
+                            isFilterOpen = true;
+                          });
+                          _showFilterBottomSheet();
                         },
                       ),
                     ),
