@@ -102,8 +102,8 @@ class CollectionsScreen extends StatelessWidget {
                 priceRange: restaurant.priceRange,
                 rating: restaurant.rating,
                 location: restaurant.location,
-                // lat: restaurant.lat,
-                // long: restaurant.long,
+                lat: restaurant.lat,
+                long: restaurant.long,
               );
             },
           );

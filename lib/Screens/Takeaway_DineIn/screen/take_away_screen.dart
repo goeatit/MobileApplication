@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
+import 'package:eatit/Screens/Filter/filter_widget.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/screen/singe_restaurant_screen.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/widget/bottom_cart.dart';
 import 'package:eatit/api/api_client.dart';
@@ -32,6 +33,7 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
   List<RestaurantsData> restaurants = []; // List to store fetched restaurants
   bool isLoading = true; // Loading indicator flag
   String errorMessage = ''; // Store error message
+  String selectedCategory = '';
   String? city;
   String? country;
 
@@ -267,19 +269,52 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
                                         .horizontal, // Set horizontal scroll direction
                                     child: Row(
                                       children: [
-                                        categoryItem("Healthy Food",
-                                            "assets/images/healthy.png"), // Display the category item
-                                        categoryItem("Home Style",
-                                            "assets/images/home_style.png"), // Display the category item
-                                        categoryItem("Pizza",
-                                            "assets/images/pizza.png"), // Display the category item
-                                        categoryItem("Burger",
-                                            "assets/images/burgers.png"), // Display the category item
+                                        categoryItem("Briyani",
+                                            "assets/images/briyani.png"),
                                         categoryItem("Chicken",
-                                            "assets/images/chicken.png"), // Display the category item
+                                            "assets/images/home_style.png"),
+                                        categoryItem(
+                                            "Pizza", "assets/images/pizza.png"),
+                                        categoryItem("Burger",
+                                            "assets/images/burgers.png"),
+                                        categoryItem("Non Veg Meal",
+                                            "assets/images/nonvegmeal.png"),
+                                        categoryItem(
+                                            "Thali", "assets/images/thali.png"),
+                                        categoryItem("Veg Meal",
+                                            "assets/images/vegmeal.png"),
+                                        categoryItem(
+                                            "Momos", "assets/images/momos.png"),
+                                        categoryItem("Dessert",
+                                            "assets/images/Dessert.png"),
+                                        categoryItem("Appetizers",
+                                            "assets/images/appetizers.png"),
+                                        categoryItem("Pasta & Noodles",
+                                            "assets/images/Pasta&noodles.png"),
+                                        categoryItem("Main Courses",
+                                            "assets/images/maincourses.png"),
+                                        categoryItem("South Indian",
+                                            "assets/images/southindian.png"),
+                                        categoryItem("Coffee",
+                                            "assets/images/coffee.png"),
+                                        categoryItem("Fried Rice",
+                                            "assets/images/friedrice.png"),
+                                        categoryItem("Paneer",
+                                            "assets/images/panner.png"),
+                                        categoryItem("Chinese",
+                                            "assets/images/chinese.png"),
+                                        categoryItem(
+                                            "Roll", "assets/images/roll.png"),
+                                        categoryItem(
+                                            "Salad", "assets/images/salad.png"),
+                                        categoryItem("Mushroom",
+                                            "assets/images/mushroom.png"),
                                       ],
                                     ),
                                   ),
+                                  const SizedBox(height: 17),
+                                  const FilterWidget(),
+                                  const SizedBox(height: 18),
                                   ListView.builder(
                                     shrinkWrap: true,
                                     physics:
@@ -389,23 +424,76 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
   }
 
   Widget categoryItem(String label, String imagePath) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 8),
-      child: Column(
-        children: [
-          ClipOval(
-            child: Image.asset(
-              imagePath,
-              height: 80,
-              width: 80,
-              fit: BoxFit.cover,
+    bool isSelected = selectedCategory == label;
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          selectedCategory = isSelected ? '' : label;
+        });
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 2),
+        child: Column(
+          children: [
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(5), // Padding for the border
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isSelected
+                          ? const Color(0xFFF8951D)
+                          : Colors.transparent,
+                      width: 2,
+                    ),
+                  ),
+                  child: ClipOval(
+                    child: Container(
+                      height: 70,
+                      width: 70,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        image: DecorationImage(
+                          image: AssetImage(imagePath),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                if (isSelected)
+                  Positioned(
+                    right: 3,
+                    top: 2,
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFF8951D),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.check,
+                        color: Colors.white,
+                        size: 12,
+                      ),
+                    ),
+                  ),
+              ],
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(label,
-              style: const TextStyle(
-                  fontSize: 14, color: darkBlack, fontWeight: FontWeight.bold)),
-        ],
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 14,
+                color: isSelected ? const Color(0xFFF8951D) : darkBlack,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

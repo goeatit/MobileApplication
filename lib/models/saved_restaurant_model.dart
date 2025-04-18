@@ -6,8 +6,8 @@ class SavedRestaurant {
   final String priceRange;
   final double rating;
   final String location;
-  // final dynamic lat;
-  // final dynamic long;
+  final dynamic lat;
+  final dynamic long;
 
   SavedRestaurant({
     required this.id,
@@ -17,8 +17,8 @@ class SavedRestaurant {
     required this.priceRange,
     required this.rating,
     required this.location,
-    // this.lat,
-    // this.long,
+    this.lat,
+    this.long,
   });
 
   Map<String, dynamic> toMap() {
