@@ -384,8 +384,11 @@ class _OrderDetailsContainerState extends State<OrderDetailsContainer> {
             Text(
               widget.order.user.restaurantName,
               style: customTheme.nunitoSansRestaurantName.copyWith(
-                letterSpacing: 0.5,
+                //letterSpacing: 0.5,
                 height: 1.3,
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+                color: darkBlack,
               ),
             ),
             const SizedBox(height: 9),

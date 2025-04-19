@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:eatit/Screens/profile/service/edit_profile_service.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:flutter/material.dart';
@@ -45,6 +47,10 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
   String _selectedCountryCode = '+91';
   String _newValue = '';
   String initValue = "";
+  int _countdown = 60;
+  Timer? _timer;
+  bool _canResend = true;
+
   EditProfileSerevice editProfileSerevice = EditProfileSerevice();
 
   @override
@@ -57,6 +63,7 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
 
   @override
   void dispose() {
+    _timer?.cancel();
     _controller.dispose();
     _otpController.dispose();
     super.dispose();
@@ -128,6 +135,8 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
             _isOtpSent = true;
             initValue = _newValue;
             _controller.text = _newValue;
+            _canResend = false; // Disable resend button
+            _startCountdown(); // Start the countdown
           });
 
           ScaffoldMessenger.of(context).showSnackBar(
@@ -158,6 +167,21 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
       );
       widget.isLoading?.call(false);
     }
+  }
+
+  void _startCountdown() {
+    _countdown = 60;
+    _timer?.cancel(); // Cancel any existing timer
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        if (_countdown > 0) {
+          _countdown--;
+        } else {
+          _canResend = true;
+          timer.cancel();
+        }
+      });
+    });
   }
 
   void _verifyOtp() async {
@@ -352,11 +376,16 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
                   ),
                 ),
               ),
-              TextButton(
-                onPressed: _sendOtp,
-                child: const Text('Resend OTP',
-                    style: TextStyle(fontSize: 12, color: primaryColor)),
-              ),
+              GestureDetector(
+                onTap: _canResend ? _sendOtp : null,
+                child: Text(
+                  _canResend ? 'Resend OTP' : 'Resend OTP (${_countdown}s)',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: _canResend ? primaryColor : Colors.grey,
+                  ),
+                ),
+              )
             ],
           ),
           const SizedBox(height: 8),
