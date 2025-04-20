@@ -1,4 +1,5 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:eatit/Screens/Filter/filter_bottom_sheet.dart';
 import 'package:eatit/Screens/Takeaway_DineIn//widget/dish_card_widget.dart';
 import 'package:eatit/Screens/Takeaway_DineIn//widget/single_dish.dart';
 import 'package:eatit/Screens/Takeaway_DineIn//widget/toggle_widget.dart';
@@ -54,7 +55,6 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
     "assets/images/pizza.png",
     "assets/images/healthy.png",
     "assets/images/home_style.png",
-    "assets/images/chicken.png",
     "assets/images/image1.png",
     "assets/images/image2.png",
     "assets/images/image3.png",
@@ -79,6 +79,28 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
   final TextEditingController _searchController = TextEditingController();
   // Add CancelToken for API requests
   final CancelToken _cancelToken = CancelToken();
+  List<String> buttonLabels = ["Best Seller", "Top Rated", "Veg", "Non-Veg"];
+  List<bool> isSelected = [false, false, false, false];
+
+  String selectedSection = 'Sort By';
+  String selectedSortOption = '';
+  String selectedRatingOption = '';
+  String selectedOfferOption = '';
+  String selectedPriceOption = '';
+  bool isFilterOpen = false;
+  Map<String, bool> selectedFilters = {
+    'Sort By': false,
+    'Rating': false,
+    'Veg / Non-Veg': false,
+    'Offers': false,
+    'Price': false,
+  };
+  bool _isAnyOptionSelected() {
+    return selectedSortOption.isNotEmpty ||
+        selectedRatingOption.isNotEmpty ||
+        selectedOfferOption.isNotEmpty ||
+        selectedPriceOption.isNotEmpty;
+  }
 
   void _openMap(dynamic latitude, dynamic longitude, {String? name}) async {
     Uri googleMapsUrl;
@@ -269,6 +291,42 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
       filterDishes = data;
       isLoading = false;
     });
+  }
+
+  void _showFilterBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => FilterBottomSheet(
+        selectedSection: selectedSection,
+        selectedSortOption: selectedSortOption,
+        selectedRatingOption: selectedRatingOption,
+        selectedOfferOption: selectedOfferOption,
+        selectedPriceOption: selectedPriceOption,
+        onApplyFilters: (sortOption, ratingOption, offerOption, priceOption) {
+          setState(() {
+            selectedSortOption = sortOption;
+            selectedRatingOption = ratingOption;
+            selectedOfferOption = offerOption;
+            selectedPriceOption = priceOption;
+            isFilterOpen = false;
+          });
+        },
+        onClearFilters: () {
+          setState(() {
+            selectedSortOption = '';
+            selectedRatingOption = '';
+            selectedOfferOption = '';
+            selectedPriceOption = '';
+            selectedFilters.updateAll((key, value) => false);
+          });
+        },
+      ),
+    );
   }
 
   @override
@@ -752,26 +810,43 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                             child: TextField(
                               controller: _searchController,
                               decoration: InputDecoration(
-                                prefixIcon: const Icon(
-                                  Icons.search,
-                                  color: primaryColor, // Search icon color
+                                icon: Padding(
+                                  padding: const EdgeInsets.only(left: 10.0),
+                                  child: SvgPicture.asset(
+                                    'assets/svg/search.svg',
+                                    width: 30,
+                                  ),
                                 ),
                                 hintText: "Search for Dishes",
                                 hintStyle: const TextStyle(
                                   color: Color(0xff737373),
-                                  fontWeight: FontWeight.w100,
-                                  fontFamily: 'Nunito Sans',
                                 ),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(
                                       8.0), // Match with the container
                                   borderSide: BorderSide.none, // No border
                                 ),
+                                suffixIcon: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        isFilterOpen = true;
+                                      });
+                                      _showFilterBottomSheet();
+                                    },
+                                    child: SvgPicture.asset(
+                                      'assets/svg/filter.svg', // replace with your actual asset path
+                                      width: 40, // adjust the size as needed
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                           ),
                         ),
-
+                        // Filter Buttons
+                        _buildFilterButtons(),
                         // Dishes Categories
                         isLoading
                             ? const Center(child: CircularProgressIndicator())
@@ -999,5 +1074,133 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
               ],
             ),
     );
+  }
+
+  Widget _buildFilterButtons() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10.0),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: List.generate(buttonLabels.length, (index) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 5.0),
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    isSelected[index] = !isSelected[index];
+                  });
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: isSelected[index]
+                        ? const Color(0xFFFFF3E0)
+                        : const Color(0xFFFFFFFF),
+                    border: Border.all(
+                      color: isSelected[index]
+                          ? const Color(0xFFF8951D)
+                          : const Color(0xFFE0E0E0),
+                      width: 1,
+                    ),
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: isSelected[index]
+                        ? [
+                            BoxShadow(
+                              color: const Color(0xFFF8951D).withOpacity(0.3),
+                              blurRadius: 6,
+                              offset: const Offset(0, 3),
+                            )
+                          ]
+                        : [],
+                  ),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildFilterIcon(index),
+                      const SizedBox(width: 8),
+                      Text(
+                        buttonLabels[index],
+                        style: TextStyle(
+                          color: isSelected[index]
+                              ? Colors.black
+                              : const Color(0xFF757575),
+                          fontSize: 14,
+                          fontWeight: isSelected[index]
+                              ? FontWeight.w600
+                              : FontWeight.w400,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }),
+        ),
+      ),
+    );
+  }
+
+// Custom icon builder based on index
+  Widget _buildFilterIcon(int index) {
+    if (index == 0) {
+      // Best Seller Icon
+      return const Icon(
+        Icons.local_fire_department,
+        size: 18,
+        color: Color(0xFFF8951D),
+      );
+    } else if (index == 1) {
+      // Top Rated Star Icon
+      return const Icon(
+        Icons.star,
+        size: 18,
+        color: Color(0xFF139456),
+      );
+    } else if (index == 2) {
+      // Veg Icon
+      return Container(
+        width: 16,
+        height: 16,
+        decoration: BoxDecoration(
+          shape: BoxShape.rectangle,
+          borderRadius: BorderRadius.circular(5),
+          border: Border.all(
+            color: const Color(0xFF36F456),
+            width: 1.5,
+          ),
+        ),
+        child: const Center(
+          child: Icon(
+            Icons.circle,
+            size: 10,
+            color: Color(0xFF36F456),
+          ),
+        ),
+      );
+    } else {
+      // Non-Veg Icon
+      return Container(
+        width: 16,
+        height: 16,
+        decoration: BoxDecoration(
+          shape: BoxShape.rectangle,
+          borderRadius: BorderRadius.circular(5),
+          border: Border.all(
+            color: Color(0xFFF44336),
+            width: 1.5,
+          ),
+        ),
+        child: const Center(
+          child: Icon(
+            Icons.circle,
+            size: 10,
+            color: Color(0xFFF44336),
+          ),
+        ),
+      );
+    }
   }
 }
