@@ -9,6 +9,7 @@ class CartItemWidget extends StatefulWidget {
   final String restaurantName;
   final String orderType;
   final String imageUrl;
+  final bool isAvailable;
   final List<String> items;
   final String instructions;
   final String restaurantId;
@@ -20,6 +21,7 @@ class CartItemWidget extends StatefulWidget {
     required this.restaurantName,
     required this.orderType,
     required this.imageUrl,
+    required this.isAvailable,
     required this.items,
     required this.instructions,
     required Icon icon,

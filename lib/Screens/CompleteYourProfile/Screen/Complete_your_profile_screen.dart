@@ -61,6 +61,14 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
     {"flag": "🇦🇺", "name": "AU", "code": "+61"},
     {"flag": "🇸🇦", "name": "SA", "code": "+966"}, // Added Saudi Arabia
   ];
+  final Map<String, Map<String, dynamic>> phoneValidationRules = {
+    '+91': {'minLength': 10, 'maxLength': 10, 'name': 'India'},
+    '+1': {'minLength': 10, 'maxLength': 10, 'name': 'USA/Canada'},
+    '+44': {'minLength': 10, 'maxLength': 11, 'name': 'UK'},
+    '+61': {'minLength': 9, 'maxLength': 9, 'name': 'Australia'},
+    '+966': {'minLength': 9, 'maxLength': 9, 'name': 'Saudi Arabia'},
+    // Add more countries as needed
+  };
 
   Future<void> _selectDate(BuildContext context) async {
     DateTime? pickedDate = await showDatePicker(
@@ -789,9 +797,17 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                       TextFormField(
                         controller: phoneController,
                         enabled: !isPhonePresent && !verifyPhone,
+                        maxLength: phoneValidationRules[selectedCountry]
+                                ?['maxLength'] ??
+                            10,
                         decoration: InputDecoration(
                           filled: true,
                           fillColor: Colors.grey[200],
+                          counterText: "",
+                          prefix: Text(
+                            selectedCountry ?? '+91 ',
+                            style: const TextStyle(color: Colors.black),
+                          ),
                           suffix: (showSendOtpPhone && !isPhonePresent)
                               ? InkWell(
                                   onTap: () => _sendOtpPhone(),
@@ -849,15 +865,48 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                           if (!isPhoneTouched && !isFormSubmitted) return null;
                           if (value == null || value.trim().isEmpty) {
                             return "Mobile number is required";
-                          } else if (value.length != 10) {
-                            return "Enter a valid mobile number";
                           }
-                          return null; // ✅ No error
+
+                          // Get validation rules for selected country
+                          final validationRule =
+                              phoneValidationRules[selectedCountry];
+                          final minLength = validationRule?['minLength'] ?? 10;
+                          final maxLength = validationRule?['maxLength'] ?? 10;
+                          final countryName =
+                              validationRule?['name'] ?? 'selected country';
+
+                          if (value.length < minLength ||
+                              value.length > maxLength) {
+                            return "Please enter a valid $countryName phone number";
+                          }
+
+                          // Additional validation for specific countries if needed
+                          if (selectedCountry == '+91') {
+                            if (!RegExp(r'^[6-9]\d{9}$').hasMatch(value)) {
+                              return "Please enter a valid Indian mobile number";
+                            }
+                          }
+
+                          return null;
                         },
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(
+                            phoneValidationRules[selectedCountry]
+                                    ?['maxLength'] ??
+                                10,
+                          ),
+                        ],
                         onChanged: (value) {
+                          // Get validation rules for selected country
+                          final validationRule =
+                              phoneValidationRules[selectedCountry];
+                          final minLength = validationRule?['minLength'] ?? 10;
+                          final maxLength = validationRule?['maxLength'] ?? 10;
+
                           setState(() {
-                            showSendOtpPhone =
-                                value.isNotEmpty && value.length == 10;
+                            showSendOtpPhone = value.length >= minLength &&
+                                value.length <= maxLength;
                             isSendOtpPressed = false;
                             verifyOtpController.clear();
                             isVerifyOtpTouched = false;
@@ -865,9 +914,6 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                           });
                           _validateForm();
                         },
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly
-                        ],
                       ),
                       if (!showSendOtpPhone &&
                           !isPhonePresent &&
