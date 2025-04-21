@@ -125,6 +125,8 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
         restaurantId: args['restaurantId'] ?? '',
         restaurantName: args['restaurantName'] ?? '',
         location: args['location'] ?? '',
+        latitude: args['latitude'] ?? 0.0,
+        longitude: args['longitude'] ?? 0.0,
       );
       break;
   }

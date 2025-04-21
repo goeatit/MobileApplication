@@ -57,12 +57,6 @@ class _OrderSuccessScreenState extends State<OrderSuccessScreen>
       if (mounted) {
         final orderProvider =
             Provider.of<OrderProvider>(context, listen: false);
-        final cartProvider = Provider.of<CartProvider>(context, listen: false);
-
-        // Get the cart items to access location
-        final cartItems =
-            cartProvider.restaurantCarts[orderProvider.restaurantId];
-        final location = cartItems?.values.first.first.location ?? '';
 
         Navigator.pushReplacement(
           context,
@@ -70,7 +64,9 @@ class _OrderSuccessScreenState extends State<OrderSuccessScreen>
             builder: (context) => OrderConfirmationScreen(
               restaurantId: orderProvider.restaurantId ?? '',
               restaurantName: orderProvider.restaurantName ?? '',
-              location: location, // Add the location parameter
+              latitude: orderProvider.latitude ?? '',
+              longitude: orderProvider.longitude ?? '',
+              location: orderProvider.location ?? '',
             ),
           ),
         );

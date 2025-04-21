@@ -7,6 +7,9 @@ class OrderProvider extends ChangeNotifier {
   String? restaurantId;
   String? restaurantName;
   String? orderType;
+  String? latitude;
+  String? longitude;
+  String? location;
   int restaurantWaitingTime = 30;
   String restaurantTime = "11:00 AM - 11:00 PM";
   bool forceClose = false;
@@ -54,6 +57,13 @@ class OrderProvider extends ChangeNotifier {
         0, (sum, item) => sum + (item.dish.resturantDishPrice * item.quantity));
     gst = subTotal * 0.18; // Assuming GST is 18%
     grandTotal = subTotal + gst;
+    notifyListeners();
+  }
+
+  void setLocationAndlatlong(String? fetchedLocation,String? lat,String? long){
+    location=fetchedLocation;
+    latitude=lat;
+    longitude=long;
     notifyListeners();
   }
 
