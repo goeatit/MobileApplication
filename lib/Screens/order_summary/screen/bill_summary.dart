@@ -149,8 +149,8 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
       if (response != null && !_cancelToken.isCancelled) {
         currentData = CurrentData.fromJson(response.data);
         currentLocation = currentData!.location;
-        String? lat=currentData?.latitude;
-        String? long=currentData?.longitude;
+        String? lat = currentData?.latitude;
+        String? long = currentData?.longitude;
         print(currentData?.recommendedDishes);
 
         // Update order provider with current data
@@ -1244,40 +1244,10 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                                             ],
                                           ),
                                           const SizedBox(height: 10),
-                                          // Add SingleChildScrollView for horizontal scrolling
-                                          SizedBox(
-                                            height:
-                                                190, // Adjust height as needed for your DishCard
-                                            child: SingleChildScrollView(
-                                              scrollDirection: Axis.horizontal,
-                                              child: Row(
-                                                children: [
-                                                  for (int i = 0;
-                                                      i < 10;
-                                                      i++) ...[
-                                                    if (i > 0)
-                                                      const SizedBox(
-                                                          width:
-                                                              2), // 2px gap between cards
-                                                    SizedBox(
-                                                      width:
-                                                          150, // Adjust width as needed for your DishCard
-                                                      child: DishCard(
-                                                          name: 'Briyani',
-                                                          quantity: 1,
-                                                          price: '200',
-                                                          imageUrl:
-                                                              'assets/images/home_style.png',
-                                                          calories: "200",
-                                                          onAddToCart: () {},
-                                                          onIncrement: () {},
-                                                          onDecrement: () {}),
-                                                    ),
-                                                  ],
-                                                ],
-                                              ),
-                                            ),
-                                          ),
+                                          // Add the recommended dishes section here
+                                          if (!isLoading &&
+                                              !isCheckingConditions)
+                                            _buildRecommendedDishes(),
                                         ],
                                       ),
                                     ),
@@ -1414,6 +1384,119 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildRecommendedDishes() {
+    if (currentData?.recommendedDishes == null ||
+        currentData!.recommendedDishes.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    // List of food images to cycle through
+    final List<String> foodImages = [
+      "assets/images/burgers.png",
+      "assets/images/pizza.png",
+      "assets/images/healthy.png",
+      "assets/images/home_style.png",
+      "assets/images/image1.png",
+      "assets/images/image2.png",
+      "assets/images/image3.png",
+      "assets/images/image4.png",
+      "assets/images/image5.png",
+      "assets/images/image6.png",
+      "assets/images/image7.png",
+      "assets/images/image8.png",
+      "assets/images/image9.png",
+      "assets/images/image10.png",
+    ];
+
+    return GestureDetector(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            height: 220,
+            child: ListView.builder(
+              shrinkWrap: true,
+              scrollDirection: Axis.horizontal,
+              itemCount: currentData!.recommendedDishes.length,
+              itemBuilder: (context, index) {
+                final dish = currentData!.recommendedDishes[index];
+                // Get image based on index, cycling through the list
+                final imageIndex = index % foodImages.length;
+                final imageUrl = foodImages[imageIndex];
+
+                return Container(
+                  width: 160,
+                  margin: const EdgeInsets.only(right: 12),
+                  child: GestureDetector(
+                    child: DishCard(
+                      name: dish.dishId.dishName,
+                      price: "₹${dish.resturantDishPrice}",
+                      imageUrl: imageUrl, // Use the cycled image
+                      calories: '200 cal',
+                      quantity: context
+                          .watch<CartProvider>()
+                          .getQuantity(widget.id, widget.orderType, dish.id),
+                      onAddToCart: () {
+                        final cartProvider =
+                            Provider.of<CartProvider>(context, listen: false);
+
+                        final cartItem = CartItem(
+                            id: dish.id,
+                            restaurantName: widget.name,
+                            orderType: widget.orderType,
+                            dish: dish,
+                            quantity: 1,
+                            location: currentLocation ?? '',
+                            restaurantImageUrl: widget.imageUrl);
+
+                        cartProvider.addToCart(
+                            widget.id, widget.orderType, cartItem);
+
+                        // Update the order provider
+                        final orderProvider =
+                            Provider.of<OrderProvider>(context, listen: false);
+                        orderProvider.updateCartItems(
+                          cartProvider.getItemsByOrderTypeAndRestaurant(
+                              widget.id, widget.orderType),
+                        );
+                      },
+                      onIncrement: () {
+                        final cartProvider = context.read<CartProvider>();
+                        cartProvider.incrementQuantity(
+                            widget.id, widget.orderType, dish.id);
+
+                        // Update the order provider
+                        final orderProvider =
+                            Provider.of<OrderProvider>(context, listen: false);
+                        orderProvider.updateCartItems(
+                          cartProvider.getItemsByOrderTypeAndRestaurant(
+                              widget.id, widget.orderType),
+                        );
+                      },
+                      onDecrement: () {
+                        final cartProvider = context.read<CartProvider>();
+                        cartProvider.decrementQuantity(
+                            widget.id, widget.orderType, dish.id);
+
+                        // Update the order provider
+                        final orderProvider =
+                            Provider.of<OrderProvider>(context, listen: false);
+                        orderProvider.updateCartItems(
+                          cartProvider.getItemsByOrderTypeAndRestaurant(
+                              widget.id, widget.orderType),
+                        );
+                      },
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
