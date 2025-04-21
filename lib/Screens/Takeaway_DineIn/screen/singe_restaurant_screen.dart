@@ -479,7 +479,6 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
             isSelected = [false, false, false, false];
 
             // Log the reset
-            print('All filters cleared');
 
             // Fetch the original dishes to reset to initial state
             if (dish != null) {

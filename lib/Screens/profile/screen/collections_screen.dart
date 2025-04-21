@@ -8,7 +8,7 @@ import '../../Takeaway_DineIn/widget/resturant_widget.dart';
 class CollectionsScreen extends StatelessWidget {
   static const routeName = '/collections-screen';
 
-  const CollectionsScreen({Key? key}) : super(key: key);
+  const CollectionsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

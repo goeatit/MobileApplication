@@ -246,7 +246,10 @@ class CurrentData {
   String location;
   int restaurantWaitingTime;
   String restaurantTime;
+  String? latitude;
+  String? longitude;
   List<OrderdDish> orderDish; // Changed from single object to List
+  List<AvailableDish> recommendedDishes;
 
   CurrentData(
       {required this.restaurantId,
@@ -255,7 +258,10 @@ class CurrentData {
       required this.restaurantWaitingTime,
       required this.restaurantTime,
       required this.orderDish,
-      required this.location});
+      required this.location,
+      this.latitude,
+      this.longitude,
+      required this.recommendedDishes});
 
   factory CurrentData.fromJson(Map<String, dynamic> json) {
     return CurrentData(
@@ -265,9 +271,15 @@ class CurrentData {
       restaurantWaitingTime: json['restaurantWaitingTime'],
       restaurantTime: json['restaurantTime'],
       location: json['location'],
+      latitude: json['lat'],
+      longitude: json['long'],
       orderDish: (json['orderdDish']
               as List<dynamic>) // Convert list of maps to list of OrderdDish
           .map((dish) => OrderdDish.fromJson(dish))
+          .toList(),
+      recommendedDishes: (json['recommendedDishes']
+              as List<dynamic>) // Convert list of maps to list of OrderdDish
+          .map((dish) => AvailableDish.fromJson(dish))
           .toList(),
     );
   }
@@ -280,6 +292,8 @@ class CurrentData {
       'location': location,
       'restaurantWaitingTime': restaurantWaitingTime,
       'restaurantTime': restaurantTime,
+      'lat': latitude,
+      'long': longitude,
       'orderDish': orderDish
           .map((dish) => dish.toJson())
           .toList(), // Convert list to JSON
