@@ -102,6 +102,9 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
         selectedPriceOption.isNotEmpty;
   }
 
+  // Add this flag to prevent recursion
+  bool _isFilteringInProgress = false;
+
   void _openMap(dynamic latitude, dynamic longitude, {String? name}) async {
     Uri googleMapsUrl;
 
@@ -156,33 +159,158 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
     setState(() {
       searchQuery = _searchController.text.toLowerCase();
     });
-    _filterDishes();
+    // Apply filters which include search and any active filter buttons
+    if (!_isFilteringInProgress) {
+      _filterDishes();
+    }
   }
 
   void _filterDishes() {
-    setState(() {
-      if (searchQuery.isEmpty) {
-        // If the search query is empty, show all available dishes
-        filterDishes = dish;
-        categorizeAndSetDishes(dish);
-      } else {
-        // Filter available dishes by dish name or category based on the search query
-        List<AvailableDish> filteredDishes = dish?.availableDishes
-                .where((d) => d.dishId.dishName
-                    .toLowerCase()
-                    .contains(searchQuery.toLowerCase()))
-                .toList() ??
-            [];
+    if (_isFilteringInProgress) return; // Prevent recursive calls
 
-        // Update the filterDishes DishSchema with the filtered available dishes
+    _isFilteringInProgress = true;
+
+    setState(() {
+      // Start with all dishes
+      List<AvailableDish> filteredDishes = dish?.availableDishes ?? [];
+
+      // Apply search filter if search query exists
+      if (searchQuery.isNotEmpty) {
+        filteredDishes = filteredDishes
+            .where((d) => d.dishId.dishName
+                .toLowerCase()
+                .contains(searchQuery.toLowerCase()))
+            .toList();
+      }
+
+      // Apply Veg filter (dishType = 0) if selected from filter buttons
+      if (isSelected[2]) {
+        filteredDishes =
+            filteredDishes.where((d) => d.dishId.dishType == 0).toList();
+      }
+
+      // Apply Non-Veg filter (dishType = 1) if selected from filter buttons
+      if (isSelected[3]) {
+        filteredDishes =
+            filteredDishes.where((d) => d.dishId.dishType == 1).toList();
+      }
+
+      // Apply rating filter from filter bottom sheet
+      if (selectedRatingOption.isNotEmpty) {
+        double minRating = 0;
+        if (selectedRatingOption.contains('4.5+')) {
+          minRating = 4.5;
+        } else if (selectedRatingOption.contains('4.0+')) {
+          minRating = 4.0;
+        } else if (selectedRatingOption.contains('3.5+')) {
+          minRating = 3.5;
+        } else if (selectedRatingOption.contains('3.0+')) {
+          minRating = 3.0;
+        }
+
+        if (minRating > 0) {
+          filteredDishes = filteredDishes
+              .where((d) => d.ratting != null && d.ratting >= minRating)
+              .toList();
+        }
+      }
+
+      // Apply price filter from filter bottom sheet
+      if (selectedPriceOption.isNotEmpty) {
+        if (selectedPriceOption.contains('Less than ₹150')) {
+          filteredDishes = filteredDishes
+              .where((d) =>
+                  d.resturantDishPrice != null && d.resturantDishPrice <= 150)
+              .toList();
+        } else if (selectedPriceOption.contains('₹150 - ₹300')) {
+          filteredDishes = filteredDishes
+              .where((d) =>
+                  d.resturantDishPrice != null &&
+                  d.resturantDishPrice > 150 &&
+                  d.resturantDishPrice <= 300)
+              .toList();
+        } else if (selectedPriceOption.contains('More than ₹300')) {
+          filteredDishes = filteredDishes
+              .where((d) =>
+                  d.resturantDishPrice != null && d.resturantDishPrice > 300)
+              .toList();
+        }
+      }
+
+      // Apply Best Seller filter if selected from filter buttons
+      if (isSelected[0]) {
+        // In a real app, you'd have a flag for best seller
+        // For now, let's assume dishes with rating > 4 are best sellers
+        filteredDishes = filteredDishes
+            .where((d) => d.ratting != null && d.ratting > 4)
+            .toList();
+      }
+
+      // Apply Top Rated filter if selected from filter buttons
+      if (isSelected[1]) {
+        // Sort by rating in descending order and take top items
+        filteredDishes.sort((a, b) {
+          double ratingA = a.ratting != null ? a.ratting.toDouble() : 0;
+          double ratingB = b.ratting != null ? b.ratting.toDouble() : 0;
+          return ratingB.compareTo(ratingA);
+        });
+
+        // Only keep top rated items if we have enough
+        if (filteredDishes.length > 5) {
+          filteredDishes = filteredDishes.sublist(0, 5);
+        }
+      }
+
+      // Apply sort option from filter bottom sheet
+      if (selectedSortOption.isNotEmpty) {
+        if (selectedSortOption == 'Price - low to high') {
+          filteredDishes.sort((a, b) =>
+              (a.resturantDishPrice ?? 0).compareTo(b.resturantDishPrice ?? 0));
+        } else if (selectedSortOption == 'Price - high to low') {
+          filteredDishes.sort((a, b) =>
+              (b.resturantDishPrice ?? 0).compareTo(a.resturantDishPrice ?? 0));
+        } else if (selectedSortOption == 'Rating - high to low') {
+          filteredDishes.sort((a, b) {
+            double ratingA = a.ratting != null ? a.ratting.toDouble() : 0;
+            double ratingB = b.ratting != null ? b.ratting.toDouble() : 0;
+            return ratingB.compareTo(ratingA);
+          });
+        } else if (selectedSortOption == 'Rating - low to high') {
+          filteredDishes.sort((a, b) {
+            double ratingA = a.ratting != null ? a.ratting.toDouble() : 0;
+            double ratingB = b.ratting != null ? b.ratting.toDouble() : 0;
+            return ratingA.compareTo(ratingB);
+          });
+        }
+      }
+
+      // Update the filterDishes with the filtered list
+      if (dish != null) {
         filterDishes = DishSchema(
           restaurant: dish!.restaurant,
           availableDishes: filteredDishes,
           categories: dish!.categories,
         );
-        categorizeAndSetDishes(filterDishes);
+
+        // Clear existing categorized dishes
+        categorizedDishes.clear();
+
+        // Loop through filtered dishes and categorize them
+        for (var dish in filteredDishes) {
+          String category = dish.dishId.dishCatagory;
+
+          // Check if the category exists, if not, create it
+          if (!categorizedDishes.containsKey(category)) {
+            categorizedDishes[category] = [];
+          }
+
+          // Add the dish to the respective category
+          categorizedDishes[category]?.add(dish);
+        }
       }
     });
+
+    _isFilteringInProgress = false;
   }
 
   void _showErrorDialog(String title, String message) {
@@ -270,7 +398,7 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
     }
   }
 
-  void categorizeAndSetDishes(DishSchema? data) {
+  void categorizeAndSetDishes(DishSchema? data, {bool skipFiltering = false}) {
     categorizedDishes.clear();
 
     // Loop through availableDishes and categorize them
@@ -290,6 +418,13 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
     setState(() {
       filterDishes = data;
       isLoading = false;
+
+      // Skip filtering if we're resetting filters
+      if (!skipFiltering &&
+          isSelected.any((isActive) => isActive) &&
+          !_isFilteringInProgress) {
+        _filterDishes();
+      }
     });
   }
 
@@ -314,15 +449,50 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
             selectedOfferOption = offerOption;
             selectedPriceOption = priceOption;
             isFilterOpen = false;
+
+            // Set veg/non-veg filters based on selection
+            if (offerOption == 'Pure Veg') {
+              isSelected[2] = true; // Veg
+              isSelected[3] = false; // Non-Veg
+            } else if (offerOption == 'Non-Veg') {
+              isSelected[2] = false; // Veg
+              isSelected[3] = true; // Non-Veg
+            } else {
+              // Keep the current selection for veg/non-veg
+            }
+
+            // Now apply filters using the existing method
+            _filterDishes();
           });
         },
         onClearFilters: () {
           setState(() {
+            // Clear all filter values
             selectedSortOption = '';
             selectedRatingOption = '';
             selectedOfferOption = '';
             selectedPriceOption = '';
             selectedFilters.updateAll((key, value) => false);
+
+            // Reset the filter buttons
+            isSelected = [false, false, false, false];
+
+            // Log the reset
+
+            // Fetch the original dishes to reset to initial state
+            if (dish != null) {
+              filterDishes = DishSchema(
+                restaurant: dish!.restaurant,
+                availableDishes: dish!.availableDishes,
+                categories: dish!.categories,
+              );
+
+              // Re-categorize dishes from the original dataset, but skip additional filtering
+              categorizeAndSetDishes(filterDishes, skipFiltering: true);
+            } else {
+              // If no original dishes are available, just apply the reset filters
+              _filterDishes();
+            }
           });
         },
       ),
@@ -1088,7 +1258,29 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
               child: GestureDetector(
                 onTap: () {
                   setState(() {
+                    // Toggle the filter button
                     isSelected[index] = !isSelected[index];
+
+                    // Set filter bottom sheet selection to match button selection
+                    if (index == 2 && isSelected[index]) {
+                      // Veg selected
+                      selectedOfferOption = 'Pure Veg';
+                      // Ensure non-veg is deselected when veg is selected
+                      isSelected[3] = false;
+                    } else if (index == 3 && isSelected[index]) {
+                      // Non-veg selected
+                      selectedOfferOption = 'Non-Veg';
+                      // Ensure veg is deselected when non-veg is selected
+                      isSelected[2] = false;
+                    }
+
+                    // If both veg and non-veg are deselected, clear the filter option
+                    if (!isSelected[2] && !isSelected[3]) {
+                      selectedOfferOption = '';
+                    }
+
+                    // Apply filters
+                    _filterDishes();
                   });
                 },
                 child: Container(

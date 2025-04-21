@@ -2,6 +2,7 @@ C/C++ Structured LogK
 I
 GC:\flutter\packages\flutter_tools\gradle\src\main\groovy\CMakeLists.txtC
 A
+<<<<<<< HEAD
 ?com.android.build.gradle.internal.cxx.io.EncodedFileFingerPrint	õµ×Èä2§ õ ÜÚÏ2\
 Z
 XD:\MobileApplication\android\app\.cxx\Debug\1a4a1j17\x86_64\additional_project_files.txt	õµ×Èä2 ÿ¹©»ä2Y
@@ -26,3 +27,29 @@ P
 ND:\MobileApplication\android\app\.cxx\Debug\1a4a1j17\x86_64\prefab_config.json	õµ×Èä2(  º©»ä2W
 U
 SD:\MobileApplication\android\app\.cxx\Debug\1a4a1j17\x86_64\symbol_folder_index.txt	õµ×Èä2J ¡º©»ä2
+=======
+?com.android.build.gradle.internal.cxx.io.EncodedFileFingerPrint	œ¿¦ðä2§ õ ÜÚÏ2\
+Z
+XD:\MobileApplication\android\app\.cxx\Debug\1a4a1j17\x86_64\additional_project_files.txt	œ¿¦ðä2 ÿ¹©»ä2Y
+W
+UD:\MobileApplication\android\app\.cxx\Debug\1a4a1j17\x86_64\android_gradle_build.json	œ¿¦ðä2Œ ƒº©»ä2^
+\
+ZD:\MobileApplication\android\app\.cxx\Debug\1a4a1j17\x86_64\android_gradle_build_mini.json	œ¿¦ðä2å žº©»ä2K
+I
+GD:\MobileApplication\android\app\.cxx\Debug\1a4a1j17\x86_64\build.ninja	œ¿¦ðä2‹Õ Õ¸©»ä2O
+M
+KD:\MobileApplication\android\app\.cxx\Debug\1a4a1j17\x86_64\build.ninja.txt	œ¿¦ðä2T
+R
+PD:\MobileApplication\android\app\.cxx\Debug\1a4a1j17\x86_64\build_file_index.txt	œ¿¦ðä2G ¥º©»ä2U
+S
+QD:\MobileApplication\android\app\.cxx\Debug\1a4a1j17\x86_64\compile_commands.json	¿¦ðä2	Y
+W
+UD:\MobileApplication\android\app\.cxx\Debug\1a4a1j17\x86_64\compile_commands.json.bin	¿¦ðä2
+_
+]
+[D:\MobileApplication\android\app\.cxx\Debug\1a4a1j17\x86_64\metadata_generation_command.txt	¿¦ðä2 Ÿº©»ä2R
+P
+ND:\MobileApplication\android\app\.cxx\Debug\1a4a1j17\x86_64\prefab_config.json	¿¦ðä2(  º©»ä2W
+U
+SD:\MobileApplication\android\app\.cxx\Debug\1a4a1j17\x86_64\symbol_folder_index.txt	¿¦ðä2J ¡º©»ä2
+>>>>>>> 5bd01c595a868ec28192285f12acf958586ff5d0
