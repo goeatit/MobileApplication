@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class OrderConfirmationScreen extends StatefulWidget {
   static const routeName = '/order-confirmation';
@@ -12,12 +13,16 @@ class OrderConfirmationScreen extends StatefulWidget {
   final String restaurantId;
   final String restaurantName;
   final String location;
+  final String latitude;
+  final String longitude;
 
   const OrderConfirmationScreen({
     Key? key,
     required this.restaurantId,
     required this.restaurantName,
     required this.location,
+    required this.latitude,
+    required this.longitude,
   }) : super(key: key);
 
   @override
@@ -37,6 +42,30 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       systemNavigationBarColor: Colors.white,
     ));
+  }
+
+  Future<void> _openMap(String? latitude, String? longitude,
+      {String? name}) async {
+    Uri googleMapsUrl;
+
+    if (latitude == null || longitude == null) {
+      googleMapsUrl = Uri.parse(
+          "https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(name ?? '')}");
+    } else if (name != null && name.isNotEmpty) {
+      final String encodedQuery =
+          Uri.encodeComponent("$latitude,$longitude ($name)");
+      googleMapsUrl = Uri.parse(
+          "https://www.google.com/maps/search/?api=1&query=$encodedQuery");
+    } else {
+      googleMapsUrl =
+          Uri.parse("https://www.google.com/maps?q=$latitude,$longitude");
+    }
+
+    if (await canLaunchUrl(googleMapsUrl)) {
+      await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
+    } else {
+      throw 'Could not launch maps';
+    }
   }
 
   @override
@@ -67,24 +96,47 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
                     child: Column(
                       children: [
                         // Map Section
+                        // In the GoogleMap widget section, replace the existing code with:
                         SizedBox(
                           height: 200,
                           child: GoogleMap(
-                            initialCameraPosition: const CameraPosition(
-                              target: LatLng(37.7749, -122.4194),
+                            initialCameraPosition: CameraPosition(
+                              target: LatLng(double.parse(widget.latitude),
+                                  double.parse(widget.longitude)),
                               zoom: 15,
                             ),
                             markers: {
-                              const Marker(
-                                markerId: MarkerId('restaurant'),
-                                position: LatLng(37.7749, -122.4194),
+                              Marker(
+                                markerId: const MarkerId('restaurant'),
+                                position: LatLng(double.parse(widget.latitude),
+                                    double.parse(widget.longitude)),
+                                infoWindow: InfoWindow(
+                                  title: widget.restaurantName,
+                                  snippet: widget.location,
+                                ),
                               ),
                             },
                             onMapCreated: (GoogleMapController controller) {
                               mapController = controller;
+                              // Animate camera to restaurant position
+                              controller.animateCamera(
+                                CameraUpdate.newCameraPosition(
+                                  CameraPosition(
+                                    target: LatLng(
+                                        double.parse(widget.latitude),
+                                        double.parse(widget.longitude)),
+                                    zoom: 15,
+                                  ),
+                                ),
+                              );
                             },
+                            myLocationEnabled: false,
+                            zoomControlsEnabled: true,
+                            mapToolbarEnabled: true,
+                            compassEnabled: true,
                           ),
                         ),
+
                         // Restaurant Info Section
                         Padding(
                           padding: const EdgeInsets.all(16.0),
@@ -133,7 +185,11 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
                                         .topCenter, // Align button to the top
                                     child: ElevatedButton.icon(
                                       onPressed: () {
-                                        // Handle directions
+                                        _openMap(
+                                          widget.latitude,
+                                          widget.longitude,
+                                          name: widget.restaurantName,
+                                        );
                                       },
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor:
