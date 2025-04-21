@@ -6,29 +6,32 @@ class DishCard extends StatelessWidget {
   final String imageUrl;
   final String calories;
   final int quantity;
-  final VoidCallback onAddToCart; // Add a callback for adding to cart
+  final bool isAvailable;
+  final VoidCallback onAddToCart;
   final VoidCallback onIncrement;
   final VoidCallback onDecrement;
 
-  const DishCard(
-      {super.key,
-      required this.name,
-      required this.quantity,
-      required this.price,
-      required this.imageUrl,
-      required this.calories,
-      required this.onAddToCart,
-      required this.onIncrement,
-      required this.onDecrement});
+  const DishCard({
+    super.key,
+    required this.name,
+    required this.quantity,
+    required this.price,
+    required this.imageUrl,
+    required this.calories,
+    required this.isAvailable,
+    required this.onAddToCart,
+    required this.onIncrement,
+    required this.onDecrement,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 157, // Adjust the width as needed
+      width: 157,
       margin: const EdgeInsets.only(right: 10),
       padding: const EdgeInsets.all(5),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isAvailable ? Colors.white : Colors.grey.shade500,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
@@ -44,32 +47,63 @@ class DishCard extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Image Section
+              // Image Section with grey filter if unavailable
               Stack(
                 children: [
                   ClipRRect(
                     borderRadius: const BorderRadius.all(Radius.circular(20)),
-                    child: Image.asset(
-                      imageUrl,
-                      height: 120,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
+                    child: ColorFiltered(
+                      colorFilter: isAvailable
+                          ? const ColorFilter.mode(
+                              Colors.transparent,
+                              BlendMode.multiply,
+                            )
+                          : ColorFilter.mode(
+                              Colors.grey.shade900,
+                              BlendMode.saturation,
+                            ),
+                      child: Image.asset(
+                        imageUrl,
+                        height: 120,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
-                  // Corner Ribbon
-                  // Replace the existing Corner Ribbon Positioned widget with this:
+                  // "Currently Unavailable" overlay
+                  if (!isAvailable)
+                    Container(
+                      height: 120,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        color: Colors.black.withOpacity(0.5),
+                      ),
+                      alignment: Alignment.center,
+                      child: const Text(
+                        'Currently Unavailable',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  // Corner Ribbon (unchanged)
                   Positioned(
                     top: 12,
-                    left: -27, // Adjust this value to position the ribbon
+                    left: -27,
                     child: Transform.rotate(
-                      angle: -0.6, // Approximately -28.6 degrees in radians
+                      angle: -0.6,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                           vertical: 1,
                           horizontal: 35,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.orange,
+                          color: isAvailable
+                              ? Colors.orange
+                              : Colors.grey.shade800,
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withOpacity(0.1),
@@ -97,22 +131,25 @@ class DishCard extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 child: Text(
                   name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
+                    color: isAvailable ? Colors.black : Colors.grey.shade800,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               const SizedBox(height: 4),
-              // Price
+              // Price and Calories
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: Text(
                   "$price • $calories",
-                  style: const TextStyle(
-                    color: Color(0xff737373),
+                  style: TextStyle(
+                    color: isAvailable
+                        ? const Color(0xff737373)
+                        : Colors.grey.shade800,
                     fontSize: 14,
                   ),
                 ),
@@ -120,51 +157,57 @@ class DishCard extends StatelessWidget {
               const SizedBox(height: 8),
             ],
           ),
-          // Floating Add Button
-          quantity == 0
-              ? Positioned(
-                  bottom: 70,
-                  right: 6,
-                  child: CircleAvatar(
-                    radius: 20,
-                    backgroundColor: Colors.white,
-                    child: IconButton(
-                      onPressed: onAddToCart,
-                      icon: const Icon(
-                        Icons.add_circle_outline,
-                      ),
-                    ),
-                  ),
-                )
-              : Positioned(
-                  bottom: 70,
-                  right: 6,
-                  child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: Colors.white,
-                      ),
-                      child: Row(
-                        children: [
-                          IconButton(
-                            onPressed: onDecrement,
-                            icon: const Icon(
-                              Icons.remove_circle_outline,
+          // Floating Add Button or Quantity Controls
+          Positioned(
+            bottom: 70,
+            right: 6,
+            child: isAvailable
+                ? quantity == 0
+                    ? CircleAvatar(
+                        radius: 20,
+                        backgroundColor: Colors.white,
+                        child: IconButton(
+                          onPressed: isAvailable ? onAddToCart : null,
+                          icon: Icon(
+                            Icons.add_circle_outline,
+                            color: isAvailable ? Colors.black : Colors.grey,
+                          ),
+                        ),
+                      )
+                    : Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          color: Colors.white,
+                        ),
+                        child: Row(
+                          children: [
+                            IconButton(
+                              onPressed: isAvailable ? onDecrement : null,
+                              icon: Icon(
+                                Icons.remove_circle_outline,
+                                color: isAvailable ? Colors.black : Colors.grey,
+                              ),
                             ),
-                          ),
-                          Text(
-                            '$quantity',
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                          IconButton(
-                            onPressed: onIncrement,
-                            icon: const Icon(
-                              Icons.add_circle_outline,
+                            Text(
+                              '$quantity',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: isAvailable ? Colors.black : Colors.grey,
+                              ),
                             ),
-                          ),
-                        ],
-                      )),
-                )
+                            IconButton(
+                              onPressed: isAvailable ? onIncrement : null,
+                              icon: Icon(
+                                Icons.add_circle_outline,
+                                color: isAvailable ? Colors.black : Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                : const SizedBox
+                    .shrink(), // Hide controls when dish is unavailable
+          ),
         ],
       ),
     );

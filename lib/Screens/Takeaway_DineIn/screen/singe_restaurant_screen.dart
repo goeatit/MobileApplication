@@ -461,7 +461,6 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
               // Keep the current selection for veg/non-veg
             }
 
-
             // Now apply filters using the existing method
             _filterDishes();
           });
@@ -1023,140 +1022,194 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                             ? const Center(child: CircularProgressIndicator())
                             : (errorMessage.isNotEmpty
                                 ? Center(child: Text(errorMessage))
-                                : Column(
-                                    children:
-                                        categorizedDishes.entries.map((entry) {
-                                      String category = entry.key;
-                                      List<AvailableDish> dishes = entry.value;
-                                      return Padding(
-                                        padding: const EdgeInsets.all(10.0),
+                                : categorizedDishes
+                                        .isEmpty // Check if there are no dishes
+                                    ? const Center(
                                         child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
                                           children: [
-                                            Text(
-                                              category,
-                                              style: const TextStyle(
-                                                  fontSize: 18,
-                                                  fontWeight: FontWeight.bold),
+                                            SizedBox(height: 45),
+                                            Icon(
+                                              Icons
+                                                  .no_meals_outlined, // or Icons.search_off
+                                              size: 32,
+                                              color: Colors.grey,
                                             ),
-                                            const SizedBox(height: 10),
-                                            Container(
-                                                height:
-                                                    220, // Adjust based on your UI needs
-                                                padding:
-                                                    const EdgeInsets.all(5),
-                                                child: Consumer<CartProvider>(
-                                                    builder: (ctx, cartProvider,
-                                                        child) {
-                                                  return ListView.builder(
-                                                    padding: const EdgeInsets
-                                                        .symmetric(vertical: 8),
-                                                    scrollDirection:
-                                                        Axis.horizontal,
-                                                    itemCount: dishes.length,
-                                                    itemBuilder:
-                                                        (context, index) {
-                                                      final dish =
-                                                          dishes[index];
-                                                      int stored = ctx
-                                                          .watch<
-                                                              OrderTypeProvider>()
-                                                          .orderType;
-                                                      String orderType = "";
-                                                      if (stored == 0) {
-                                                        orderType = "Dine-in";
-                                                      } else {
-                                                        orderType = "Take-away";
-                                                      }
-                                                      // final cartItem = cartProvider
-                                                      //     .restaurantCarts[
-                                                      //         widget.name]?[orderType]
-                                                      //     ?.firstWhere(
-                                                      //   (item) => item.id == dish.id,
-                                                      //   orElse: () => CartItem(
-                                                      //       id: dish.id,
-                                                      //       restaurantName:
-                                                      //           widget.name,
-                                                      //       orderType: orderType,
-                                                      //       dish: dish,
-                                                      //       quantity: 0),
-                                                      // );
-                                                      return GestureDetector(
-                                                        onTap: () =>
-                                                            _showSlidingScreen(
-                                                                dish),
-                                                        child: DishCard(
-                                                          name: dish
-                                                              .dishId.dishName,
-                                                          price:
-                                                              "₹${dish.resturantDishPrice}",
-                                                          imageUrl: imgurls[
-                                                              index % 9],
-                                                          calories: "120 cal",
-                                                          quantity: (ctx
-                                                              .watch<
-                                                                  CartProvider>()
-                                                              .getQuantity(
-                                                                  widget.id,
-                                                                  orderType,
-                                                                  dish.id)),
-                                                          // Default to 0 if cartItem.quantity is null
-                                                          onAddToCart: () {
-                                                            final cartProvider =
-                                                                Provider.of<
-                                                                        CartProvider>(
-                                                                    context,
-                                                                    listen:
-                                                                        false);
-
-                                                            final cartITem = CartItem(
-                                                                id: dish.id,
-                                                                restaurantName:
-                                                                    widget.name,
-                                                                orderType:
-                                                                    orderType,
-                                                                dish: dish,
-                                                                quantity: 1,
-                                                                location: widget
-                                                                    .location,
-                                                                restaurantImageUrl:
-                                                                    widget
-                                                                        .imageUrl);
-                                                            cartProvider
-                                                                .addToCart(
-                                                                    widget.id,
-                                                                    orderType,
-                                                                    cartITem);
-                                                          },
-                                                          onIncrement: () {
-                                                            ctx
-                                                                .read<
-                                                                    CartProvider>()
-                                                                .incrementQuantity(
-                                                                    widget.id,
-                                                                    orderType,
-                                                                    dish.id);
-                                                          },
-                                                          onDecrement: () {
-                                                            ctx
-                                                                .read<
-                                                                    CartProvider>()
-                                                                .decrementQuantity(
-                                                                    widget.id,
-                                                                    orderType,
-                                                                    dish.id);
-                                                          },
-                                                        ),
-                                                      );
-                                                    },
-                                                  );
-                                                })),
+                                            SizedBox(height: 5),
+                                            Text(
+                                              'No dishes found',
+                                              style: TextStyle(
+                                                fontSize: 18,
+                                                color: Colors.grey,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                            SizedBox(height: 8),
+                                            Text(
+                                              'Try adjusting your search or filters',
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                color: Colors.grey,
+                                              ),
+                                            ),
                                           ],
                                         ),
-                                      );
-                                    }).toList(),
-                                  )),
+                                      )
+                                    : Column(
+                                        children: categorizedDishes.entries
+                                            .map((entry) {
+                                          String category = entry.key;
+                                          List<AvailableDish> dishes =
+                                              entry.value;
+                                          return Padding(
+                                            padding: const EdgeInsets.all(10.0),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  category,
+                                                  style: const TextStyle(
+                                                      fontSize: 18,
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                ),
+                                                const SizedBox(height: 10),
+                                                Container(
+                                                    height:
+                                                        220, // Adjust based on your UI needs
+                                                    padding:
+                                                        const EdgeInsets.all(5),
+                                                    child:
+                                                        Consumer<CartProvider>(
+                                                            builder: (ctx,
+                                                                cartProvider,
+                                                                child) {
+                                                      return ListView.builder(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .symmetric(
+                                                                vertical: 8),
+                                                        scrollDirection:
+                                                            Axis.horizontal,
+                                                        itemCount:
+                                                            dishes.length,
+                                                        itemBuilder:
+                                                            (context, index) {
+                                                          final dish =
+                                                              dishes[index];
+                                                          int stored = ctx
+                                                              .watch<
+                                                                  OrderTypeProvider>()
+                                                              .orderType;
+                                                          String orderType = "";
+                                                          if (stored == 0) {
+                                                            orderType =
+                                                                "Dine-in";
+                                                          } else {
+                                                            orderType =
+                                                                "Take-away";
+                                                          }
+                                                          // final cartItem = cartProvider
+                                                          //     .restaurantCarts[
+                                                          //         widget.name]?[orderType]
+                                                          //     ?.firstWhere(
+                                                          //   (item) => item.id == dish.id,
+                                                          //   orElse: () => CartItem(
+                                                          //       id: dish.id,
+                                                          //       restaurantName:
+                                                          //           widget.name,
+                                                          //       orderType: orderType,
+                                                          //       dish: dish,
+                                                          //       quantity: 0),
+                                                          // );
+                                                          return GestureDetector(
+                                                            onTap: dish
+                                                                    .available
+                                                                ? () =>
+                                                                    _showSlidingScreen(
+                                                                        dish)
+                                                                : null,
+                                                            child: DishCard(
+                                                              name: dish.dishId
+                                                                  .dishName,
+                                                              price:
+                                                                  "₹${dish.resturantDishPrice}",
+                                                              imageUrl: imgurls[
+                                                                  index % 9],
+                                                              calories:
+                                                                  "120 cal",
+                                                              isAvailable: dish
+                                                                  .available, // Add this line
+
+                                                              quantity: (ctx
+                                                                  .watch<
+                                                                      CartProvider>()
+                                                                  .getQuantity(
+                                                                      widget.id,
+                                                                      orderType,
+                                                                      dish.id)),
+                                                              // Default to 0 if cartItem.quantity is null
+                                                              onAddToCart: () {
+                                                                final cartProvider =
+                                                                    Provider.of<
+                                                                            CartProvider>(
+                                                                        context,
+                                                                        listen:
+                                                                            false);
+
+                                                                final cartITem = CartItem(
+                                                                    id: dish.id,
+                                                                    restaurantName:
+                                                                        widget
+                                                                            .name,
+                                                                    orderType:
+                                                                        orderType,
+                                                                    dish: dish,
+                                                                    quantity: 1,
+                                                                    location: widget
+                                                                        .location,
+                                                                    restaurantImageUrl:
+                                                                        widget
+                                                                            .imageUrl);
+                                                                cartProvider
+                                                                    .addToCart(
+                                                                        widget
+                                                                            .id,
+                                                                        orderType,
+                                                                        cartITem);
+                                                              },
+                                                              onIncrement: () {
+                                                                ctx
+                                                                    .read<
+                                                                        CartProvider>()
+                                                                    .incrementQuantity(
+                                                                        widget
+                                                                            .id,
+                                                                        orderType,
+                                                                        dish.id);
+                                                              },
+                                                              onDecrement: () {
+                                                                ctx
+                                                                    .read<
+                                                                        CartProvider>()
+                                                                    .decrementQuantity(
+                                                                        widget
+                                                                            .id,
+                                                                        orderType,
+                                                                        dish.id);
+                                                              },
+                                                            ),
+                                                          );
+                                                        },
+                                                      );
+                                                    })),
+                                              ],
+                                            ),
+                                          );
+                                        }).toList(),
+                                      )),
                       ],
                     ),
                   ),
