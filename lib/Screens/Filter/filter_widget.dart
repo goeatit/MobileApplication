@@ -2,7 +2,7 @@ import 'package:eatit/Screens/Filter/filter_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 
 class FilterWidget extends StatefulWidget {
-  const FilterWidget({Key? key}) : super(key: key);
+  const FilterWidget({super.key});
 
   @override
   State<FilterWidget> createState() => _FilterWidgetState();
