@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:eatit/Screens/order_summary/screen/order_success_screen.dart';
 import 'package:eatit/Screens/order_summary/service/restaurant_service.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/provider/cart_dish_provider.dart';
@@ -131,22 +132,30 @@ class _OrderSummaryScreenState extends State<OrderSummaryScreen> {
     final isDineIn = orderProvider.orderType?.toLowerCase() == "dine-in";
 
     // Clear the cart for this restaurant and order type
-    if (orderProvider.restaurantId != null && orderProvider.orderType != null) {
-      cartProvider.clearCart(
-          orderProvider.restaurantId!, orderProvider.orderType!);
-    }
+    // if (orderProvider.restaurantId != null && orderProvider.orderType != null) {
+    //   cartProvider.clearCart(
+    //       orderProvider.restaurantId!, orderProvider.orderType!);
+    // }
 
-    // Clear the order data after successful payment
-    orderProvider.clearOrder();
+    // // Clear the order data after successful payment
+    // orderProvider.clearOrder();
 
-    // For dine-in orders, pop 3 screens (summary, people, time)
-    // For takeaway orders, pop 2 screens (summary, time)
+    // // For dine-in orders, pop 3 screens (summary, people, time)
+    // // For takeaway orders, pop 2 screens (summary, time)
 
-    for (int i = 0; i < 2; i++) {
-      if (mounted && Navigator.of(context).canPop()) {
-        Navigator.of(context).pop();
-      }
-    }
+    // for (int i = 0; i < 2; i++) {
+    //   if (mounted && Navigator.of(context).canPop()) {
+    //     Navigator.of(context).pop();
+    //   }
+    // }
+
+    // Navigate to success screen with replacement
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const OrderSuccessScreen(),
+      ),
+    );
   }
 
   // Method to verify payment with backend

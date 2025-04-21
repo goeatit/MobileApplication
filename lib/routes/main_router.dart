@@ -9,6 +9,7 @@ import 'package:eatit/Screens/location/screen/location_screen.dart';
 import 'package:eatit/Screens/noftification/screen/notification_screen.dart';
 import 'package:eatit/Screens/order_summary/screen/no_of_people.dart';
 import 'package:eatit/Screens/order_summary/screen/bill_summary.dart';
+import 'package:eatit/Screens/order_summary/screen/order_confirmation_screen.dart';
 import 'package:eatit/Screens/order_summary/screen/order_summary.dart';
 import 'package:eatit/Screens/order_summary/screen/reserve_time.dart';
 import 'package:eatit/Screens/profile/screen/collections_screen.dart';
@@ -112,6 +113,19 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
 
     case MyBookingsScreen.routeName:
       page = const MyBookingsScreen();
+      break;
+    case OrderSummaryScreen.routeName:
+      page = const OrderSummaryScreen();
+      break;
+    // In your route generator file (main_router.dart)
+
+    case OrderConfirmationScreen.routeName:
+      final args = routeSettings.arguments as Map<String, dynamic>;
+      page = OrderConfirmationScreen(
+        restaurantId: args['restaurantId'] ?? '',
+        restaurantName: args['restaurantName'] ?? '',
+        location: args['location'] ?? '',
+      );
       break;
   }
   return MaterialPageRoute(builder: (context) => page);
