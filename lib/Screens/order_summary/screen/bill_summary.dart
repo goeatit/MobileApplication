@@ -149,11 +149,15 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
       if (response != null && !_cancelToken.isCancelled) {
         currentData = CurrentData.fromJson(response.data);
         currentLocation = currentData!.location;
+        String? lat=currentData?.latitude;
+        String? long=currentData?.longitude;
+        print(currentData?.recommendedDishes);
 
         // Update order provider with current data
         final orderProvider =
             Provider.of<OrderProvider>(context, listen: false);
         orderProvider.updateWithCurrentData(currentData!);
+        orderProvider.setLocationAndlatlong(currentLocation, lat, long);
 
         // Check for price changes and restaurant availability
         final checkResult = restaurantService.checkPriceChangesAndAvailability(
