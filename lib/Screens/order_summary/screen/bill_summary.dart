@@ -1434,6 +1434,8 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                     child: DishCard(
                       name: dish.dishId.dishName,
                       price: "₹${dish.resturantDishPrice}",
+                      isAvailable: dish.available, // Add this line
+
                       imageUrl: imageUrl, // Use the cycled image
                       calories: '200 cal',
                       quantity: context
