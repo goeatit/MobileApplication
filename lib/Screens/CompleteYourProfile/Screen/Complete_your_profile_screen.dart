@@ -305,6 +305,8 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                           onChanged: (value) {
                             setState(() {
                               selectedCountry = value as String;
+                              // Clear phone number when country changes
+                              phoneController.clear();
                               _validateForm();
                             });
                           },
@@ -804,10 +806,6 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                           filled: true,
                           fillColor: Colors.grey[200],
                           counterText: "",
-                          prefix: Text(
-                            selectedCountry ?? '+91 ',
-                            style: const TextStyle(color: Colors.black),
-                          ),
                           suffix: (showSendOtpPhone && !isPhonePresent)
                               ? InkWell(
                                   onTap: () => _sendOtpPhone(),
