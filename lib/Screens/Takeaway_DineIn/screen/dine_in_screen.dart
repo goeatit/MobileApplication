@@ -92,6 +92,60 @@ class _DineInScreen extends State<DineInScreen> {
     }
   }
 
+  fetchDataByCategory() async {
+    if (_cancelToken.isCancelled) return;
+
+    final Connectivity connectivity = Connectivity();
+    final NetworkManager networkManager = NetworkManager(connectivity);
+    final ApiRepository apiRepository = ApiRepository(networkManager);
+
+    try {
+      SharedPreferences sharedPreferences =
+          await SharedPreferences.getInstance();
+      city = sharedPreferences.getString("city");
+      country = sharedPreferences.getString("country");
+      // city = "Bhubaneswar";
+      if(selectedCategory==''){
+        return;
+      }
+
+
+      final response = await apiRepository.fetchRestaurantByCategoryNameWithCancelToken(
+          city!, country!, _cancelToken,selectedCategory);
+
+      if (response != null &&
+          response.data is List &&
+          response.data.isNotEmpty &&
+          !_cancelToken.isCancelled &&
+          mounted) {
+        final restaurantModel = RestaurantModel.fromJson(response.data[0]);
+        print(restaurantModel.restaurants.length);
+
+
+
+        setState(() {
+          // final restaurantModel = RestaurantModel.fromJson(response.data[0]);
+          // restaurants = restaurantModel.restaurants;
+          // isLoading = false;
+        });
+      }
+      // } else if (mounted && !_cancelToken.isCancelled) {
+      //   // setState(() {
+      //   //   restaurants = [];
+      //   //   errorMessage = "assets/images/expand-your-city.png";
+      //   //   isLoading = false;
+      //   // });
+      // }
+    } catch (e) {
+      if (mounted && !_cancelToken.isCancelled) {
+        setState(() {
+          errorMessage = "assets/images/expand-your-city.png";
+          isLoading = false;
+        });
+      }
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -410,6 +464,7 @@ class _DineInScreen extends State<DineInScreen> {
         setState(() {
           selectedCategory = isSelected ? '' : label;
         });
+        fetchDataByCategory();
       },
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 2),
