@@ -11,6 +11,7 @@ import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/models/cart_items.dart';
 import 'package:eatit/models/dish_retaurant.dart';
 import 'package:eatit/provider/cart_dish_provider.dart';
+import 'package:eatit/provider/order_provider.dart';
 import 'package:eatit/provider/order_type_provider.dart';
 import 'package:eatit/Screens/cart_screen/screen/cart_page.dart';
 import 'package:flutter/material.dart';
@@ -30,6 +31,7 @@ class SingleRestaurantScreen extends StatefulWidget {
   final String cuisineType;
   final String priceRange;
   final double rating;
+  final String selectedCategory; // Add this
 
   const SingleRestaurantScreen({
     super.key,
@@ -40,6 +42,7 @@ class SingleRestaurantScreen extends StatefulWidget {
     required this.cuisineType,
     required this.priceRange,
     required this.rating,
+    this.selectedCategory = '', // Add this with default empty value
   });
 
   @override
@@ -1018,6 +1021,12 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                         // Filter Buttons
                         _buildFilterButtons(),
                         // Dishes Categories
+                        Padding(
+                          padding: const EdgeInsets.all(
+                              16.0), // You can adjust these values as needed
+                          child: _buildRecommendedDishes(),
+                        ),
+                        const SizedBox(height: 10),
                         isLoading
                             ? const Center(child: CircularProgressIndicator())
                             : (errorMessage.isNotEmpty
@@ -1385,6 +1394,80 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
             );
           }),
         ),
+      ),
+    );
+  }
+
+  Widget _buildRecommendedDishes() {
+    // List of food images to cycle through
+    final List<String> foodImages = [
+      "assets/images/burgers.png",
+      "assets/images/pizza.png",
+      "assets/images/healthy.png",
+      "assets/images/home_style.png",
+      "assets/images/image1.png",
+      "assets/images/image2.png",
+      "assets/images/image3.png",
+      "assets/images/image4.png",
+      "assets/images/image5.png",
+      "assets/images/image6.png",
+      "assets/images/image7.png",
+      "assets/images/image8.png",
+      "assets/images/image9.png",
+      "assets/images/image10.png",
+    ];
+
+    return GestureDetector(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text(
+              "Selectedcategoryname",
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          SizedBox(
+            height: 190,
+            child: ListView.builder(
+              shrinkWrap: true,
+              scrollDirection: Axis.horizontal,
+              itemCount: 10,
+              clipBehavior: Clip.none,
+              itemBuilder: (context, index) {
+                // Get image based on index, cycling through the list
+                final imageIndex = index % foodImages.length;
+                final imageUrl = foodImages[imageIndex];
+
+                return Container(
+                  width: 165,
+                  margin: const EdgeInsets.only(right: 5),
+                  child: GestureDetector(
+                    child: DishCard(
+                      name: 'pizza',
+                      price: "₹200",
+                      isAvailable: true, // Add this line
+                      imageUrl: imageUrl, // Use the cycled image
+                      calories: '200 cal',
+                      quantity: 1,
+
+                      onAddToCart: () {
+                        final cartProvider =
+                            Provider.of<CartProvider>(context, listen: false);
+                      },
+                      onIncrement: () {},
+                      onDecrement: () {},
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -51,6 +51,17 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   bool isNamePresent = false;
   bool isEmailPresent = false;
   bool isPhonePresent = false;
+  bool _isValidPhoneNumber() {
+    final phoneNumber = phoneController.text;
+    final validationRule = phoneValidationRules[selectedCountry];
+
+    if (validationRule == null || phoneNumber.isEmpty) {
+      return false;
+    }
+
+    final requiredLength = validationRule['minLength'];
+    return phoneNumber.length == requiredLength;
+  }
 
   UserResponse? _userModel;
 
@@ -302,14 +313,17 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton2<String>(
                           value: selectedCountry,
-                          onChanged: (value) {
-                            setState(() {
-                              selectedCountry = value as String;
-                              // Clear phone number when country changes
-                              phoneController.clear();
-                              _validateForm();
-                            });
-                          },
+                          onChanged: isPhonePresent
+                              ? null
+                              : (value) {
+                                  // Add this condition
+                                  setState(() {
+                                    selectedCountry = value as String;
+                                    // Clear phone number when country changes
+                                    phoneController.clear();
+                                    _validateForm();
+                                  });
+                                },
                           selectedItemBuilder: (context) {
                             return countryList.map((country) {
                               return ClipOval(
@@ -318,6 +332,8 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                   style: GoogleFonts.outfit(
                                     fontSize: 32,
                                     fontWeight: FontWeight.w700,
+                                    color: Colors.black.withOpacity(
+                                        isPhonePresent ? 1.0 : 1.0),
                                   ),
                                 ),
                               );
@@ -806,7 +822,9 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                           filled: true,
                           fillColor: Colors.grey[200],
                           counterText: "",
-                          suffix: (showSendOtpPhone && !isPhonePresent)
+                          suffix: (showSendOtpPhone &&
+                                  !isPhonePresent &&
+                                  _isValidPhoneNumber())
                               ? InkWell(
                                   onTap: () => _sendOtpPhone(),
                                   child: const Padding(
@@ -905,6 +923,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                           setState(() {
                             showSendOtpPhone = value.length >= minLength &&
                                 value.length <= maxLength;
+                            showSendOtpPhone = _isValidPhoneNumber();
                             isSendOtpPressed = false;
                             verifyOtpController.clear();
                             isVerifyOtpTouched = false;
