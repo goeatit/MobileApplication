@@ -17,13 +17,13 @@ class OrderConfirmationScreen extends StatefulWidget {
   final String longitude;
 
   const OrderConfirmationScreen({
-    Key? key,
+    super.key,
     required this.restaurantId,
     required this.restaurantName,
     required this.location,
     required this.latitude,
     required this.longitude,
-  }) : super(key: key);
+  });
 
   @override
   State<OrderConfirmationScreen> createState() =>
@@ -70,9 +70,8 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async =>
-          false, // This disables the system back button on Android
+    return PopScope(
+      canPop: false,
       child: Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading:
@@ -95,8 +94,6 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
-                        // Map Section
-                        // In the GoogleMap widget section, replace the existing code with:
                         SizedBox(
                           height: 200,
                           child: GoogleMap(
