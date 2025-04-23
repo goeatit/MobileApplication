@@ -46,26 +46,54 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
 
   Future<void> _openMap(String? latitude, String? longitude,
       {String? name}) async {
+    // Default coordinates (you can set these to any meaningful default location)
+    const double defaultLat = 28.6139; // Example: New Delhi coordinates
+    const double defaultLng = 77.2090;
+
     Uri googleMapsUrl;
 
-    if (latitude == null || longitude == null) {
-      googleMapsUrl = Uri.parse(
-          "https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(name ?? '')}");
-    } else if (name != null && name.isNotEmpty) {
-      final String encodedQuery =
-          Uri.encodeComponent("$latitude,$longitude ($name)");
-      googleMapsUrl = Uri.parse(
-          "https://www.google.com/maps/search/?api=1&query=$encodedQuery");
-    } else {
-      googleMapsUrl =
-          Uri.parse("https://www.google.com/maps?q=$latitude,$longitude");
-    }
+    try {
+      final double lat = latitude != null ? double.parse(latitude) : defaultLat;
+      final double lng =
+          longitude != null ? double.parse(longitude) : defaultLng;
 
-    if (await canLaunchUrl(googleMapsUrl)) {
-      await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
-    } else {
-      throw 'Could not launch maps';
+      if (name != null && name.isNotEmpty) {
+        final String encodedQuery = Uri.encodeComponent("$lat,$lng ($name)");
+        googleMapsUrl = Uri.parse(
+            "https://www.google.com/maps/search/?api=1&query=$encodedQuery");
+      } else {
+        googleMapsUrl = Uri.parse("https://www.google.com/maps?q=$lat,$lng");
+      }
+
+      if (await canLaunchUrl(googleMapsUrl)) {
+        await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
+      } else {
+        throw 'Could not launch maps';
+      }
+    } catch (e) {
+      // Handle any parsing errors or launch failures
+      debugPrint('Error opening map: $e');
+      // Fallback to search by name only if coordinates are invalid
+      if (name != null && name.isNotEmpty) {
+        googleMapsUrl = Uri.parse(
+            "https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(name)}");
+        if (await canLaunchUrl(googleMapsUrl)) {
+          await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
+        }
+      }
     }
+  }
+
+  LatLng _getLatLng(String? lat, String? lng) {
+    try {
+      if (lat != null && lng != null) {
+        return LatLng(double.parse(lat), double.parse(lng));
+      }
+    } catch (e) {
+      debugPrint('Error parsing coordinates: $e');
+    }
+    // Default coordinates if parsing fails or coordinates are null
+    return const LatLng(28.6139, 77.2090); // Default location (New Delhi)
   }
 
   @override
@@ -96,20 +124,19 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
                     child: Column(
                       children: [
                         // Map Section
-                        // In the GoogleMap widget section, replace the existing code with:
                         SizedBox(
                           height: 200,
                           child: GoogleMap(
                             initialCameraPosition: CameraPosition(
-                              target: LatLng(double.parse(widget.latitude),
-                                  double.parse(widget.longitude)),
+                              target:
+                                  _getLatLng(widget.latitude, widget.longitude),
                               zoom: 15,
                             ),
                             markers: {
                               Marker(
                                 markerId: const MarkerId('restaurant'),
-                                position: LatLng(double.parse(widget.latitude),
-                                    double.parse(widget.longitude)),
+                                position: _getLatLng(
+                                    widget.latitude, widget.longitude),
                                 infoWindow: InfoWindow(
                                   title: widget.restaurantName,
                                   snippet: widget.location,
@@ -122,9 +149,8 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
                               controller.animateCamera(
                                 CameraUpdate.newCameraPosition(
                                   CameraPosition(
-                                    target: LatLng(
-                                        double.parse(widget.latitude),
-                                        double.parse(widget.longitude)),
+                                    target: _getLatLng(
+                                        widget.latitude, widget.longitude),
                                     zoom: 15,
                                   ),
                                 ),
@@ -264,8 +290,8 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
                           Provider.of<OrderProvider>(context, listen: false);
                       final cartProvider =
                           Provider.of<CartProvider>(context, listen: false);
-                      final isDineIn =
-                          orderProvider.orderType?.toLowerCase() == "dine-in";
+                      // final isDineIn =
+                      //     orderProvider.orderType?.toLowerCase() == "dine-in";
 
                       // Clear the cart for this restaurant and order type
                       if (orderProvider.restaurantId != null &&
@@ -278,11 +304,11 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
                       orderProvider.clearOrder();
 
                       // Calculate number of screens to pop based on order type
-                      final screensToPopCount =
-                          isDineIn ? 3 : 2; // 3 for dine-in, 2 for takeaway
+                      // final screensToPopCount =
+                      //     isDineIn ? 3 : 2; // 3 for dine-in, 2 for takeaway
 
                       // Pop the required number of screens
-                      for (int i = 0; i < screensToPopCount; i++) {
+                      for (int i = 0; i < 2; i++) {
                         if (mounted && Navigator.of(context).canPop()) {
                           Navigator.of(context).pop();
                         }

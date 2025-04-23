@@ -330,15 +330,6 @@ class _DineInScreen extends State<DineInScreen> {
                                 ),
                                 // Add bottom padding for cart
                                 const SizedBox(height: 80),
-                                // Add the SVG image after RestaurantWidget
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16),
-                                  child: SvgPicture.asset(
-                                    'assets/svg/first_Default.svg',
-                                  ),
-                                ),
-                                const SizedBox(height: 100),
                               ],
                             )
                           : Center(
@@ -386,7 +377,8 @@ class _DineInScreen extends State<DineInScreen> {
                         arguments: {
                           'name': dineInItems.first.restaurantName,
                           'location': dineInItems.first.location,
-                          'id': id
+                          'id': id,
+                          'selectedCategory': selectedCategory,
                         });
                   },
                   pressCart: () {
