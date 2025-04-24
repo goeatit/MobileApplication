@@ -1,3 +1,4 @@
+import 'package:eatit/Screens/My_Booking/screen/my_bookings_screen.dart';
 import 'package:eatit/provider/cart_dish_provider.dart';
 import 'package:eatit/provider/order_provider.dart';
 import 'package:flutter/material.dart';
@@ -17,13 +18,13 @@ class OrderConfirmationScreen extends StatefulWidget {
   final String longitude;
 
   const OrderConfirmationScreen({
-    Key? key,
+    super.key,
     required this.restaurantId,
     required this.restaurantName,
     required this.location,
     required this.latitude,
     required this.longitude,
-  }) : super(key: key);
+  });
 
   @override
   State<OrderConfirmationScreen> createState() =>
@@ -98,9 +99,8 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async =>
-          false, // This disables the system back button on Android
+    return PopScope(
+      canPop: false,
       child: Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading:
@@ -308,11 +308,16 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
                       //     isDineIn ? 3 : 2; // 3 for dine-in, 2 for takeaway
 
                       // Pop the required number of screens
-                      for (int i = 0; i < 2; i++) {
-                        if (mounted && Navigator.of(context).canPop()) {
-                          Navigator.of(context).pop();
-                        }
-                      }
+                      // for (int i = 0; i < 2; i++) {
+                      //   if (mounted && Navigator.of(context).canPop()) {
+                      //     Navigator.of(context).pop();
+                      //   }
+                      // }
+                      Navigator.of(context).pop();
+                      Navigator.pushReplacementNamed(
+                        context,
+                        MyBookingsScreen.routeName,
+                      );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFF8951D),

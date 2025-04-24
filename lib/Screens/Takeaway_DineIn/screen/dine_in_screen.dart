@@ -1,6 +1,7 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:eatit/Screens/Filter/filter_widget.dart';
+import 'package:eatit/Screens/Takeaway_DineIn/screen/shimmer_loading_effect.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/screen/singe_restaurant_screen.dart';
 import 'package:eatit/api/api_client.dart';
 import 'package:eatit/api/api_repository.dart';
@@ -11,6 +12,7 @@ import 'package:eatit/models/cart_items.dart';
 import 'package:eatit/models/restaurant_model.dart';
 import 'package:eatit/provider/cart_dish_provider.dart';
 import 'package:eatit/provider/order_type_provider.dart';
+import 'package:eatit/provider/selected_category_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -31,8 +33,33 @@ class DineInScreen extends StatefulWidget {
 
 class _DineInScreen extends State<DineInScreen> {
   List<RestaurantsData> restaurants = [];
+  List<RestaurantsData> filteredRestaurants = []; // Store filtered restaurants
   bool isLoading = true;
   String errorMessage = '';
+  // All Categories
+  final List<Map<String, String>> _allCategories = [
+    {"name": "Briyani", "image": "assets/images/briyani.png"},
+    {"name": "Chicken", "image": "assets/images/home_style.png"},
+    {"name": "Pizza", "image": "assets/images/pizza.png"},
+    {"name": "Burger", "image": "assets/images/burgers.png"},
+    {"name": "Non Veg Meal", "image": "assets/images/nonvegmeal.png"},
+    {"name": "Thali", "image": "assets/images/thali.png"},
+    {"name": "Veg Meal", "image": "assets/images/vegmeal.png"},
+    {"name": "Momos", "image": "assets/images/momos.png"},
+    {"name": "Dessert", "image": "assets/images/Dessert.png"},
+    {"name": "Appetizers", "image": "assets/images/appetizers.png"},
+    {"name": "Pasta & Noodles", "image": "assets/images/Pasta&noodles.png"},
+    {"name": "Main Courses", "image": "assets/images/maincourses.png"},
+    {"name": "South Indian", "image": "assets/images/southindian.png"},
+    {"name": "Coffee", "image": "assets/images/coffee.png"},
+    {"name": "Fried Rice", "image": "assets/images/friedrice.png"},
+    {"name": "Paneer", "image": "assets/images/panner.png"},
+    {"name": "Chinese", "image": "assets/images/chinese.png"},
+    {"name": "Roll", "image": "assets/images/roll.png"},
+    {"name": "Salad", "image": "assets/images/salad.png"},
+    {"name": "Mushroom", "image": "assets/images/mushroom.png"},
+  ];
+
   String selectedCategory = '';
   String? city;
   String? country;
@@ -73,11 +100,14 @@ class _DineInScreen extends State<DineInScreen> {
         setState(() {
           final restaurantModel = RestaurantModel.fromJson(response.data[0]);
           restaurants = restaurantModel.restaurants;
+          filteredRestaurants =
+              List.from(restaurants); // Initially show all restaurants
           isLoading = false;
         });
       } else if (mounted && !_cancelToken.isCancelled) {
         setState(() {
           restaurants = [];
+          filteredRestaurants = [];
           errorMessage = "assets/images/expand-your-city.png";
           isLoading = false;
         });
@@ -86,6 +116,98 @@ class _DineInScreen extends State<DineInScreen> {
       if (mounted && !_cancelToken.isCancelled) {
         setState(() {
           errorMessage = "assets/images/expand-your-city.png";
+          isLoading = false;
+        });
+      }
+    }
+  }
+
+  fetchDataByCategory() async {
+    if (_cancelToken.isCancelled) return;
+    setState(() {
+      isLoading = true;
+    });
+
+    // if (selectedCategory.isEmpty) {
+    //   // If no category is selected, show all restaurants
+    //   setState(() {
+    //     filteredRestaurants = List.from(restaurants);
+    //     isLoading = false;
+    //   });
+    //   return;
+    // }
+    if (selectedCategory.isEmpty) {
+      // If no category is selected, show all restaurants with loading effect
+      await Future.delayed(const Duration(
+          milliseconds: 300)); // Add small delay for visual feedback
+      if (mounted && !_cancelToken.isCancelled) {
+        setState(() {
+          filteredRestaurants = List.from(restaurants);
+          isLoading = false;
+        });
+      }
+      return;
+    }
+
+    final Connectivity connectivity = Connectivity();
+    final NetworkManager networkManager = NetworkManager(connectivity);
+    final ApiRepository apiRepository = ApiRepository(networkManager);
+
+    try {
+      SharedPreferences sharedPreferences =
+          await SharedPreferences.getInstance();
+      city = sharedPreferences.getString("city");
+      country = sharedPreferences.getString("country");
+      // city = "Bhubaneswar";
+      if (selectedCategory == '') {
+        return;
+      }
+
+      final response =
+          await apiRepository.fetchRestaurantByCategoryNameWithCancelToken(
+              city!, country!, _cancelToken, selectedCategory);
+
+      if (response != null &&
+          response.data is List &&
+          response.data.isNotEmpty &&
+          !_cancelToken.isCancelled &&
+          mounted) {
+        final restaurantModel = RestaurantModel.fromJson(response.data[0]);
+        print(restaurantModel.restaurants.length);
+
+        setState(() {
+          final restaurantModel = RestaurantModel.fromJson(response.data[0]);
+          //restaurants = restaurantModel.restaurants;
+          filteredRestaurants = restaurantModel.restaurants;
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          filteredRestaurants = [];
+          isLoading = false;
+        });
+      }
+
+      // } else if (mounted && !_cancelToken.isCancelled) {
+      //   // setState(() {
+      //   //   restaurants = [];
+      //   //   errorMessage = "assets/images/expand-your-city.png";
+      //   //   isLoading = false;
+      //   // });
+      // }
+    }
+    // catch (e) {
+    //   if (mounted && !_cancelToken.isCancelled) {
+    //     setState(() {
+    //       errorMessage = "assets/images/expand-your-city.png";
+    //       isLoading = false;
+    //     });
+    //   }
+    // }
+    catch (e) {
+      if (mounted && !_cancelToken.isCancelled) {
+        setState(() {
+          filteredRestaurants = [];
           isLoading = false;
         });
       }
@@ -151,11 +273,11 @@ class _DineInScreen extends State<DineInScreen> {
       body: Stack(
         children: [
           isLoading
-              ? const Center(child: CircularProgressIndicator())
+              ? const ShimmerLoadingEffect() // Replace CircularProgressIndicator with ShimmerLoadingEffect
               : errorMessage.isNotEmpty
                   ? Center(
                       child: Image.asset(
-                        errorMessage, // Using errorMessage as image path
+                        errorMessage,
                         fit: BoxFit.contain,
                         height: 350,
                       ),
@@ -210,35 +332,45 @@ class _DineInScreen extends State<DineInScreen> {
                                     const SizedBox(height: 16),
                                   ],
                                 ),
-
-                                // Promoted Restaurant Section
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16),
-                                  width: double.infinity,
-                                  child: const Text(
-                                    "Promoted Restaurants",
-                                    style: TextStyle(
-                                      fontSize: 22,
-                                      color: Color(0xFF1D1929),
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                if (selectedCategory.isNotEmpty &&
+                                    filteredRestaurants.isEmpty)
+                                  Container()
+                                else
+                                  Column(
+                                    children: [
+                                      // Promoted Restaurant Section
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 16),
+                                        width: double.infinity,
+                                        child: const Text(
+                                          "Promoted Restaurants",
+                                          style: TextStyle(
+                                            fontSize: 22,
+                                            color: Color(0xFF1D1929),
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                      RestaurantWidget(
+                                        imageUrl:
+                                            'assets/images/restaurant.png',
+                                        restaurantName:
+                                            restaurants[0].restaurantName,
+                                        cuisineType: "Indian • Biryani",
+                                        priceRange: "₹1200-₹1500 for two",
+                                        rating:
+                                            restaurants[0].ratings.toDouble(),
+                                        promotionText:
+                                            "Flat 10% off in booking !",
+                                        promoCode: "Happy10",
+                                        location: city!,
+                                        lat: restaurants[0].lat,
+                                        long: restaurants[0].long,
+                                        id: restaurants[0].id,
+                                      ),
+                                    ],
                                   ),
-                                ),
-                                RestaurantWidget(
-                                  imageUrl: 'assets/images/restaurant.png',
-                                  restaurantName: restaurants[0].restaurantName,
-                                  cuisineType: "Indian • Biryani",
-                                  priceRange: "₹1200-₹1500 for two",
-                                  rating: restaurants[0].ratings.toDouble(),
-                                  promotionText: "Flat 10% off in booking !",
-                                  promoCode: "Happy10",
-                                  location: city!,
-                                  lat: restaurants[0].lat,
-                                  long: restaurants[0].long,
-                                  id: restaurants[0].id,
-                                ),
-
                                 // Categories Section
                                 Container(
                                   padding: const EdgeInsets.symmetric(
@@ -258,76 +390,95 @@ class _DineInScreen extends State<DineInScreen> {
                                   scrollDirection: Axis.horizontal,
                                   child: Row(
                                     children: [
-                                      categoryItem("Briyani",
-                                          "assets/images/briyani.png"),
-                                      categoryItem("Chicken",
-                                          "assets/images/home_style.png"),
-                                      categoryItem(
-                                          "Pizza", "assets/images/pizza.png"),
-                                      categoryItem("Burger",
-                                          "assets/images/burgers.png"),
-                                      categoryItem("Non Veg Meal",
-                                          "assets/images/nonvegmeal.png"),
-                                      categoryItem(
-                                          "Thali", "assets/images/thali.png"),
-                                      categoryItem("Veg Meal",
-                                          "assets/images/vegmeal.png"),
-                                      categoryItem(
-                                          "Momos", "assets/images/momos.png"),
-                                      categoryItem("Dessert",
-                                          "assets/images/Dessert.png"),
-                                      categoryItem("Appetizers",
-                                          "assets/images/appetizers.png"),
-                                      categoryItem("Pasta & Noodles",
-                                          "assets/images/Pasta&noodles.png"),
-                                      categoryItem("Main Courses",
-                                          "assets/images/maincourses.png"),
-                                      categoryItem("South Indian",
-                                          "assets/images/southindian.png"),
-                                      categoryItem(
-                                          "Coffee", "assets/images/coffee.png"),
-                                      categoryItem("Fried Rice",
-                                          "assets/images/friedrice.png"),
-                                      categoryItem(
-                                          "Paneer", "assets/images/panner.png"),
-                                      categoryItem("Chinese",
-                                          "assets/images/chinese.png"),
-                                      categoryItem(
-                                          "Roll", "assets/images/roll.png"),
-                                      categoryItem(
-                                          "Salad", "assets/images/salad.png"),
-                                      categoryItem("Mushroom",
-                                          "assets/images/mushroom.png"),
+                                      // Selected category
+                                      selectedCategory.isNotEmpty
+                                          ? categoryItem(
+                                              selectedCategory,
+                                              _allCategories.firstWhere(
+                                                    (category) =>
+                                                        category['name'] ==
+                                                        selectedCategory,
+                                                  )?['image'] ??
+                                                  '',
+                                            )
+                                          : const SizedBox.shrink(),
+                                      // Other categories
+                                      ..._allCategories
+                                          .where((category) =>
+                                              category['name'] !=
+                                              selectedCategory)
+                                          .map((category) {
+                                        return categoryItem(
+                                            category['name'] ?? '',
+                                            category['image'] ?? '');
+                                      }).toList(),
                                     ],
                                   ),
                                 ),
                                 const SizedBox(height: 17),
                                 const FilterWidget(),
                                 const SizedBox(height: 18),
-                                // Restaurant List
-                                ListView.builder(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemCount: restaurants.length > 1
-                                      ? restaurants.length - 1
-                                      : 0,
-                                  itemBuilder: (context, index) {
-                                    final restaurant = restaurants[index + 1];
-                                    final imageIndex = (index % 9) + 1;
-                                    return RestaurantWidget(
-                                      imageUrl:
-                                          'assets/images/restaurant$imageIndex.png',
-                                      restaurantName: restaurant.restaurantName,
-                                      location: city!,
-                                      cuisineType: "Indian • Biryani",
-                                      priceRange: "₹1200-₹1500 for two",
-                                      rating: restaurant.ratings.toDouble(),
-                                      long: restaurant.long,
-                                      lat: restaurant.lat,
-                                      id: restaurant.id,
-                                    );
-                                  },
-                                ),
+                                // Restaurants Section
+                                if (selectedCategory.isNotEmpty &&
+                                    filteredRestaurants.isEmpty)
+                                  Center(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        const SizedBox(height: 50),
+                                        Icon(
+                                          Icons.restaurant_menu,
+                                          size: 50,
+                                          color: Colors.grey[400],
+                                        ),
+                                        const SizedBox(height: 10),
+                                        Text(
+                                          "No restaurants found for $selectedCategory ",
+                                          style: const TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 10),
+                                        Text(
+                                          "Hmm, looks like $selectedCategory is playing hide-and-seek. 😉 , Want to try another delicious adventure? 🌮🍜🥗",
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.grey[600],
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                else
+                                  // Restaurant List
+                                  ListView.builder(
+                                    shrinkWrap: true,
+                                    physics:
+                                        const NeverScrollableScrollPhysics(),
+                                    itemCount: restaurants.length > 1
+                                        ? restaurants.length - 1
+                                        : 0,
+                                    itemBuilder: (context, index) {
+                                      final restaurant = restaurants[index + 1];
+                                      final imageIndex = (index % 9) + 1;
+                                      return RestaurantWidget(
+                                        imageUrl:
+                                            'assets/images/restaurant$imageIndex.png',
+                                        restaurantName:
+                                            restaurant.restaurantName,
+                                        location: city!,
+                                        cuisineType: "Indian • Biryani",
+                                        priceRange: "₹1200-₹1500 for two",
+                                        rating: restaurant.ratings.toDouble(),
+                                        long: restaurant.long,
+                                        lat: restaurant.lat,
+                                        id: restaurant.id,
+                                      );
+                                    },
+                                  ),
                                 // Add bottom padding for cart
                                 const SizedBox(height: 80),
                               ],
@@ -398,10 +549,24 @@ class _DineInScreen extends State<DineInScreen> {
     bool isSelected = selectedCategory == label;
 
     return GestureDetector(
-      onTap: () {
+      // In your categoryItem onTap method
+      onTap: () async {
+        final categoryProvider =
+            Provider.of<SelectedCategoryProvider>(context, listen: false);
+
         setState(() {
           selectedCategory = isSelected ? '' : label;
+          categoryProvider.setSelectedCategory(isSelected ? '' : label);
+          isLoading = true;
         });
+
+        await fetchDataByCategory();
+
+        if (mounted) {
+          setState(() {
+            isLoading = false;
+          });
+        }
       },
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 2),

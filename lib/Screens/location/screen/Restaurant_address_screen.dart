@@ -463,6 +463,7 @@ class _RestaurantAddressScreenState extends State<RestaurantAddressScreen> {
                                       backgroundColor: Colors.green,
                                     ),
                                   );
+                                  Navigator.of(context).pop();
 
                                   // Navigate to notification screen
                                   Navigator.pushReplacementNamed(

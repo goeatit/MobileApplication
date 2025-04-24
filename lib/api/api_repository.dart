@@ -34,6 +34,21 @@ class ApiRepository {
     });
   }
 
+  Future<Response?> fetchRestaurantByCategoryNameWithCancelToken(
+      String city, String country, CancelToken cancelToken,String categoryName) async {
+    // Construct the endpoint using the dynamic values for city and country
+    final endpoint = ApiEndpoints.fetchRestaurantByCategoryName(categoryName, city, country);
+
+    // Make the request using NetworkManager
+    return await networkManager.makeRequest(() {
+      // Perform the GET request with the constructed endpoint
+      return networkManager.dioManger.get(
+        endpoint,
+        cancelToken: cancelToken,
+      );
+    });
+  }
+
   Future<Response?> fetchDishesData(String name, String city) async {
     final endpoint = ApiEndpoints.fetchDishesByRestaurant(name, city);
     return await networkManager.makeRequest(() {
