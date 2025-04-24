@@ -7,6 +7,9 @@ class ApiEndpoints {
       "/mobile/area/$city/$country";
   static String fetchDishesByRestaurant(String name, String city) =>
       "/api/restaurantDetails/$name/$city";
+  static String fetchRestaurantByCategoryName(
+          String categoryName, String city, String country) =>
+      "/mobile/searchByCategoryName/$city/$country/$categoryName";
   static String fetchRestaurantSearchAndFood(String query) =>
       "/mobile/restaurantSearch/$query";
   static String fetchCurrentData(String id, String name) =>
@@ -19,10 +22,10 @@ class ApiEndpoints {
   static String completeYourProfile = "/mobile/completeYourProfile";
   static String createOrder(String orderType) =>
       "/mobile/createOrder/$orderType";
-  static String cancelOrder(String orderId)=>"/mobile/cancelOrder/$orderId";
-  static String fetchOrderDetails="/mobile/getOrderDetails";
+  static String cancelOrder(String orderId) => "/mobile/cancelOrder/$orderId";
+  static String fetchOrderDetails = "/mobile/getOrderDetails";
   static String verifyPayment = "/mobile/payment/verify";
   static String updateProfile = "/mobile/updateProfile";
-  static String initProfile="/mobile/auth/init";
+  static String initProfile = "/mobile/auth/init";
 // Add more dynamically constructed endpoints
 }

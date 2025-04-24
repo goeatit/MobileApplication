@@ -12,7 +12,7 @@ class FilterBottomSheet extends StatefulWidget {
   final VoidCallback onClearFilters;
 
   const FilterBottomSheet({
-    Key? key,
+    super.key,
     required this.selectedSection,
     required this.selectedSortOption,
     required this.selectedRatingOption,
@@ -20,7 +20,7 @@ class FilterBottomSheet extends StatefulWidget {
     required this.selectedPriceOption,
     required this.onApplyFilters,
     required this.onClearFilters,
-  }) : super(key: key);
+  });
 
   @override
   State<FilterBottomSheet> createState() => _FilterBottomSheetState();
@@ -242,8 +242,14 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                 TextButton(
                   onPressed: _isAnyOptionSelected()
                       ? () {
-                          widget.onClearFilters();
-                          Navigator.pop(context);
+                          setState(() {
+                            selectedSortOption = '';
+                            selectedRatingOption = '';
+                            selectedOfferOption = '';
+                            selectedPriceOption = '';
+                          });
+                          // Remove this line to prevent modal from closing
+                          // Navigator.pop(context);
                         }
                       : null,
                   child: Text(

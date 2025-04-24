@@ -14,6 +14,7 @@ import 'package:eatit/provider/cart_dish_provider.dart';
 import 'package:eatit/provider/order_provider.dart';
 import 'package:eatit/provider/order_type_provider.dart';
 import 'package:eatit/Screens/cart_screen/screen/cart_page.dart';
+import 'package:eatit/provider/selected_category_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -1021,12 +1022,16 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                         // Filter Buttons
                         _buildFilterButtons(),
                         // Dishes Categories
-                        Padding(
-                          padding: const EdgeInsets.all(
-                              16.0), // You can adjust these values as needed
-                          child: _buildRecommendedDishes(),
-                        ),
-                        const SizedBox(height: 10),
+                        // Show recommended dishes only when a category is selected
+                        if (context
+                            .watch<SelectedCategoryProvider>()
+                            .selectedCategory
+                            .isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: _buildRecommendedDishes(),
+                          ),
+
                         isLoading
                             ? const Center(child: CircularProgressIndicator())
                             : (errorMessage.isNotEmpty
@@ -1071,6 +1076,17 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                           String category = entry.key;
                                           List<AvailableDish> dishes =
                                               entry.value;
+
+                                          // Skip this category if it's the selected one
+                                          if (category.toLowerCase() ==
+                                              context
+                                                  .watch<
+                                                      SelectedCategoryProvider>()
+                                                  .selectedCategory
+                                                  .toLowerCase()) {
+                                            return const SizedBox.shrink();
+                                          }
+
                                           return Padding(
                                             padding: const EdgeInsets.all(10.0),
                                             child: Column(
@@ -1417,58 +1433,116 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
       "assets/images/image10.png",
     ];
 
-    return GestureDetector(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              "Selectedcategoryname",
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+    return Consumer<SelectedCategoryProvider>(
+      builder: (context, categoryProvider, child) {
+        if (categoryProvider.selectedCategory.isEmpty) {
+          return const SizedBox
+              .shrink(); // Don't show anything if no category is selected
+        }
+
+        // Create a list to store recommended dishes
+        List<AvailableDish> recommendedDishes = [];
+
+        // Go through all categorized dishes
+        categorizedDishes.entries.forEach((entry) {
+          entry.value.forEach((dish) {
+            // Check if dish belongs to selected category
+            if (dish.dishId.dishCatagory
+                .toLowerCase()
+                .contains(categoryProvider.selectedCategory.toLowerCase())) {
+              recommendedDishes.add(dish);
+            }
+            // Check if dish name contains the selected category keyword
+            else if (dish.dishId.dishName
+                .toLowerCase()
+                .contains(categoryProvider.selectedCategory.toLowerCase())) {
+              recommendedDishes.add(dish);
+            }
+          });
+        });
+
+        if (recommendedDishes.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Show selected category name
+            Padding(
+              padding: const EdgeInsets.only(left: 16, bottom: 12),
+              child: Text(
+                categoryProvider.selectedCategory,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-          ),
-          SizedBox(
-            height: 190,
-            child: ListView.builder(
-              shrinkWrap: true,
-              scrollDirection: Axis.horizontal,
-              itemCount: 10,
-              clipBehavior: Clip.none,
-              itemBuilder: (context, index) {
-                // Get image based on index, cycling through the list
-                final imageIndex = index % foodImages.length;
-                final imageUrl = foodImages[imageIndex];
+            SizedBox(
+              height: 190,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: recommendedDishes.length,
+                clipBehavior: Clip.none,
+                itemBuilder: (context, index) {
+                  final dish = recommendedDishes[index];
+                  // Get image based on index, cycling through the list
+                  final imageIndex = index % foodImages.length;
+                  final imageUrl = foodImages[imageIndex];
 
-                return Container(
-                  width: 165,
-                  margin: const EdgeInsets.only(right: 5),
-                  child: GestureDetector(
-                    child: DishCard(
-                      name: 'pizza',
-                      price: "₹200",
-                      isAvailable: true, // Add this line
-                      imageUrl: imageUrl, // Use the cycled image
-                      calories: '200 cal',
-                      quantity: 1,
+                  return Container(
+                    width: 166,
+                    margin: const EdgeInsets.only(right: 5),
+                    child: Consumer<CartProvider>(
+                      builder: (ctx, cartProvider, child) {
+                        int stored = ctx.watch<OrderTypeProvider>().orderType;
+                        String orderType =
+                            stored == 0 ? "Dine-in" : "Take-away";
 
-                      onAddToCart: () {
-                        final cartProvider =
-                            Provider.of<CartProvider>(context, listen: false);
+                        return DishCard(
+                          name: dish.dishId.dishName,
+                          price: "₹${dish.resturantDishPrice}",
+                          imageUrl: imageUrl,
+                          isAvailable: dish.available,
+                          calories: "120 cal",
+                          quantity: ctx
+                              .watch<CartProvider>()
+                              .getQuantity(widget.id, orderType, dish.id),
+                          onAddToCart: () {
+                            final cartProvider = Provider.of<CartProvider>(
+                                context,
+                                listen: false);
+                            final cartItem = CartItem(
+                              id: dish.id,
+                              restaurantName: widget.name,
+                              orderType: orderType,
+                              dish: dish,
+                              quantity: 1,
+                              location: widget.location,
+                              restaurantImageUrl: widget.imageUrl,
+                            );
+                            cartProvider.addToCart(
+                                widget.id, orderType, cartItem);
+                          },
+                          onIncrement: () {
+                            ctx.read<CartProvider>().incrementQuantity(
+                                widget.id, orderType, dish.id);
+                          },
+                          onDecrement: () {
+                            ctx.read<CartProvider>().decrementQuantity(
+                                widget.id, orderType, dish.id);
+                          },
+                        );
                       },
-                      onIncrement: () {},
-                      onDecrement: () {},
                     ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
+                  );
+                },
+              ),
+            )
+          ],
+        );
+      },
     );
   }
 
