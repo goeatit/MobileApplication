@@ -272,7 +272,7 @@ class _FilterWidgetState extends State<FilterWidget> {
                 selectedPriceOption = '';
                 selectedFilters.updateAll((key, value) => false);
               });
-              Navigator.pop(context);
+              //Navigator.pop(context);
             },
             child: const Text(
               'Clear All',
