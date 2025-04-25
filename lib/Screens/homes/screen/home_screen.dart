@@ -113,8 +113,8 @@ class _HomePage extends State<HomePage> {
                   Expanded(
                     child: TextButton(
                       onPressed: () {
-                        Navigator.of(context).pop();
-                        Navigator.pushNamed(
+                        // Navigator.of(context).pop();
+                        Navigator.pushReplacementNamed(
                             context, RestaurantAddressScreen.routeName);
                       },
                       style: TextButton.styleFrom(

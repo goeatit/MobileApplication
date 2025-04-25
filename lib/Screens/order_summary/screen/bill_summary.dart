@@ -1416,7 +1416,7 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            height: 220,
+            height: 200,
             child: ListView.builder(
               shrinkWrap: true,
               scrollDirection: Axis.horizontal,
@@ -1428,8 +1428,8 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                 final imageUrl = foodImages[imageIndex];
 
                 return Container(
-                  width: 160,
-                  margin: const EdgeInsets.only(right: 12),
+                  width: 165,
+                  margin: const EdgeInsets.only(right: 5, bottom: 5),
                   child: GestureDetector(
                     child: DishCard(
                       name: dish.dishId.dishName,

@@ -242,8 +242,14 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                 TextButton(
                   onPressed: _isAnyOptionSelected()
                       ? () {
-                          widget.onClearFilters();
-                          Navigator.pop(context);
+                          setState(() {
+                            selectedSortOption = '';
+                            selectedRatingOption = '';
+                            selectedOfferOption = '';
+                            selectedPriceOption = '';
+                          });
+                          // Remove this line to prevent modal from closing
+                          // Navigator.pop(context);
                         }
                       : null,
                   child: Text(
