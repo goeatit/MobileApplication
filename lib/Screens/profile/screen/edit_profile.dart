@@ -23,7 +23,7 @@ class _EditProfileScreen extends State<EditProfileScreen> {
   bool _hasChanges = false;
   bool _isEditing = false;
   bool _isloading = false;
-  Map<String, String?> _changes = {};
+  Map<String, String?> _changes = {"countryCode":"+91"};
 
   final List<String> genderItems = ['Male', 'Female'];
 
