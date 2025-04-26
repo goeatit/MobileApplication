@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:eatit/Screens/profile/service/edit_profile_service.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:pinput/pinput.dart';
 
 class ProfileInputField extends StatefulWidget {
@@ -82,6 +83,7 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
         // User is confirming the edit
         if (_controller.text != widget.value && _controller.text.isNotEmpty) {
           _newValue = _controller.text;
+          print("ifCondition");
           if (widget.isEmail) {
             // Add email validation here
             if (!_isValidEmail(_newValue)) {
@@ -98,16 +100,20 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
             _sendOtp();
           } else {
             // For non-email fields, just notify parent of change
-            widget.onSave(_controller.text);
-            setState(() {
-              _isEditing = false;
-            });
+            // widget.onSave(_controller.text);
+            widget.isLoading?.call(true);
+            _sendOtp();
+            // setState(() {
+            //   _isEditing = false;
+            // });
           }
         } else {
           // No change or empty value, just exit edit mode
+          print(initValue);
           setState(() {
             _isEditing = false;
             _controller.text = widget.value;
+            _isOtpSent = false;
           });
         }
       } else {
@@ -133,7 +139,6 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
             _isEditing = false;
             _showOtp = true;
             _isOtpSent = true;
-            initValue = _newValue;
             _controller.text = _newValue;
             _canResend = false; // Disable resend button
             _startCountdown(); // Start the countdown
@@ -142,6 +147,37 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('OTP sent to your email'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to send OTP'),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+        widget.isLoading?.call(false);
+      } else {
+        widget.isLoading?.call(true);
+        bool success = await editProfileSerevice.sendMobileOtp(
+            _newValue, _selectedCountryCode, context);
+        if (success) {
+          setState(() {
+            _isEditing = false;
+            _showOtp = true;
+            _isOtpSent = true;
+            _controller.text = _newValue;
+            _canResend = false; // Disable resend button
+            _startCountdown(); // Start the countdown
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('OTP sent to your phone number'),
               backgroundColor: Colors.green,
               duration: Duration(seconds: 2),
             ),
@@ -215,6 +251,7 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
             _showOtp = false;
             _isVerifying = false;
             _controller.text = _newValue;
+            initValue = _newValue;
             _otpController.clear();
           });
 
@@ -227,7 +264,47 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
           );
         } else {
           setState(() {
+            // _showOtp = false;
             _isVerifying = false;
+            _controller.text = _newValue;
+            _otpController.clear();
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Invalid OTP. Please try again.'),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      } else {
+        bool isVerified = await editProfileSerevice.verifyMobileOtp(
+            _newValue, context, _otpController.text, _selectedCountryCode);
+
+        if (isVerified) {
+          widget.onSave(_newValue);
+          widget.editPressed?.call(false);
+          setState(() {
+            _showOtp = false;
+            _isVerifying = false;
+            _controller.text = _newValue;
+            initValue = _newValue;
+            _otpController.clear();
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('phone number verified successfully'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        } else {
+          setState(() {
+            // _showOtp = false;
+            _isVerifying = false;
+            _controller.text = _newValue;
             _otpController.clear();
           });
 
@@ -330,10 +407,16 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
                         ? TextField(
                             controller: _controller,
                             autofocus: true,
+                            maxLength: widget.isPhone ? 10 : null,
+                            inputFormatters: widget.isPhone? [
+                              FilteringTextInputFormatter.digitsOnly
+                            ]:null,
+                            // inputFormatters: ,
                             decoration: const InputDecoration(
                               border: InputBorder.none,
                               isDense: true,
                               contentPadding: EdgeInsets.zero,
+                              counterText: ''
                             ),
                             style: const TextStyle(
                               fontSize: 16,

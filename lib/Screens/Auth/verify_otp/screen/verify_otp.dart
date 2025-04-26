@@ -11,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:pinput/pinput.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
+import 'package:sms_autofill/sms_autofill.dart';
 
 class VerifyOtp extends StatefulWidget {
   static const routeName = "/otp-screen";
@@ -25,7 +26,7 @@ class VerifyOtp extends StatefulWidget {
   State<VerifyOtp> createState() => _VerifyOtpState();
 }
 
-class _VerifyOtpState extends State<VerifyOtp> {
+class _VerifyOtpState extends State<VerifyOtp> with CodeAutoFill {
   final TextEditingController _otpController = TextEditingController();
   final OtpService _otpService = OtpService();
   bool _isButtonEnabled = false;
@@ -42,6 +43,7 @@ class _VerifyOtpState extends State<VerifyOtp> {
     super.initState();
     _startTimer();
     _otpController.addListener(_onOtpChange);
+    listenForCode();
   }
 
   void _startTimer() {
@@ -55,11 +57,20 @@ class _VerifyOtpState extends State<VerifyOtp> {
       });
     });
   }
+  @override
+  void codeUpdated() {
+
+    if (code != null) {
+      _otpController.text = code!;
+      _verifyOtp(); // Auto verify once code is filled
+    }
+  }
 
   @override
   void dispose() {
     _timer?.cancel();
     _otpController.dispose();
+    cancel();
     super.dispose();
   }
 
@@ -360,4 +371,6 @@ class _VerifyOtpState extends State<VerifyOtp> {
           ],
         ));
   }
+
+
 }

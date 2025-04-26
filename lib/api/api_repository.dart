@@ -34,10 +34,11 @@ class ApiRepository {
     });
   }
 
-  Future<Response?> fetchRestaurantByCategoryNameWithCancelToken(
-      String city, String country, CancelToken cancelToken,String categoryName) async {
+  Future<Response?> fetchRestaurantByCategoryNameWithCancelToken(String city,
+      String country, CancelToken cancelToken, String categoryName) async {
     // Construct the endpoint using the dynamic values for city and country
-    final endpoint = ApiEndpoints.fetchRestaurantByCategoryName(categoryName, city, country);
+    final endpoint =
+        ApiEndpoints.fetchRestaurantByCategoryName(categoryName, city, country);
 
     // Make the request using NetworkManager
     return await networkManager.makeRequest(() {
@@ -128,6 +129,18 @@ class ApiRepository {
     return await networkManager.makeRequest(() {
       return networkManager.dioManger
           .post(endpoint, data: {"email": email, "code": otp});
+    });
+  }
+
+  Future<Response?> verifyOtpPhoneNumber(
+      String phoneNumber, String countryCode, String otp) async {
+    final endpoint = ApiEndpoints.verifyPhoneNumberOtp;
+    return await networkManager.makeRequest(() {
+      return networkManager.dioManger.post(endpoint, data: {
+        "phoneNumber": phoneNumber,
+        "countryCode": countryCode,
+        "code": otp
+      });
     });
   }
 

@@ -17,6 +17,7 @@ class ApiEndpoints {
   static String search(String query) => "/search?q=$query";
   static String genOtp = "/api/generateOtp";
   static String verifyOtp = "/mobile/verifyOtp";
+  static String verifyPhoneNumberOtp="/mobile/verifyOtp/phone";
   static String sendOtpEmail = "/mobile/sendOtp/email";
   static String verifyOtpEmail = "/mobile/verifyOtp/email";
   static String completeYourProfile = "/mobile/completeYourProfile";
