@@ -1374,15 +1374,15 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                       width: 1,
                     ),
                     borderRadius: BorderRadius.circular(30),
-                    boxShadow: isSelected[index]
-                        ? [
-                            BoxShadow(
-                              color: const Color(0xFFF8951D).withOpacity(0.3),
-                              blurRadius: 6,
-                              offset: const Offset(0, 3),
-                            )
-                          ]
-                        : [],
+                    // boxShadow: isSelected[index]
+                    //     ? [
+                    //         BoxShadow(
+                    //           color: const Color(0xFFF8951D).withOpacity(0.3),
+                    //           blurRadius: 6,
+                    //           offset: const Offset(0, 3),
+                    //         )
+                    //       ]
+                    //     : [],
                   ),
                   padding:
                       const EdgeInsets.symmetric(vertical: 10, horizontal: 16),

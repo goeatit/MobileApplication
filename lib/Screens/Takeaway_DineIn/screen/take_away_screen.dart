@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:eatit/Screens/Filter/filter_widget.dart';
+import 'package:eatit/Screens/My_Booking/service/My_Booking_service.dart';
+import 'package:eatit/Screens/Takeaway_DineIn/screen/expansion_floating_button.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/screen/shimmer_loading_effect.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/screen/singe_restaurant_screen.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/widget/bottom_cart.dart';
@@ -12,6 +14,7 @@ import 'package:eatit/api/network_manager.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/main.dart';
 import 'package:eatit/models/cart_items.dart';
+import 'package:eatit/models/my_booking_modal.dart';
 import 'package:eatit/models/restaurant_model.dart';
 import 'package:eatit/provider/cart_dish_provider.dart';
 import 'package:eatit/provider/order_type_provider.dart';
@@ -32,6 +35,9 @@ class TakeAwayScreen extends StatefulWidget {
 }
 
 class _TakeAwayScreen extends State<TakeAwayScreen> {
+  final List<UserElement> _orders = []; // Initialize with an empty list
+  final MyBookingService _bookingService = MyBookingService();
+  bool _isLoadingOrders = false;
   late CancelToken _cancelToken;
   List<RestaurantsData> restaurants = []; // List to store fetched restaurants
   List<RestaurantsData> filteredRestaurants = []; // Store filtered restaurants
@@ -223,12 +229,35 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
     }
   }
 
+  Future<void> fetchOrders() async {
+    if (mounted) {
+      setState(() => _isLoadingOrders = true);
+    }
+
+    try {
+      final response = await _bookingService.fetchOrderDetails();
+      if (response != null && mounted) {
+        setState(() {
+          _orders.clear();
+          _orders.addAll(response.user);
+        });
+      }
+    } catch (e) {
+      print('Error fetching orders: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingOrders = false);
+      }
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _cancelToken = CancelToken();
     fetchData();
     startBannerTimer();
+    fetchOrders();
   }
 
   void startBannerTimer() {
@@ -301,6 +330,12 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
           }
         },
         child: Scaffold(
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.centerDocked,
+            floatingActionButton: ExpansionFloatingButton(
+              orders: _orders,
+              onRefresh: () => fetchOrders(), // Add refresh callback
+            ),
             body: isLoading
                 ? const ShimmerLoadingEffect() // Replace CircularProgressIndicator with ShimmerLoadingEffect
                 : errorMessage.isNotEmpty
