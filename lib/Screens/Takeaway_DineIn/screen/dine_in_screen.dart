@@ -250,6 +250,15 @@ class _DineInScreen extends State<DineInScreen> {
     }
   }
 
+  bool _shouldDisplayBooking(String? status) {
+    if (status == null) return false;
+    final lowerStatus = status.toLowerCase();
+    return lowerStatus == 'preparing' ||
+        lowerStatus == 'order placed' ||
+        lowerStatus == 'ready' ||
+        lowerStatus == 'delayed';
+  }
+
   @override
   void initState() {
     super.initState();
@@ -329,12 +338,12 @@ class _DineInScreen extends State<DineInScreen> {
           }
         },
         child: Scaffold(
-          floatingActionButtonLocation:
-              FloatingActionButtonLocation.centerDocked,
-          floatingActionButton: ExpansionFloatingButton(
-            orders: _orders,
-            onRefresh: () => fetchOrders(), // Add refresh callback
-          ),
+          // floatingActionButtonLocation:
+          //     FloatingActionButtonLocation.centerDocked,
+          // floatingActionButton: ExpansionFloatingButton(
+          //   orders: _orders,
+          //   onRefresh: () => fetchOrders(), // Add refresh callback
+          // ),
           body: Stack(
             children: [
               isLoading
@@ -561,57 +570,66 @@ class _DineInScreen extends State<DineInScreen> {
                                   ),
                                 ),
                         ),
-              // Bottom Cart
-              // Consumer<CartProvider>(builder: (ctx, cartProvider, child) {
-              //   if (cartProvider.restaurantCarts.isEmpty) {
-              //     return const SizedBox.shrink();
-              //   }
+              if (_orders
+                  .where(
+                      (order) => _shouldDisplayBooking(order.user.orderStatus))
+                  .isNotEmpty)
+                ExpansionFloatingButton(
+                  orders: _orders,
+                  onRefresh: fetchOrders,
+                )
+              else
+                // Bottom Cart
+                Consumer<CartProvider>(builder: (ctx, cartProvider, child) {
+                  if (cartProvider.restaurantCarts.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
 
-              //   List<CartItem> dineInItems = [];
-              //   int totalItems = 0;
-              //   String id = "";
+                  List<CartItem> dineInItems = [];
+                  int totalItems = 0;
+                  String id = "";
 
-              //   // Iterate through restaurants to find the first "Take-Away" cart items
-              //   for (var restaurantId in cartProvider.restaurantCarts.keys) {
-              //     var items =
-              //         cartProvider.restaurantCarts[restaurantId]?['Dine-in'];
-              //     if (items != null && items.isNotEmpty) {
-              //       dineInItems = items;
-              //       totalItems =
-              //           items.fold(0, (sum, item) => sum + item.quantity);
-              //       id = restaurantId;
-              //       break;
-              //     }
-              //   }
+                  // Iterate through restaurants to find the first "Take-Away" cart items
+                  for (var restaurantId in cartProvider.restaurantCarts.keys) {
+                    var items =
+                        cartProvider.restaurantCarts[restaurantId]?['Dine-in'];
+                    if (items != null && items.isNotEmpty) {
+                      dineInItems = items;
+                      totalItems =
+                          items.fold(0, (sum, item) => sum + item.quantity);
+                      id = restaurantId;
+                      break;
+                    }
+                  }
 
-              //   // If no "Take-Away" items found in any restaurant
-              //   if (dineInItems.isEmpty) {
-              //     return const SizedBox.shrink();
-              //   }
+                  // If no "Take-Away" items found in any restaurant
+                  if (dineInItems.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
 
-              //   return Positioned(
-              //       bottom: 0,
-              //       child: FoodCartSection(
-              //         name: dineInItems.first.restaurantName,
-              //         items: totalItems.toString(),
-              //         pressMenu: () {
-              //           Navigator.pushNamed(
-              //               context, SingleRestaurantScreen.routeName,
-              //               arguments: {
-              //                 'name': dineInItems.first.restaurantName,
-              //                 'location': dineInItems.first.location,
-              //                 'id': id,
-              //                 'selectedCategory': selectedCategory,
-              //               });
-              //         },
-              //         pressCart: () {
-              //           context.read<OrderTypeProvider>().changeHomeState(2);
-              //         },
-              //         pressRemove: () {
-              //           ctx.read<CartProvider>().clearCart(id, 'Dine-in');
-              //         },
-              //       ));
-              // })
+                  return Positioned(
+                      bottom: 0,
+                      child: FoodCartSection(
+                        name: dineInItems.first.restaurantName,
+                        items: totalItems.toString(),
+                        pressMenu: () {
+                          Navigator.pushNamed(
+                              context, SingleRestaurantScreen.routeName,
+                              arguments: {
+                                'name': dineInItems.first.restaurantName,
+                                'location': dineInItems.first.location,
+                                'id': id,
+                                'selectedCategory': selectedCategory,
+                              });
+                        },
+                        pressCart: () {
+                          context.read<OrderTypeProvider>().changeHomeState(2);
+                        },
+                        pressRemove: () {
+                          ctx.read<CartProvider>().clearCart(id, 'Dine-in');
+                        },
+                      ));
+                })
             ],
           ),
         ));

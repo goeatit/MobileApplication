@@ -36,93 +36,103 @@ class _ExpansionFloatingButtonState extends State<ExpansionFloatingButton> {
     });
   }
 
+  bool _shouldDisplayBooking(String? status) {
+    if (status == null) return false;
+    final lowerStatus = status.toLowerCase();
+    return lowerStatus == 'preparing' ||
+        lowerStatus == 'order placed' ||
+        lowerStatus == 'ready' ||
+        lowerStatus == 'delayed';
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Positioned(
-          bottom: 0,
-          left: 0,
-          right: 0,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            width: MediaQuery.of(context).size.width,
-            height: isExpanded ? MediaQuery.of(context).size.height * 0.7 : 50,
-            child: Card(
-              margin: EdgeInsets.zero,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(isExpanded ? 28 : 0),
-                ),
+    if (widget.orders
+        .where((order) => _shouldDisplayBooking(order.user.orderStatus))
+        .isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return SizedBox(
+      width: MediaQuery.of(context).size.width,
+      height: MediaQuery.of(context).size.height,
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          width: MediaQuery.of(context).size.width,
+          height: isExpanded ? MediaQuery.of(context).size.height * 0.7 : 50,
+          child: Card(
+            margin: EdgeInsets.zero,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(isExpanded ? 28 : 0),
               ),
-              child: Column(
-                children: [
-                  if (isExpanded)
-                    Expanded(
-                      child: SingleChildScrollView(
-                        child: BookingBottomSheet(
-                          onClosePressed: () {
-                            setState(() {
-                              isExpanded = false;
-                            });
-                          },
-                          orders: widget.orders,
-                        ),
-                      ),
-                    ),
-                  SizedBox(
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: isLoading ? null : handleButtonPress,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFF8951D),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 12),
-                        minimumSize: const Size.fromHeight(50),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.vertical(
-                            top: Radius.circular(isExpanded ? 0 : 0),
-                          ),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          if (isLoading)
-                            // Show loading spinner
-                            const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          else ...[
-                            // Show normal content
-                            const Text(
-                              'View all my bookings',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            const SizedBox(width: 8),
-                            Icon(
-                              isExpanded
-                                  ? Icons.keyboard_arrow_down
-                                  : Icons.double_arrow_rounded,
-                              color: Colors.white,
-                              size: 30,
-                            ),
-                          ],
-                        ],
+            ),
+            child: Column(
+              children: [
+                if (isExpanded)
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: BookingBottomSheet(
+                        onClosePressed: () {
+                          setState(() {
+                            isExpanded = false;
+                          });
+                        },
+                        orders: widget.orders,
                       ),
                     ),
                   ),
-                ],
-              ),
+                SizedBox(
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: isLoading ? null : handleButtonPress,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFF8951D),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                      minimumSize: const Size.fromHeight(50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(isExpanded ? 0 : 0),
+                        ),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (isLoading)
+                          const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        else ...[
+                          const Text(
+                            'View all my bookings',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(
+                            isExpanded
+                                ? Icons.keyboard_arrow_down
+                                : Icons.double_arrow_rounded,
+                            color: Colors.white,
+                            size: 30,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
-      ],
+      ),
     );
   }
 }
