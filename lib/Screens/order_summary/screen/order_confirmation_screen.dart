@@ -2,6 +2,7 @@ import 'package:eatit/Screens/My_Booking/screen/my_bookings_screen.dart';
 import 'package:eatit/Screens/homes/screen/home_screen.dart';
 import 'package:eatit/provider/cart_dish_provider.dart';
 import 'package:eatit/provider/order_provider.dart';
+import 'package:eatit/provider/order_type_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
@@ -304,6 +305,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
                       //   }
                       // }
                       Navigator.of(context).pop();
+                      context.read<OrderTypeProvider>().changeHomeState(0);
                       Navigator.pushReplacementNamed(
                         context,
                         HomePage.routeName,

@@ -255,7 +255,6 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
