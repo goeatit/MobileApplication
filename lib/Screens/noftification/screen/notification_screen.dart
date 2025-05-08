@@ -58,7 +58,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       requestBadgePermission: true,
       requestSoundPermission: true,
     );
-ß
+
     const InitializationSettings initSettings =
         InitializationSettings(android: androidInitSettings,iOS: iOSInitSettings,);
 
