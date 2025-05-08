@@ -52,9 +52,15 @@ class _NotificationScreenState extends State<NotificationScreen> {
     }
     const AndroidInitializationSettings androidInitSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
-
+    const DarwinInitializationSettings iOSInitSettings =
+    DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
+ß
     const InitializationSettings initSettings =
-        InitializationSettings(android: androidInitSettings);
+        InitializationSettings(android: androidInitSettings,iOS: iOSInitSettings,);
 
     await _flutterLocalNotificationsPlugin.initialize(initSettings);
   }
