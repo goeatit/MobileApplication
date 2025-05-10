@@ -46,8 +46,8 @@ class BookingBottomSheet extends StatefulWidget {
   const BookingBottomSheet({
     required this.onClosePressed,
     required this.orders,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<BookingBottomSheet> createState() => _BookingBottomSheetState();
@@ -542,15 +542,17 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
           style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey[700]),
         ),
         const SizedBox(width: 4),
-        Text(
-          value,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: Colors.grey[900],
+        Flexible(
+          child: Text(
+            value,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[900],
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 2, // Add this to handle text overflow
           ),
-          overflow: TextOverflow.ellipsis,
-          maxLines: 2, // Add this to handle text overflow
-        ),
+        )
       ],
     );
   }

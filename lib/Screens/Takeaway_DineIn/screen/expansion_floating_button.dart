@@ -9,8 +9,8 @@ class ExpansionFloatingButton extends StatefulWidget {
   const ExpansionFloatingButton({
     required this.orders,
     required this.onRefresh,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<ExpansionFloatingButton> createState() =>
@@ -28,7 +28,9 @@ class _ExpansionFloatingButtonState extends State<ExpansionFloatingButton> {
     });
 
     // Call onRefresh and wait for it to complete
-    await Future.microtask(() => widget.onRefresh());
+    if(!isExpanded) {
+      await Future.microtask(() => widget.onRefresh());
+    }
 
     setState(() {
       isLoading = false; // Stop loading
