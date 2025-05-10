@@ -27,12 +27,24 @@ class MyBookingService {
       return null;
     }
   }
-  Future<Response?> cancelOrder(String orderId) async{
-    try{
+
+  Future<Response?> cancelOrder(String orderId) async {
+    try {
       return _apiRepository.cancelOrder(orderId);
-    }catch(e){
+    } catch (e) {
       print(e);
       return null;
+    }
+  }
+
+  Future<bool> updatePickupTime(String orderId, String newPickupTime) async {
+    try {
+      final response =
+          await _apiRepository.updateOrderPickupTime(orderId, newPickupTime);
+      return response != null && response.statusCode == 200;
+    } catch (e) {
+      print(e);
+      return false;
     }
   }
 

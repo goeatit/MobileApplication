@@ -23,14 +23,14 @@ class _RestaurantAddressScreenState extends State<RestaurantAddressScreen> {
   final Completer<GoogleMapController> _controller = Completer();
 
   final TextEditingController _searchController = TextEditingController();
-  final TextEditingController _buildingNoController = TextEditingController();
-  final TextEditingController _floorController = TextEditingController();
-  final TextEditingController _areaController = TextEditingController();
+  // final TextEditingController _buildingNoController = TextEditingController();
+  // final TextEditingController _floorController = TextEditingController();
+  // final TextEditingController _areaController = TextEditingController();
   final TextEditingController _cityController = TextEditingController();
-  final TextEditingController _landmarkController = TextEditingController();
+  //final TextEditingController _landmarkController = TextEditingController();
   final TextEditingController _stateController = TextEditingController();
   final TextEditingController _countryController = TextEditingController();
-  final TextEditingController _postalCodeController = TextEditingController();
+  //final TextEditingController _postalCodeController = TextEditingController();
 
   String _error = '';
   LatLng _currentPosition = const LatLng(28.7041, 77.1025); // Default: Delhi
@@ -93,23 +93,22 @@ class _RestaurantAddressScreenState extends State<RestaurantAddressScreen> {
       if (placemarks.isNotEmpty) {
         Placemark place = placemarks.first;
         setState(() {
-          _searchController.text =
-              '${place.subLocality} ${place.locality}'.trim();
+          _searchController.text = ' ${place.locality}'.trim();
           // Combine area details with postal code
-          String areaText = '';
-          if (place.subLocality?.isNotEmpty ?? false) {
-            areaText += place.subLocality!;
-          }
-          if (place.thoroughfare?.isNotEmpty ?? false) {
-            areaText += areaText.isEmpty
-                ? place.thoroughfare!
-                : ', ${place.thoroughfare}';
-          }
-          if (place.postalCode?.isNotEmpty ?? false) {
-            areaText +=
-                areaText.isEmpty ? place.postalCode! : ' - ${place.postalCode}';
-          }
-          _areaController.text = areaText;
+          // String areaText = '';
+          // if (place.subLocality?.isNotEmpty ?? false) {
+          //   areaText += place.subLocality!;
+          // }
+          // if (place.thoroughfare?.isNotEmpty ?? false) {
+          //   areaText += areaText.isEmpty
+          //       ? place.thoroughfare!
+          //       : ', ${place.thoroughfare}';
+          // }
+          // if (place.postalCode?.isNotEmpty ?? false) {
+          //   areaText +=
+          //       areaText.isEmpty ? place.postalCode! : ' - ${place.postalCode}';
+          // }
+          //_areaController.text = areaText;
           _cityController.text = place.locality ?? '';
           _stateController.text = place.administrativeArea ?? '';
           _countryController.text = place.country ?? '';
@@ -330,21 +329,21 @@ class _RestaurantAddressScreenState extends State<RestaurantAddressScreen> {
                   ),
                 ),
                 const SizedBox(height: 30),
-                TextFormField(
-                  controller: _areaController,
-                  enabled: false,
-                  decoration: const InputDecoration(
-                    labelText: 'Area / Sector / Locality / Postal Code*',
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value?.isEmpty ?? true) {
-                      return 'Please select a location from the map';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 10),
+                // TextFormField(
+                //   controller: _areaController,
+                //   enabled: false,
+                //   decoration: const InputDecoration(
+                //     labelText: 'Area / Sector / Locality / Postal Code*',
+                //     border: OutlineInputBorder(),
+                //   ),
+                //   validator: (value) {
+                //     if (value?.isEmpty ?? true) {
+                //       return 'Please select a location from the map';
+                //     }
+                //     return null;
+                //   },
+                // ),
+                // const SizedBox(height: 10),
                 TextFormField(
                   controller: _cityController,
                   enabled: false,
@@ -428,22 +427,22 @@ class _RestaurantAddressScreenState extends State<RestaurantAddressScreen> {
                                 // Construct and save full address
                                 // In the save button onPressed callback
                                 String fullAddress = '';
-                                if (_buildingNoController.text.isNotEmpty) {
-                                  fullAddress +=
-                                      '${_buildingNoController.text}, ';
-                                }
-                                if (_floorController.text.isNotEmpty) {
-                                  fullAddress += '${_floorController.text}, ';
-                                }
-                                fullAddress += '${_areaController.text}, ';
-                                if (_landmarkController.text.isNotEmpty) {
-                                  fullAddress +=
-                                      '${_landmarkController.text}, ';
-                                }
+                                // if (_buildingNoController.text.isNotEmpty) {
+                                //   fullAddress +=
+                                //       '${_buildingNoController.text}, ';
+                                // }
+                                // if (_floorController.text.isNotEmpty) {
+                                //   fullAddress += '${_floorController.text}, ';
+                                // }
+                                // fullAddress += '${_areaController.text}, ';
+                                // if (_landmarkController.text.isNotEmpty) {
+                                //   fullAddress +=
+                                //       '${_landmarkController.text}, ';
+                                // }
                                 fullAddress += '${_cityController.text}, ';
                                 fullAddress += '${_stateController.text}, ';
                                 fullAddress += '${_countryController.text} ';
-                                fullAddress += _postalCodeController.text;
+                                //fullAddress += _postalCodeController.text;
 
                                 await prefs.setString(
                                     "full_address", fullAddress);
@@ -486,7 +485,7 @@ class _RestaurantAddressScreenState extends State<RestaurantAddressScreen> {
                           }
                         : null,
                     child: const Text(
-                      'Save & Next',
+                      'Continue',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -505,11 +504,11 @@ class _RestaurantAddressScreenState extends State<RestaurantAddressScreen> {
   @override
   void dispose() {
     _searchController.dispose();
-    _buildingNoController.dispose();
-    _floorController.dispose();
-    _areaController.dispose();
+    // _buildingNoController.dispose();
+    // _floorController.dispose();
+    // _areaController.dispose();
     _cityController.dispose();
-    _landmarkController.dispose();
+    //_landmarkController.dispose();
     _stateController.dispose();
     _countryController.dispose();
 

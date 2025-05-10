@@ -440,7 +440,7 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
                                               restaurantName:
                                                   restaurants[0].restaurantName,
                                               cuisineType:
-                                                  "Indian • Biryani", // Update this if you have a field for cuisine
+                                                  "Indian • ${restaurants[0].topratedCusine}", // Update this if you have a field for cuisine
                                               priceRange:
                                                   "₹1200-₹1500 for two", // Update this if you have price range info
                                               rating: restaurants[0]
@@ -560,7 +560,8 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
                                               restaurantName:
                                                   restaurant.restaurantName,
                                               location: city!,
-                                              cuisineType: "Indian • Biryani",
+                                              cuisineType:
+                                                  "Indian • ${restaurant.topratedCusine}",
                                               priceRange: "₹1200-₹1500 for two",
                                               rating:
                                                   restaurant.ratings.toDouble(),

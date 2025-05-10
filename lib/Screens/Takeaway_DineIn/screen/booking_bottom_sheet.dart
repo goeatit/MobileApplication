@@ -1,6 +1,7 @@
 import 'package:eatit/Screens/order_summary/service/time_slot_generater.dart';
 import 'package:eatit/models/my_booking_modal.dart';
 import 'package:flutter/material.dart';
+import 'package:eatit/Screens/My_Booking/service/My_Booking_service.dart';
 
 // Custom Dashed Divider
 class DashedDivider extends StatelessWidget {
@@ -59,6 +60,7 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
       order.user.restaurantTiming ?? "10:00 AM - 10:00 PM",
     );
     String? selectedTime;
+    final bookingService = MyBookingService();
 
     showDialog(
       context: context,
@@ -191,20 +193,57 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
           },
         );
       },
-    ).then((selectedTime) {
+    ).then((selectedTime) async {
       if (selectedTime != null) {
-        setState(() {
-          order.user.pickupTime =
-              selectedTime; // ✅ Update the pick up time directly
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Pickup time updated to: $selectedTime'),
-            duration: const Duration(seconds: 2),
-          ),
-        );
+        // Show loading indicator
+        final loadingOverlay = _showLoadingOverlay(context);
+
+        // Call API to update pickup time
+        final success = await bookingService.updatePickupTime(
+            order.user.orderId, selectedTime);
+
+        // Hide loading indicator
+        loadingOverlay.remove();
+
+        if (success) {
+          setState(() {
+            order.user.pickupTime = selectedTime;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Pickup time updated to: $selectedTime'),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to update pickup time. Please try again.'),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
       }
     });
+  }
+
+// Helper method to show loading overlay
+  OverlayEntry _showLoadingOverlay(BuildContext context) {
+    final overlay = OverlayEntry(
+      builder: (context) => Container(
+        color: Colors.black.withOpacity(0.5),
+        child: const Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFF8951D)),
+          ),
+        ),
+      ),
+    );
+
+    Overlay.of(context).insert(overlay);
+    return overlay;
   }
 
   Color _getStatusBackgroundColor(String? status) {

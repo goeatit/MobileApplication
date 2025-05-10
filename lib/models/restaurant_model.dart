@@ -24,6 +24,7 @@ class RestaurantsData {
   dynamic lat;
   dynamic long;
   String id;
+  dynamic topratedCusine;
 
   RestaurantsData({
     required this.restaurantName,
@@ -32,6 +33,7 @@ class RestaurantsData {
     required this.id,
     this.lat,
     this.long,
+    this.topratedCusine,
   });
 
   factory RestaurantsData.fromJson(Map<String, dynamic> json) {
@@ -42,6 +44,7 @@ class RestaurantsData {
       id: json['id'] ?? '',
       lat: json['lat'] ?? null,
       long: json['long'] ?? null,
+      topratedCusine: json['topratedCusine'] ?? null,
     );
   }
 }

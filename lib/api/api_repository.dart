@@ -241,4 +241,18 @@ class ApiRepository {
       return networkManager.dioManger.get(endpoint, cancelToken: cancelToken);
     });
   }
+
+  Future<Response?> updateOrderPickupTime(
+      String orderId, String newPickupTime) async {
+    final endpoint = ApiEndpoints.updatePickupTime;
+    return await networkManager.makeRequest(() {
+      return networkManager.dioManger.put(
+        endpoint,
+        data: {
+          'orderId': orderId,
+          'pickupTime': newPickupTime,
+        },
+      );
+    });
+  }
 }

@@ -434,7 +434,8 @@ class _DineInScreen extends State<DineInScreen> {
                                                 'assets/images/restaurant.png',
                                             restaurantName:
                                                 restaurants[0].restaurantName,
-                                            cuisineType: "Indian • Biryani",
+                                            cuisineType:
+                                                "Indian • ${restaurants[0].topratedCusine}",
                                             priceRange: "₹1200-₹1500 for two",
                                             rating: restaurants[0]
                                                 .ratings
@@ -549,7 +550,8 @@ class _DineInScreen extends State<DineInScreen> {
                                             restaurantName:
                                                 restaurant.restaurantName,
                                             location: city!,
-                                            cuisineType: "Indian • Biryani",
+                                            cuisineType:
+                                                "Indian • ${restaurant.topratedCusine}",
                                             priceRange: "₹1200-₹1500 for two",
                                             rating:
                                                 restaurant.ratings.toDouble(),
