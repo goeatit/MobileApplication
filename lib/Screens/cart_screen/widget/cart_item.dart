@@ -15,7 +15,7 @@ class CartItemWidget extends StatefulWidget {
   final String restaurantId;
   final List<CartItem> allItems;
   final int index;
-
+  final bool isRecentlyAdded;
   const CartItemWidget({
     super.key,
     required this.restaurantName,
@@ -28,6 +28,7 @@ class CartItemWidget extends StatefulWidget {
     required this.restaurantId,
     required this.allItems,
     required this.index,
+    required this.isRecentlyAdded,
   });
 
   @override
@@ -152,6 +153,25 @@ class _CartItemWidgetState extends State<CartItemWidget> {
                           ),
                         ),
                       ),
+                      const SizedBox(height: 8),
+                      if (widget.isRecentlyAdded) // Add this condition
+                        Container(
+                          margin: const EdgeInsets.only(right: 8),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8951D).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text(
+                            'Recently Added',
+                            style: TextStyle(
+                              color: Color(0xFFF8951D),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
                       const SizedBox(height: 8),
                       Row(
                         children: [

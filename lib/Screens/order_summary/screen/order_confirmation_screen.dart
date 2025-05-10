@@ -1,6 +1,8 @@
 import 'package:eatit/Screens/My_Booking/screen/my_bookings_screen.dart';
+import 'package:eatit/Screens/homes/screen/home_screen.dart';
 import 'package:eatit/provider/cart_dish_provider.dart';
 import 'package:eatit/provider/order_provider.dart';
+import 'package:eatit/provider/order_type_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
@@ -170,8 +172,6 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
-                                crossAxisAlignment: CrossAxisAlignment
-                                    .start, // Align items to the top
                                 children: [
                                   Container(
                                     alignment: Alignment.center,
@@ -183,53 +183,44 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
                                   ),
                                   const SizedBox(width: 10),
                                   Expanded(
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize
-                                          .min, // Take minimum required space
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          widget.restaurantName,
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .titleLarge,
-                                        ),
-                                        Text(
-                                          widget
-                                              .location, // Use the passed location here
-
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .labelLarge,
-                                        ),
-                                      ],
+                                    child: Text(
+                                      widget.restaurantName,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleLarge,
                                     ),
                                   ),
-                                  Container(
-                                    alignment: Alignment
-                                        .topCenter, // Align button to the top
-                                    child: ElevatedButton.icon(
-                                      onPressed: () {
-                                        _openMap(
-                                          widget.latitude,
-                                          widget.longitude,
-                                          name: widget.restaurantName,
-                                        );
-                                      },
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor:
-                                            const Color(0xFFF8951D),
-                                        foregroundColor: Colors.white,
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 16,
-                                          vertical: 8,
-                                        ), // Add padding for better button appearance
+                                  const SizedBox(width: 10),
+                                  ElevatedButton.icon(
+                                    onPressed: () {
+                                      _openMap(
+                                        widget.latitude,
+                                        widget.longitude,
+                                        name: widget.restaurantName,
+                                      );
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFFF8951D),
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 8,
                                       ),
-                                      label: const Text('Get Directions'),
                                     ),
+                                    label: const Text('Get Directions'),
                                   ),
                                 ],
+                              ),
+                              const SizedBox(
+                                  height:
+                                      8), // Add spacing between name and address
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                    left: 40), // Align with restaurant name
+                                child: Text(
+                                  widget.location,
+                                  style: Theme.of(context).textTheme.labelLarge,
+                                ),
                               ),
                             ],
                           ),
@@ -314,9 +305,10 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
                       //   }
                       // }
                       Navigator.of(context).pop();
+                      context.read<OrderTypeProvider>().changeHomeState(0);
                       Navigator.pushReplacementNamed(
                         context,
-                        MyBookingsScreen.routeName,
+                        HomePage.routeName,
                       );
                     },
                     style: ElevatedButton.styleFrom(

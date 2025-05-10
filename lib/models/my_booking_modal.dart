@@ -79,6 +79,7 @@ class UserUser {
   DateTime createdAt;
   DateTime updatedAt;
   dynamic dinein;
+  final String? restaurantTiming; // Add this property
 
   UserUser({
     required this.id,
@@ -95,6 +96,7 @@ class UserUser {
     required this.createdAt,
     required this.updatedAt,
     this.dinein,
+    this.restaurantTiming,
   });
 
   factory UserUser.fromJson(Map<String, dynamic> json) {
@@ -114,6 +116,7 @@ class UserUser {
       createdAt: DateTime.parse(json['createdAt']),
       updatedAt: DateTime.parse(json['updatedAt']),
       dinein: json['dinein'],
+      restaurantTiming: json['restaurantTiming'] as String?,
     );
   }
 
@@ -137,6 +140,7 @@ class UserUser {
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
       'dinein': dinein,
+      'restaurantTiming': restaurantTiming,
     };
   }
 }
@@ -165,6 +169,8 @@ class Item {
       quantity: json['quantity'],
     );
   }
+
+  get imageUrl => null;
 
   Map<String, dynamic> toJson() {
     return {

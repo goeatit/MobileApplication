@@ -1,6 +1,9 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:eatit/Screens/Filter/filter_widget.dart';
+import 'package:eatit/Screens/My_Booking/service/My_Booking_service.dart';
+import 'package:eatit/Screens/Takeaway_DineIn/screen/booking_bottom_sheet.dart';
+import 'package:eatit/Screens/Takeaway_DineIn/screen/expansion_floating_button.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/screen/shimmer_loading_effect.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/screen/singe_restaurant_screen.dart';
 import 'package:eatit/api/api_client.dart';
@@ -9,6 +12,7 @@ import 'package:eatit/api/network_manager.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/main.dart';
 import 'package:eatit/models/cart_items.dart';
+import 'package:eatit/models/my_booking_modal.dart';
 import 'package:eatit/models/restaurant_model.dart';
 import 'package:eatit/provider/cart_dish_provider.dart';
 import 'package:eatit/provider/order_type_provider.dart';
@@ -32,6 +36,9 @@ class DineInScreen extends StatefulWidget {
 }
 
 class _DineInScreen extends State<DineInScreen> {
+  final List<UserElement> _orders = []; // Initialize with an empty list
+  bool _isLoadingOrders = false;
+  final MyBookingService _bookingService = MyBookingService();
   late CancelToken _cancelToken;
   List<RestaurantsData> restaurants = [];
   List<RestaurantsData> filteredRestaurants = []; // Store filtered restaurants
@@ -221,12 +228,44 @@ class _DineInScreen extends State<DineInScreen> {
     }
   }
 
+  Future<void> fetchOrders() async {
+    if (mounted) {
+      setState(() => _isLoadingOrders = true);
+    }
+
+    try {
+      final response = await _bookingService.fetchOrderDetails();
+      if (response != null && mounted) {
+        setState(() {
+          _orders.clear();
+          _orders.addAll(response.user);
+        });
+      }
+    } catch (e) {
+      print('Error fetching orders: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingOrders = false);
+      }
+    }
+  }
+
+  bool _shouldDisplayBooking(String? status) {
+    if (status == null) return false;
+    final lowerStatus = status.toLowerCase();
+    return lowerStatus == 'preparing' ||
+        lowerStatus == 'order placed' ||
+        lowerStatus == 'ready' ||
+        lowerStatus == 'delayed';
+  }
+
   @override
   void initState() {
     super.initState();
     _cancelToken = CancelToken();
     fetchData();
     startBannerTimer();
+    fetchOrders();
   }
 
   void startBannerTimer() {
@@ -299,6 +338,12 @@ class _DineInScreen extends State<DineInScreen> {
           }
         },
         child: Scaffold(
+          // floatingActionButtonLocation:
+          //     FloatingActionButtonLocation.centerDocked,
+          // floatingActionButton: ExpansionFloatingButton(
+          //   orders: _orders,
+          //   onRefresh: () => fetchOrders(), // Add refresh callback
+          // ),
           body: Stack(
             children: [
               isLoading
@@ -389,7 +434,8 @@ class _DineInScreen extends State<DineInScreen> {
                                                 'assets/images/restaurant.png',
                                             restaurantName:
                                                 restaurants[0].restaurantName,
-                                            cuisineType: "Indian • Biryani",
+                                            cuisineType:
+                                                "Indian • ${restaurants[0].topratedCusine}",
                                             priceRange: "₹1200-₹1500 for two",
                                             rating: restaurants[0]
                                                 .ratings
@@ -504,7 +550,8 @@ class _DineInScreen extends State<DineInScreen> {
                                             restaurantName:
                                                 restaurant.restaurantName,
                                             location: city!,
-                                            cuisineType: "Indian • Biryani",
+                                            cuisineType:
+                                                "Indian • ${restaurant.topratedCusine}",
                                             priceRange: "₹1200-₹1500 for two",
                                             rating:
                                                 restaurant.ratings.toDouble(),
@@ -525,57 +572,66 @@ class _DineInScreen extends State<DineInScreen> {
                                   ),
                                 ),
                         ),
-              // Bottom Cart
-              Consumer<CartProvider>(builder: (ctx, cartProvider, child) {
-                if (cartProvider.restaurantCarts.isEmpty) {
-                  return const SizedBox.shrink();
-                }
-
-                List<CartItem> dineInItems = [];
-                int totalItems = 0;
-                String id = "";
-
-                // Iterate through restaurants to find the first "Take-Away" cart items
-                for (var restaurantId in cartProvider.restaurantCarts.keys) {
-                  var items =
-                      cartProvider.restaurantCarts[restaurantId]?['Dine-in'];
-                  if (items != null && items.isNotEmpty) {
-                    dineInItems = items;
-                    totalItems =
-                        items.fold(0, (sum, item) => sum + item.quantity);
-                    id = restaurantId;
-                    break;
+              if (_orders
+                  .where(
+                      (order) => _shouldDisplayBooking(order.user.orderStatus))
+                  .isNotEmpty)
+                ExpansionFloatingButton(
+                  orders: _orders,
+                  onRefresh: fetchOrders,
+                )
+              else
+                // Bottom Cart
+                Consumer<CartProvider>(builder: (ctx, cartProvider, child) {
+                  if (cartProvider.restaurantCarts.isEmpty) {
+                    return const SizedBox.shrink();
                   }
-                }
 
-                // If no "Take-Away" items found in any restaurant
-                if (dineInItems.isEmpty) {
-                  return const SizedBox.shrink();
-                }
+                  List<CartItem> dineInItems = [];
+                  int totalItems = 0;
+                  String id = "";
 
-                return Positioned(
-                    bottom: 0,
-                    child: FoodCartSection(
-                      name: dineInItems.first.restaurantName,
-                      items: totalItems.toString(),
-                      pressMenu: () {
-                        Navigator.pushNamed(
-                            context, SingleRestaurantScreen.routeName,
-                            arguments: {
-                              'name': dineInItems.first.restaurantName,
-                              'location': dineInItems.first.location,
-                              'id': id,
-                              'selectedCategory': selectedCategory,
-                            });
-                      },
-                      pressCart: () {
-                        context.read<OrderTypeProvider>().changeHomeState(2);
-                      },
-                      pressRemove: () {
-                        ctx.read<CartProvider>().clearCart(id, 'Dine-in');
-                      },
-                    ));
-              })
+                  // Iterate through restaurants to find the first "Take-Away" cart items
+                  for (var restaurantId in cartProvider.restaurantCarts.keys) {
+                    var items =
+                        cartProvider.restaurantCarts[restaurantId]?['Dine-in'];
+                    if (items != null && items.isNotEmpty) {
+                      dineInItems = items;
+                      totalItems =
+                          items.fold(0, (sum, item) => sum + item.quantity);
+                      id = restaurantId;
+                      break;
+                    }
+                  }
+
+                  // If no "Take-Away" items found in any restaurant
+                  if (dineInItems.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+
+                  return Positioned(
+                      bottom: 0,
+                      child: FoodCartSection(
+                        name: dineInItems.first.restaurantName,
+                        items: totalItems.toString(),
+                        pressMenu: () {
+                          Navigator.pushNamed(
+                              context, SingleRestaurantScreen.routeName,
+                              arguments: {
+                                'name': dineInItems.first.restaurantName,
+                                'location': dineInItems.first.location,
+                                'id': id,
+                                'selectedCategory': selectedCategory,
+                              });
+                        },
+                        pressCart: () {
+                          context.read<OrderTypeProvider>().changeHomeState(2);
+                        },
+                        pressRemove: () {
+                          ctx.read<CartProvider>().clearCart(id, 'Dine-in');
+                        },
+                      ));
+                })
             ],
           ),
         ));
