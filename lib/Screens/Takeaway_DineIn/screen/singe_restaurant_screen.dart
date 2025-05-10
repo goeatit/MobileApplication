@@ -107,6 +107,22 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
   }
 
   // Add this flag to prevent recursion
+  String _getTopRatedDish() {
+    if (dish?.availableDishes == null || dish!.availableDishes.isEmpty) {
+      return "";
+    }
+
+    // Sort dishes by rating in descending order
+    var sortedDishes = List<AvailableDish>.from(dish!.availableDishes);
+    sortedDishes.sort((a, b) => (b.ratting ?? 0).compareTo(a.ratting ?? 0));
+
+    // Return the name of the highest rated dish
+    if (sortedDishes.isNotEmpty) {
+      return sortedDishes.first.dishId.dishName;
+    }
+    return "";
+  }
+
   bool _isFilteringInProgress = false;
 
   void _openMap(dynamic latitude, dynamic longitude, {String? name}) async {
@@ -888,9 +904,10 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                     color: Theme.of(context).primaryColor,
                                     size: 15, // Adjust size as needed
                                   ),
-                                  const Text(
-                                    " | Indian • Biryani | 2.3km ",
-                                    style: TextStyle(
+                                  Text(
+                                    //" | Indian • ${widget.cuisineType} | ${_getTopRatedDish()}",
+                                    " | Indian • ${_getTopRatedDish()} | 2.3km ",
+                                    style: const TextStyle(
                                       color: Color(0xFF4F4F4F),
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -1374,15 +1391,15 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                       width: 1,
                     ),
                     borderRadius: BorderRadius.circular(30),
-                    boxShadow: isSelected[index]
-                        ? [
-                            BoxShadow(
-                              color: const Color(0xFFF8951D).withOpacity(0.3),
-                              blurRadius: 6,
-                              offset: const Offset(0, 3),
-                            )
-                          ]
-                        : [],
+                    // boxShadow: isSelected[index]
+                    //     ? [
+                    //         BoxShadow(
+                    //           color: const Color(0xFFF8951D).withOpacity(0.3),
+                    //           blurRadius: 6,
+                    //           offset: const Offset(0, 3),
+                    //         )
+                    //       ]
+                    //     : [],
                   ),
                   padding:
                       const EdgeInsets.symmetric(vertical: 10, horizontal: 16),

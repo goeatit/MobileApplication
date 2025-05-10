@@ -900,7 +900,7 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                       children: [
                         Text(
                           widget.name,
-                          textAlign: TextAlign.right,
+                          textAlign: TextAlign.left,
                           style: Theme.of(context)
                               .textTheme
                               .titleSmall

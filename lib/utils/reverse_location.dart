@@ -30,7 +30,7 @@ Future<Map<String, String>?> reverseGeocode(double lat, double lng) async {
           }
         }
 
-        return {'city': city, 'country': country,'fullAddress':fullAddress};
+        return {'city': city, 'country': country, 'fullAddress': fullAddress};
       } else {
         if (kDebugMode) {
           print('Geocoding API error: ${data['status']}');

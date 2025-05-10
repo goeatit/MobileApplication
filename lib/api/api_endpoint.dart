@@ -28,5 +28,6 @@ class ApiEndpoints {
   static String verifyPayment = "/mobile/payment/verify";
   static String updateProfile = "/mobile/updateProfile";
   static String initProfile = "/mobile/auth/init";
+  static String updatePickupTime = "/mobile/order/updatePickupTime";
 // Add more dynamically constructed endpoints
 }

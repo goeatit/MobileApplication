@@ -22,10 +22,20 @@ class CartPage extends StatefulWidget {
 class CartPageState extends State<CartPage> {
   final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
   List<CartItemWithDetails> _cartItems = [];
+  DateTime? latestTime;
+  String? latestId;
+  String? latestOrderType;
 
   @override
   void initState() {
     super.initState();
+    if (_cartItems.isNotEmpty) {
+      final latest =
+          _cartItems.reduce((a, b) => a.createdAt.isAfter(b.createdAt) ? a : b);
+      latestTime = latest.createdAt;
+      latestId = latest.id;
+      latestOrderType = latest.orderType;
+    }
   }
 
   @override
@@ -38,6 +48,7 @@ class CartPageState extends State<CartPage> {
   void _updateCartItems(restaurantCarts) {
     final items = restaurantCarts;
     final newCartItems = <CartItemWithDetails>[];
+
     items.forEach((id, orderTypes) {
       orderTypes.forEach((orderType, cartItems) {
         if (cartItems.isNotEmpty) {
@@ -47,14 +58,23 @@ class CartPageState extends State<CartPage> {
             id: id,
             orderType: orderType,
             allItems: cartItems,
-            restaurantImageUrl: cartItems.first.restaurantImageUrl, // Add this
+            restaurantImageUrl: cartItems.first.restaurantImageUrl,
+            createdAt: cartItems.first.createTime ?? DateTime.now(),
           ));
         }
       });
     });
-    if (_cartItems.length <= newCartItems.length) {
-      print("1st ");
-      _listKey.currentState?.insertItem(newCartItems.length);
+
+    // 🔥 Sort newCartItems by createdAt DESC (recent first)
+    newCartItems.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+    if (_cartItems.length < newCartItems.length) {
+      final latest = newCartItems.first;
+      latestTime = latest.createdAt;
+      latestId = latest.id;
+      latestOrderType = latest.orderType;
+
+      _listKey.currentState?.insertItem(_cartItems.length);
     } else {
       for (int i = _cartItems.length - 1; i >= newCartItems.length; i--) {
         _listKey.currentState?.removeItem(
@@ -69,6 +89,7 @@ class CartPageState extends State<CartPage> {
                 child: const SizedBox.shrink()));
       }
     }
+
     if (mounted) {
       setState(() {
         _cartItems = newCartItems;
@@ -104,6 +125,7 @@ class CartPageState extends State<CartPage> {
           allItems: removedItem.allItems,
           isAvailable: true,
           index: index,
+          isRecentlyAdded: false,
         ),
       ),
       duration: const Duration(milliseconds: 600),
@@ -245,6 +267,8 @@ class CartPageState extends State<CartPage> {
     final imageIndex =
         cartItemWithDetails.id.hashCode % 10; // Will give numbers 0-9
     final restaurantImage = 'assets/images/restaurant${imageIndex}.png';
+    final isRecentlyAdded = (cartItemWithDetails.id == latestId &&
+        cartItemWithDetails.orderType == latestOrderType);
 
     return SlideTransition(
       position: animation.drive(
@@ -280,6 +304,7 @@ class CartPageState extends State<CartPage> {
               .map((itm) => '${itm.quantity} x ${itm.dish.dishId.dishName}')
               .toList(),
           instructions: 'Make one of them spicy',
+          isRecentlyAdded: isRecentlyAdded,
           icon: const Icon(Icons.remove),
           restaurantId: cartItemWithDetails.id,
           allItems: cartItemWithDetails.allItems,
@@ -298,13 +323,14 @@ class CartItemWithDetails {
   final String id;
   final List<CartItem> allItems;
   final String restaurantImageUrl;
+  final DateTime createdAt;
 
-  CartItemWithDetails({
-    required this.cartItem,
-    required this.restaurantName,
-    required this.orderType,
-    required this.allItems,
-    required this.id,
-    required this.restaurantImageUrl,
-  });
+  CartItemWithDetails(
+      {required this.cartItem,
+      required this.restaurantName,
+      required this.orderType,
+      required this.allItems,
+      required this.id,
+      required this.restaurantImageUrl,
+      required this.createdAt});
 }
