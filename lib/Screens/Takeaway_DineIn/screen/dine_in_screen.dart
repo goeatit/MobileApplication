@@ -2,6 +2,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:eatit/Screens/Filter/filter_widget.dart';
 import 'package:eatit/Screens/My_Booking/service/My_Booking_service.dart';
+import 'package:eatit/Screens/Takeaway_DineIn/screen/banner_section.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/screen/booking_bottom_sheet.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/screen/expansion_floating_button.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/screen/shimmer_loading_effect.dart';
@@ -15,6 +16,7 @@ import 'package:eatit/models/cart_items.dart';
 import 'package:eatit/models/my_booking_modal.dart';
 import 'package:eatit/models/restaurant_model.dart';
 import 'package:eatit/provider/cart_dish_provider.dart';
+import 'package:eatit/provider/my_booking_provider.dart';
 import 'package:eatit/provider/order_type_provider.dart';
 import 'package:eatit/provider/selected_category_provider.dart';
 import 'package:flutter/foundation.dart';
@@ -36,7 +38,7 @@ class DineInScreen extends StatefulWidget {
 }
 
 class _DineInScreen extends State<DineInScreen> {
-  final List<UserElement> _orders = []; // Initialize with an empty list
+  // final List<UserElement> _orders = []; // Initialize with an empty list
   bool _isLoadingOrders = false;
   final MyBookingService _bookingService = MyBookingService();
   late CancelToken _cancelToken;
@@ -72,14 +74,14 @@ class _DineInScreen extends State<DineInScreen> {
   String? city;
   String? country;
 
-  int _currentBannerIndex = 0;
-  final List<String> bannerImages = [
-    "assets/images/banner.png",
-    "assets/images/banner2.png",
-    "assets/images/banner3.png",
-  ];
+  // int _currentBannerIndex = 0;
+  // final List<String> bannerImages = [
+  //   "assets/images/banner.png",
+  //   "assets/images/banner2.png",
+  //   "assets/images/banner3.png",
+  // ];
 
-  Timer? _timer;
+  // Timer? _timer;
   // Add CancelToken for API requests
   //final CancelToken _cancelToken = CancelToken();
 
@@ -236,10 +238,11 @@ class _DineInScreen extends State<DineInScreen> {
     try {
       final response = await _bookingService.fetchOrderDetails();
       if (response != null && mounted) {
-        setState(() {
-          _orders.clear();
-          _orders.addAll(response.user);
-        });
+        context.read<MyBookingProvider>().setMyBookings(response.user);
+        // setState(() {
+        //   _orders.clear();
+        //   _orders.addAll(response.user);
+        // });
       }
     } catch (e) {
       print('Error fetching orders: $e');
@@ -264,27 +267,27 @@ class _DineInScreen extends State<DineInScreen> {
     super.initState();
     _cancelToken = CancelToken();
     fetchData();
-    startBannerTimer();
-    fetchOrders();
+    // startBannerTimer();
+    // fetchOrders();
   }
 
-  void startBannerTimer() {
-    _timer?.cancel();
-
-    // First set initial state
-    setState(() {
-      _currentBannerIndex = 0;
-    });
-
-    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
-      if (mounted) {
-        // Check if widget is still mounted
-        setState(() {
-          _currentBannerIndex = (_currentBannerIndex + 1) % bannerImages.length;
-        });
-      }
-    });
-  }
+  // void startBannerTimer() {
+  //   _timer?.cancel();
+  //
+  //   // First set initial state
+  //   setState(() {
+  //     _currentBannerIndex = 0;
+  //   });
+  //
+  //   _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
+  //     if (mounted) {
+  //       // Check if widget is still mounted
+  //       setState(() {
+  //         _currentBannerIndex = (_currentBannerIndex + 1) % bannerImages.length;
+  //       });
+  //     }
+  //   });
+  // }
 
   @override
   void didChangeDependencies() {
@@ -298,8 +301,8 @@ class _DineInScreen extends State<DineInScreen> {
   @override
   void dispose() {
     // Cancel the banner rotation timer
-    _timer?.cancel();
-    _timer = null;
+    // _timer?.cancel();
+    // _timer = null;
 
     // Cancel any ongoing API requests
     if (!_cancelToken.isCancelled) {
@@ -338,16 +341,10 @@ class _DineInScreen extends State<DineInScreen> {
           }
         },
         child: Scaffold(
-          // floatingActionButtonLocation:
-          //     FloatingActionButtonLocation.centerDocked,
-          // floatingActionButton: ExpansionFloatingButton(
-          //   orders: _orders,
-          //   onRefresh: () => fetchOrders(), // Add refresh callback
-          // ),
           body: Stack(
             children: [
               isLoading
-                  ? const ShimmerLoadingEffect() // Replace CircularProgressIndicator with ShimmerLoadingEffect
+                  ? const ShimmerLoadingEffect()
                   : errorMessage.isNotEmpty
                       ? Center(
                           child: Image.asset(
@@ -360,55 +357,8 @@ class _DineInScreen extends State<DineInScreen> {
                           child: restaurants.isNotEmpty
                               ? Column(
                                   children: [
-                                    // Banner with dots
-                                    Column(
-                                      children: [
-                                        ClipRRect(
-                                          borderRadius: const BorderRadius.only(
-                                            topLeft: Radius.circular(12),
-                                            topRight: Radius.circular(12),
-                                          ),
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: AnimatedSwitcher(
-                                              duration: const Duration(
-                                                  milliseconds: 500),
-                                              child: Image.asset(
-                                                bannerImages[
-                                                    _currentBannerIndex],
-                                                key: ValueKey<int>(
-                                                    _currentBannerIndex),
-                                                width: double.infinity,
-                                                fit: BoxFit.contain,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: List.generate(
-                                            bannerImages.length,
-                                            (index) => Container(
-                                              width: 10,
-                                              height: 10,
-                                              margin:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 4),
-                                              decoration: BoxDecoration(
-                                                shape: BoxShape.circle,
-                                                color: _currentBannerIndex ==
-                                                        index
-                                                    ? const Color(0xFFF8951D)
-                                                    : const Color(0xFFFBCA8E),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 16),
-                                      ],
-                                    ),
+                                    // Replace banner section with new widget
+                                    const BannerSection(),
                                     if (selectedCategory.isNotEmpty &&
                                         filteredRestaurants.isEmpty)
                                       Container()
@@ -572,66 +522,83 @@ class _DineInScreen extends State<DineInScreen> {
                                   ),
                                 ),
                         ),
-              if (_orders
-                  .where(
-                      (order) => _shouldDisplayBooking(order.user.orderStatus))
-                  .isNotEmpty)
-                ExpansionFloatingButton(
-                  orders: _orders,
-                  onRefresh: fetchOrders,
-                )
-              else
+              // if (_orders
+              //     .where(
+              //         (order) => _shouldDisplayBooking(order.user.orderStatus))
+              //     .isNotEmpty)
+              //   ExpansionFloatingButton(
+              //     orders: _orders,
+              //     onRefresh: fetchOrders,
+              //   )
+              // else
                 // Bottom Cart
-                Consumer<CartProvider>(builder: (ctx, cartProvider, child) {
-                  if (cartProvider.restaurantCarts.isEmpty) {
-                    return const SizedBox.shrink();
+                // Consumer<CartProvider>(builder: (ctx, cartProvider, child) {
+                //   if (cartProvider.restaurantCarts.isEmpty) {
+                //     return const SizedBox.shrink();
+                //   }
+                //
+                //   List<CartItem> dineInItems = [];
+                //   int totalItems = 0;
+                //   String id = "";
+                //
+                //   // Iterate through restaurants to find the first "Take-Away" cart items
+                //   for (var restaurantId in cartProvider.restaurantCarts.keys) {
+                //     var items =
+                //         cartProvider.restaurantCarts[restaurantId]?['Dine-in'];
+                //     if (items != null && items.isNotEmpty) {
+                //       dineInItems = items;
+                //       totalItems =
+                //           items.fold(0, (sum, item) => sum + item.quantity);
+                //       id = restaurantId;
+                //       break;
+                //     }
+                //   }
+                //
+                //   // If no "Take-Away" items found in any restaurant
+                //   if (dineInItems.isEmpty) {
+                //     return const SizedBox.shrink();
+                //   }
+                //
+                //   return Positioned(
+                //       bottom: 0,
+                //       child: FoodCartSection(
+                //         name: dineInItems.first.restaurantName,
+                //         items: totalItems.toString(),
+                //         pressMenu: () {
+                //           Navigator.pushNamed(
+                //               context, SingleRestaurantScreen.routeName,
+                //               arguments: {
+                //                 'name': dineInItems.first.restaurantName,
+                //                 'location': dineInItems.first.location,
+                //                 'id': id,
+                //                 'selectedCategory': selectedCategory,
+                //               });
+                //         },
+                //         pressCart: () {
+                //           context.read<OrderTypeProvider>().changeHomeState(2);
+                //         },
+                //         pressRemove: () {
+                //           ctx.read<CartProvider>().clearCart(id, 'Dine-in');
+                //         },
+                //       ));
+                // })
+              Consumer<MyBookingProvider>(
+                builder: (ctx, mybookingprovider, child) {
+                  var _orders = mybookingprovider.myBookings;
+                  if (_orders
+                      .where((order) =>
+                      _shouldDisplayBooking(order.user.orderStatus))
+                      .isNotEmpty) {
+                    return ExpansionFloatingButton(
+                      orders: _orders,
+                      onRefresh: fetchOrders,
+                    );
                   }
 
-                  List<CartItem> dineInItems = [];
-                  int totalItems = 0;
-                  String id = "";
+                  return const SizedBox.shrink();
+                },
+              ),
 
-                  // Iterate through restaurants to find the first "Take-Away" cart items
-                  for (var restaurantId in cartProvider.restaurantCarts.keys) {
-                    var items =
-                        cartProvider.restaurantCarts[restaurantId]?['Dine-in'];
-                    if (items != null && items.isNotEmpty) {
-                      dineInItems = items;
-                      totalItems =
-                          items.fold(0, (sum, item) => sum + item.quantity);
-                      id = restaurantId;
-                      break;
-                    }
-                  }
-
-                  // If no "Take-Away" items found in any restaurant
-                  if (dineInItems.isEmpty) {
-                    return const SizedBox.shrink();
-                  }
-
-                  return Positioned(
-                      bottom: 0,
-                      child: FoodCartSection(
-                        name: dineInItems.first.restaurantName,
-                        items: totalItems.toString(),
-                        pressMenu: () {
-                          Navigator.pushNamed(
-                              context, SingleRestaurantScreen.routeName,
-                              arguments: {
-                                'name': dineInItems.first.restaurantName,
-                                'location': dineInItems.first.location,
-                                'id': id,
-                                'selectedCategory': selectedCategory,
-                              });
-                        },
-                        pressCart: () {
-                          context.read<OrderTypeProvider>().changeHomeState(2);
-                        },
-                        pressRemove: () {
-                          ctx.read<CartProvider>().clearCart(id, 'Dine-in');
-                        },
-                      ));
-                })
             ],
           ),
         ));

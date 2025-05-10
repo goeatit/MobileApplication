@@ -1,8 +1,11 @@
 import 'package:eatit/Screens/My_Booking/screen/order_details_container.dart';
+import 'package:eatit/main.dart';
+import 'package:eatit/provider/my_booking_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:eatit/models/my_booking_modal.dart';
 import 'package:eatit/Screens/My_Booking/service/My_Booking_service.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:provider/provider.dart';
 
 class MyBookingsScreen extends StatefulWidget {
   static const routeName = "/my-bookings-screen";
@@ -44,7 +47,9 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
       final response = await _bookingService.fetchOrderDetails();
       setState(() {
         if (response != null) {
-          _orders = response.user;
+          // _orders = response.user;
+          _orders.clear();
+          context.read<MyBookingProvider>().setMyBookings(response.user);
         } else {
           _error = 'Failed to fetch orders';
         }
@@ -60,6 +65,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    _orders = context.watch<MyBookingProvider>().myBookings;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,

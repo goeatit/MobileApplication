@@ -17,6 +17,7 @@ import 'package:eatit/Screens/search/screen/search_screen.dart';
 import 'package:eatit/Screens/splash_screen/screen/SplashScreen.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/provider/cart_dish_provider.dart';
+import 'package:eatit/provider/my_booking_provider.dart';
 import 'package:eatit/provider/order_provider.dart';
 import 'package:eatit/provider/order_type_provider.dart';
 import 'package:eatit/provider/saved_restaurants_provider.dart';
@@ -42,6 +43,7 @@ void main() async {
       ChangeNotifierProvider(create: (context) => OrderProvider()),
       ChangeNotifierProvider(create: (context) => SavedRestaurantsProvider()),
       ChangeNotifierProvider(create: (_) => SelectedCategoryProvider()),
+      ChangeNotifierProvider(create: (context) => MyBookingProvider()),
     ],
     child: const MyApp(),
   ));
