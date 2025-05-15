@@ -6,6 +6,7 @@ import 'package:eatit/Screens/Takeaway_DineIn/screen/booking_bottom_sheet.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/screen/expansion_floating_button.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/screen/shimmer_loading_effect.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/screen/singe_restaurant_screen.dart';
+import 'package:eatit/Screens/Takeaway_DineIn/widget/bottom_rating.dart';
 import 'package:eatit/api/api_client.dart';
 import 'package:eatit/api/api_repository.dart';
 import 'package:eatit/api/network_manager.dart';
@@ -632,6 +633,23 @@ class _DineInScreen extends State<DineInScreen> {
                         },
                       ));
                 })
+              // Positioned(
+              //   bottom: 0,
+              //   left: 0,
+              //   right: 0,
+              //   child: Padding(
+              //     padding: const EdgeInsets.all(16.0),
+              //     child: BottomRating(
+              //       restaurantName: "Sabzi- The Indian Cuisine",
+              //       pressClose: () {
+              //         // Handle close action
+              //       },
+              //       pressRemove: () {
+              //         // Handle remove action
+              //       },
+              //     ),
+              //   ),
+              // )
             ],
           ),
         ));
