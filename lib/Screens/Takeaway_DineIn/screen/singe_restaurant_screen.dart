@@ -938,15 +938,15 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
-                                const Column(
+                                Column(
                                   children: [
                                     Text(
-                                      "₹1200-₹1500",
-                                      style: TextStyle(
+                                      widget.priceRange.split(" for")[0],
+                                      style: const TextStyle(
                                           color: primaryColor,
                                           fontWeight: FontWeight.bold),
                                     ),
-                                    Text(
+                                    const Text(
                                       "for two",
                                       style: TextStyle(
                                           fontWeight: FontWeight.bold),

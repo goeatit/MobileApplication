@@ -31,6 +31,28 @@ class CompleteYourProfileService {
     }
   }
 
+  Future<bool> sendMobilePhoneOtp(
+      String countryCode, String phoneNumber, BuildContext context) async {
+    try {
+      final Connectivity connectivity = Connectivity();
+      final NetworkManager networkManager = NetworkManager(connectivity);
+      final ApiRepository apiRepository = ApiRepository(networkManager);
+
+      final res = await apiRepository.genOtp(countryCode, phoneNumber);
+      if (res != null) {
+        if (res.statusCode == 200) {
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        return true;
+      }
+    } catch (e) {
+      return false;
+    }
+  }
+
   Future<bool> verifyEmailOtp(
       String email, BuildContext context, String otp) async {
     try {
@@ -39,6 +61,48 @@ class CompleteYourProfileService {
       final ApiRepository apiRepository = ApiRepository(networkManager);
 
       final res = await apiRepository.verifyOtpEmail(email, otp);
+      if (res != null) {
+        if (res.statusCode == 200) {
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        return true;
+      }
+    } on DioException catch (e) {
+      if (e.response != null && e.response?.statusCode == 400) {
+        // Handle 400 response (Invalid OTP case)
+        final responseData =
+            e.response?.data; // No need to use jsonDecode, Dio handles it
+        String errorMessage = responseData['message'];
+        Fluttertoast.showToast(
+          msg: "Failed to Verify OTP: $errorMessage",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.red,
+        );
+
+        // print("Error: $errorMessage"); // You can also show this in UI
+      } else {
+        // print("Unexpected DioException: $e");
+      }
+      return false;
+    } catch (e) {
+      print("General error: $e");
+      return false;
+    }
+  }
+
+  Future<bool> verifyPhoneNumberOtp(String phoneNumber, String countryCode,
+      BuildContext context, String otp) async {
+    try {
+      final Connectivity connectivity = Connectivity();
+      final NetworkManager networkManager = NetworkManager(connectivity);
+      final ApiRepository apiRepository = ApiRepository(networkManager);
+
+      final res = await apiRepository.verifyOtpPhoneNumber(
+          phoneNumber, countryCode, otp);
       if (res != null) {
         if (res.statusCode == 200) {
           return true;

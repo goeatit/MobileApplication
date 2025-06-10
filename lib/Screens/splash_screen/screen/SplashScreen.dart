@@ -1,5 +1,7 @@
 import 'package:eatit/Screens/CompleteYourProfile/Screen/Complete_your_profile_screen.dart';
+import 'package:eatit/Screens/My_Booking/service/My_Booking_service.dart';
 import 'package:eatit/Screens/splash_screen/service/SplashScreenService.dart';
+import 'package:eatit/provider/my_booking_provider.dart';
 import 'package:eatit/provider/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -24,6 +26,7 @@ class _SplashScreenState extends State<SplashScreen>
   final TokenManager _tokenManager = TokenManager();
   bool _isFirstTime = true;
   SplashScreenServiceInit screenServiceInit = SplashScreenServiceInit();
+  MyBookingService myBookingService = MyBookingService();
 
   @override
   void initState() {
@@ -73,6 +76,11 @@ class _SplashScreenState extends State<SplashScreen>
       if (response) {
         context.read<CartProvider>().loadCartFromStorage();
         // User is authenticated, navigate to location screen
+        var fetched = await myBookingService.fetchOrderDetails();
+        if (fetched != null) {
+          context.read<MyBookingProvider>().setMyBookings(fetched.user);
+        }
+
         var user = context.read<UserModelProvider>().userModel;
         if (user != null) {
           if (user.phoneNumber == null) {

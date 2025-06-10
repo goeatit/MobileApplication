@@ -131,7 +131,7 @@ class Restaurant {
   String restaurantAddressDetails;
   String restaurantPhoneNumber;
   String restaurantDescription;
-  String restaurantImageUrl;
+  dynamic restaurantImageUrl;
   int restaurantType;
   String restaurantTime;
   int minWaitingTime;

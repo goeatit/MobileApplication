@@ -27,7 +27,7 @@ class SplashScreenServiceInit {
         return false;
       }
       if (response.statusCode == 200) {
-        var user=UserResponse.fromJson(response.data['user']);
+        var user = UserResponse.fromJson(response.data['user']);
         context.read<UserModelProvider>().updateUserModel(user);
 
         return true;

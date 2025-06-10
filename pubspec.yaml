@@ -60,6 +60,7 @@ dependencies:
   google_places_flutter: ^2.1.0
   smooth_page_indicator: ^1.2.1
   visibility_detector: ^0.4.0+2
+  sms_autofill: ^2.4.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
