@@ -11,7 +11,7 @@ import 'package:eatit/Screens/noftification/screen/notification_screen.dart';
 
 class RestaurantAddressScreen extends StatefulWidget {
   static const routeName = '/restaurant-address';
-  const RestaurantAddressScreen({Key? key}) : super(key: key);
+  const RestaurantAddressScreen({super.key});
 
   @override
   State<RestaurantAddressScreen> createState() =>

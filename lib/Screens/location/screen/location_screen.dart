@@ -122,6 +122,7 @@ class _LocationScreenState extends State<LocationScreen> {
             CameraUpdate.newCameraPosition(_currentCameraPosition));
       }
     } catch (e) {
+      print(e);
       Fluttertoast.showToast(
         msg: "Error fetching location: ${e.toString()}",
         toastLength: Toast.LENGTH_LONG,

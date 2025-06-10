@@ -132,6 +132,18 @@ class ApiRepository {
     });
   }
 
+  Future<Response?> verifyOtpPhoneNumber(
+      String phoneNumber, String countryCode, String otp) async {
+    final endpoint = ApiEndpoints.verifyPhoneNumberOtp;
+    return await networkManager.makeRequest(() {
+      return networkManager.dioManger.post(endpoint, data: {
+        "phoneNumber": phoneNumber,
+        "countryCode": countryCode,
+        "code": otp
+      });
+    });
+  }
+
   Future<Response?> completeYourProfile(String name, String email, String? dob,
       String? gender, String countryCode, String phoneNumber) async {
     final endPoint = ApiEndpoints.completeYourProfile;

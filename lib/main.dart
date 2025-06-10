@@ -1,22 +1,8 @@
 import 'dart:convert';
-import 'package:eatit/Screens/Auth/login_screen/screen/login_screen.dart';
-import 'package:eatit/Screens/Auth/verify_otp/screen/verify_otp.dart';
-import 'package:eatit/Screens/CompleteYourProfile/Screen/Complete_your_profile_screen.dart';
-import 'package:eatit/Screens/Takeaway_DineIn//screen/singe_restaurant_screen.dart';
-import 'package:eatit/Screens/Takeaway_DineIn/widget/bottom_cart.dart';
-import 'package:eatit/Screens/first_time_screen/screen/first_time_screen.dart';
-import 'package:eatit/Screens/homes/screen/home_screen.dart';
-import 'package:eatit/Screens/location/screen/location_screen.dart';
-import 'package:eatit/Screens/order_summary/screen/no_of_people.dart';
-import 'package:eatit/Screens/order_summary/screen/bill_summary.dart';
-import 'package:eatit/Screens/order_summary/screen/order_summary.dart';
-import 'package:eatit/Screens/order_summary/screen/reserve_time.dart';
-import 'package:eatit/Screens/profile/screen/edit_profile.dart';
-import 'package:eatit/Screens/profile/screen/profile_screen.dart';
-import 'package:eatit/Screens/search/screen/search_screen.dart';
 import 'package:eatit/Screens/splash_screen/screen/SplashScreen.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/provider/cart_dish_provider.dart';
+import 'package:eatit/provider/my_booking_provider.dart';
 import 'package:eatit/provider/order_provider.dart';
 import 'package:eatit/provider/order_type_provider.dart';
 import 'package:eatit/provider/saved_restaurants_provider.dart';
@@ -42,6 +28,7 @@ void main() async {
       ChangeNotifierProvider(create: (context) => OrderProvider()),
       ChangeNotifierProvider(create: (context) => SavedRestaurantsProvider()),
       ChangeNotifierProvider(create: (_) => SelectedCategoryProvider()),
+      ChangeNotifierProvider(create: (context) => MyBookingProvider()),
     ],
     child: const MyApp(),
   ));

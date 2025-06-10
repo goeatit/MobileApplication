@@ -8,6 +8,7 @@ import 'package:eatit/Screens/order_summary/service/restaurant_service.dart';
 import 'package:eatit/Screens/order_summary/widget/Order_summary_cart.dart';
 import 'package:eatit/Screens/order_summary/widget/Select_no_people_widget.dart';
 import 'package:eatit/Screens/order_summary/widget/Time_slot_reserve_widget.dart';
+import 'package:eatit/Screens/order_summary/widget/select_table_bottom_sheet.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/models/cart_items.dart';
 import 'package:eatit/models/dish_retaurant.dart';
@@ -1347,9 +1348,21 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                               ),
                               onPressed: isReadyToContinue
                                   ? () {
-                                      // If all required info is provided, go straight to confirmation/payment
-                                      Navigator.pushNamed(context,
-                                          OrderSummaryScreen.routeName);
+                                      // For dine-in orders, show the table selection bottom sheet
+                                      if (widget.orderType.toLowerCase() ==
+                                          "dine-in") {
+                                        showModalBottomSheet(
+                                          context: context,
+                                          isScrollControlled: true,
+                                          backgroundColor: Colors.transparent,
+                                          builder: (context) =>
+                                              const SelectTableBottomSheet(),
+                                        );
+                                      } else {
+                                        // For other order types, go straight to confirmation/payment
+                                        Navigator.pushNamed(context,
+                                            OrderSummaryScreen.routeName);
+                                      }
                                     }
                                   : null,
                               child: const Text(
