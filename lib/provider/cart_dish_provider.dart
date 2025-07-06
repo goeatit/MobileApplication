@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:eatit/models/cart_items.dart';
 
@@ -239,4 +241,42 @@ class CartProvider extends ChangeNotifier {
     saveCartToStorage();
     notifyListeners();
   }
+
+  void updateCartId(
+      String newCartId, String dishId, String orderType, String restaurantId) {
+    final cartItems = _restaurantCarts[restaurantId]?[orderType];
+
+    if (cartItems != null) {
+      for (var item in cartItems) {
+        if (item.dish.id == dishId) {
+          item.cartId = newCartId; // Update the cartId field
+        }
+      }
+    }
+    saveCartToStorage(); // Persist changes
+    notifyListeners();
+  }
+
+  void printLongString(String text, {int chunkSize = 800}) {
+    final pattern = RegExp('.{1,$chunkSize}', dotAll: true);
+    for (final match in pattern.allMatches(text)) {
+      print(match.group(0));
+    }
+  }
+
+  Future<void> printStoredCartItems() async {
+    final prefs = await SharedPreferences.getInstance();
+    final cartJson = prefs.getString('cart_items');
+
+    if (cartJson != null) {
+      final decoded = json.decode(cartJson);
+      final prettyJson = const JsonEncoder.withIndent('  ').convert(decoded);
+      print('✅ Printing full cart JSON in chunks:');
+      printLongString(prettyJson); // 👈 this prints in chunks
+    } else {
+      print('🛑 No cart data found in storage.');
+    }
+  }
+
+
 }

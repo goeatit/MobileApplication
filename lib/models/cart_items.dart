@@ -9,6 +9,7 @@ class CartItem {
   int quantity;
   final String location;
   final DateTime? createTime;
+  String? cartId;
   CartItem({
     required this.id,
     required this.restaurantName,
@@ -18,7 +19,22 @@ class CartItem {
     required this.quantity,
     required this.location,
     this.createTime,
+    this.cartId,
   });
+  @override
+  String toString() {
+    return '''
+CartItem(
+  id: $id,
+  restaurantName: $restaurantName,
+  orderType: $orderType,
+  quantity: $quantity,
+  location: $location,
+  createTime: ${createTime?.toIso8601String() ?? 'null'},
+  cartId: ${cartId ?? 'null'},
+  dish: ${dish.toString()}
+)''';
+  }
 
   // Convert CartItem to a Map (for JSON encoding)
   Map<String, dynamic> toMap() {
@@ -29,6 +45,7 @@ class CartItem {
       'dish': dish.toMap(),
       'quantity': quantity,
       'location': location,
+      'cartId': cartId,
       'createTime': createTime?.toIso8601String(), // Add this line
     };
   }
@@ -53,6 +70,7 @@ class CartItem {
       dish: AvailableDish.fromMap(map['dish']),
       quantity: map['quantity'],
       location: map['location'],
+      cartId: map['cartId'],
       createTime: parsedDate, // Add this line
     );
   }

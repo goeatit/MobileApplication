@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/screen/singe_restaurant_screen.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/widget/dish_card_widget.dart';
+import 'package:eatit/Screens/cart_screen/services/cart_service.dart';
 import 'package:eatit/Screens/order_summary/screen/no_of_people.dart';
 import 'package:eatit/Screens/order_summary/screen/order_summary.dart';
 import 'package:eatit/Screens/order_summary/screen/reserve_time.dart';
@@ -19,6 +22,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart' show SvgPicture;
 import 'package:provider/provider.dart';
 import 'package:eatit/Screens/order_summary/widget/coupon_section_widget.dart';
+
+import '../../splash_screen/service/SplashScreenService.dart';
 
 class BillSummaryScreen extends StatefulWidget {
   static const routeName = "/bill-summary";
@@ -59,6 +64,8 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
   String? currentLocation;
   // Add cancellation token for API requests
   final _cancelToken = CancelToken();
+  CartService cartService = CartService();
+  SplashScreenServiceInit splashScreenServiceInit = SplashScreenServiceInit();
 
   @override
   void initState() {
@@ -94,6 +101,8 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
     changedPrices.clear();
     // Do NOT clear cartItems as it's needed by the CartProvider
 
+    _incrementDebounce?.cancel();
+    _decrementDebounce?.cancel();
     // Only reset the order provider state which is temporary
     if (!mounted) return;
     orderProvider.clearOrder();
@@ -151,7 +160,6 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
         currentLocation = currentData!.location;
         String? lat = currentData?.latitude;
         String? long = currentData?.longitude;
-        print(currentData?.recommendedDishes);
 
         // Update order provider with current data
         final orderProvider =
@@ -163,6 +171,8 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
         final checkResult = restaurantService.checkPriceChangesAndAvailability(
             currentData!, localCartItems);
 
+        final res = await splashScreenServiceInit.fetchCartItems(context);
+        print(res);
         if (!mounted || _cancelToken.isCancelled) return;
 
         setState(() {
@@ -698,13 +708,13 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
     );
   }
 
-  void _incrementItem(CartItem item) {
+  void _incrementItem(CartItem item) async {
     final cartProvider = Provider.of<CartProvider>(context, listen: false);
     final orderProvider = Provider.of<OrderProvider>(context, listen: false);
 
     // Increment the item quantity
     cartProvider.incrementQuantity(widget.id, widget.orderType, item.id);
-
+    cartProvider.printStoredCartItems();
     // Refresh cart items
     setState(() {
       cartItems = cartProvider.getItemsByOrderTypeAndRestaurant(
@@ -712,6 +722,11 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
 
       // Update order provider with updated cart items
       orderProvider.updateCartItems(cartItems);
+
+      _debouncedIncrement(() {
+        cartService.addToCart(
+            widget.id, context, widget.orderType, widget.locationOfRestaurant);
+      });
     });
   }
 
@@ -834,6 +849,7 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
 
         // Update order provider with updated cart items
         orderProvider.updateCartItems(cartItems);
+        _debouncedDecrement(item.dish.id, null, widget.orderType);
       });
     }
   }
@@ -1500,5 +1516,30 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
         ],
       ),
     );
+  }
+
+  Timer? _incrementDebounce;
+  Timer? _decrementDebounce;
+  Set<String> _pendingDecrementIds = {};
+
+  void _debouncedIncrement(VoidCallback action) {
+    _incrementDebounce?.cancel();
+    _incrementDebounce = Timer(const Duration(milliseconds: 800), () {
+      action();
+    });
+  }
+
+  void _debouncedDecrement(
+      String id, VoidCallback? afterDecrement, String orderType) {
+    _pendingDecrementIds.add(id);
+    _decrementDebounce?.cancel();
+    _decrementDebounce = Timer(const Duration(milliseconds: 800), () {
+      final ids = List<String>.from(_pendingDecrementIds);
+      _pendingDecrementIds.clear();
+      if (ids.isNotEmpty) {
+        cartService.decrementCartItem(ids, widget.id, context, orderType);
+        if (afterDecrement != null) afterDecrement();
+      }
+    });
   }
 }
