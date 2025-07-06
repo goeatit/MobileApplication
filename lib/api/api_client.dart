@@ -11,7 +11,8 @@ class ApiClient {
   ApiClient._internal() {
     _dio = Dio(
       BaseOptions(
-        baseUrl: "https://api.eatitgo.in",
+        // baseUrl: "https://api.eatitgo.in",
+        baseUrl: "http://192.168.0.113:8000",
         headers: {'Content-Type': 'application/json'},
       ),
     );
