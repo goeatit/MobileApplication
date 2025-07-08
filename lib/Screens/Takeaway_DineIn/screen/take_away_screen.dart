@@ -387,15 +387,14 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
                                           restaurantName:
                                               restaurants[0].restaurantName,
                                           cuisineType:
-                                              "Indian • ${restaurants[0].topratedCusine}", // Update this if you have a field for cuisine
-                                          priceRange:
-                                              "₹1200-₹1500 for two", // Update this if you have price range info
+                                              "Indian • ${restaurants[0].topratedCusine}",
+                                          priceRange: getPriceRangeText(restaurants[0].topratedCusinePrice),
                                           rating:
                                               restaurants[0].ratings.toDouble(),
                                           promotionText:
-                                              "Flat 10% off in booking", // Update if you have promo data
+                                              "Flat 10% off in booking",
                                           promoCode:
-                                              "Happy10", // Update this if you have promo codes
+                                              "Happy10",
                                           location: city!,
                                           lat: restaurants[0].lat,
                                           long: restaurants[0].long,
@@ -507,14 +506,10 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
                                           location: city!,
                                           cuisineType:
                                               "Indian • ${restaurant.topratedCusine}",
-                                          priceRange: "₹1200-₹1500 for two",
+                                          priceRange: getPriceRangeText(restaurant.topratedCusinePrice),
                                           rating: restaurant.ratings.toDouble(),
                                           long: restaurant.long,
                                           id: restaurant.id,
-                                          // promotionText:
-                                          //     "Promoted", // Update if you have promo data
-                                          // promoCode:
-                                          //     "Promo Placeholder", // Update this if you have promo codes
                                         );
                                       },
                                     ),
@@ -692,5 +687,25 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
         ),
       ),
     );
+  }
+
+  // Helper method to format price range from topratedCusinePrice
+  String getPriceRangeText(dynamic price) {
+    if (price == null) {
+      return "₹1200-₹1500 for two"; // Default fallback
+    }
+
+    try {
+      // Try to parse the price as a number
+      int priceValue = int.tryParse(price.toString()) ?? 1200;
+
+      // Calculate a range around the average price (±150)
+      int lowerPrice = (priceValue - 150).clamp(100, 10000);
+      int upperPrice = (priceValue + 150).clamp(200, 15000);
+
+      return "₹$lowerPrice-₹$upperPrice for two";
+    } catch (e) {
+      return "₹1200-₹1500 for two"; // Fallback in case of error
+    }
   }
 }

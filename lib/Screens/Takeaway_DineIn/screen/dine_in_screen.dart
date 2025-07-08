@@ -7,6 +7,7 @@ import 'package:eatit/Screens/Takeaway_DineIn/screen/booking_bottom_sheet.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/screen/expansion_floating_button.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/screen/shimmer_loading_effect.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/screen/singe_restaurant_screen.dart';
+import 'package:eatit/Screens/Takeaway_DineIn/widget/bottom_rating.dart';
 import 'package:eatit/api/api_client.dart';
 import 'package:eatit/api/api_repository.dart';
 import 'package:eatit/api/network_manager.dart';
@@ -73,6 +74,25 @@ class _DineInScreen extends State<DineInScreen> {
   String selectedCategory = '';
   String? city;
   String? country;
+  // Helper method to format price range from topratedCusinePrice
+  String getPriceRangeText(dynamic price) {
+    if (price == null) {
+      return "₹1200-₹1500 for two"; // Default fallback
+    }
+
+    try {
+      // Try to parse the price as a number
+      int priceValue = int.tryParse(price.toString()) ?? 1200;
+
+      // Calculate a range around the average price (±150)
+      int lowerPrice = (priceValue - 150).clamp(100, 10000);
+      int upperPrice = (priceValue + 150).clamp(200, 15000);
+
+      return "₹$lowerPrice-₹$upperPrice for two";
+    } catch (e) {
+      return "₹1200-₹1500 for two"; // Fallback in case of error
+    }
+  }
 
   // int _currentBannerIndex = 0;
   // final List<String> bannerImages = [
@@ -386,7 +406,9 @@ class _DineInScreen extends State<DineInScreen> {
                                                 restaurants[0].restaurantName,
                                             cuisineType:
                                                 "Indian • ${restaurants[0].topratedCusine}",
-                                            priceRange: "₹1200-₹1500 for two",
+                                            priceRange: getPriceRangeText(
+                                                restaurants[0]
+                                                    .topratedCusinePrice),
                                             rating: restaurants[0]
                                                 .ratings
                                                 .toDouble(),
@@ -502,7 +524,8 @@ class _DineInScreen extends State<DineInScreen> {
                                             location: city!,
                                             cuisineType:
                                                 "Indian • ${restaurant.topratedCusine}",
-                                            priceRange: "₹1200-₹1500 for two",
+                                            priceRange: getPriceRangeText(
+                                                restaurant.topratedCusinePrice),
                                             rating:
                                                 restaurant.ratings.toDouble(),
                                             long: restaurant.long,
@@ -531,63 +554,63 @@ class _DineInScreen extends State<DineInScreen> {
               //     onRefresh: fetchOrders,
               //   )
               // else
-                // Bottom Cart
-                // Consumer<CartProvider>(builder: (ctx, cartProvider, child) {
-                //   if (cartProvider.restaurantCarts.isEmpty) {
-                //     return const SizedBox.shrink();
-                //   }
-                //
-                //   List<CartItem> dineInItems = [];
-                //   int totalItems = 0;
-                //   String id = "";
-                //
-                //   // Iterate through restaurants to find the first "Take-Away" cart items
-                //   for (var restaurantId in cartProvider.restaurantCarts.keys) {
-                //     var items =
-                //         cartProvider.restaurantCarts[restaurantId]?['Dine-in'];
-                //     if (items != null && items.isNotEmpty) {
-                //       dineInItems = items;
-                //       totalItems =
-                //           items.fold(0, (sum, item) => sum + item.quantity);
-                //       id = restaurantId;
-                //       break;
-                //     }
-                //   }
-                //
-                //   // If no "Take-Away" items found in any restaurant
-                //   if (dineInItems.isEmpty) {
-                //     return const SizedBox.shrink();
-                //   }
-                //
-                //   return Positioned(
-                //       bottom: 0,
-                //       child: FoodCartSection(
-                //         name: dineInItems.first.restaurantName,
-                //         items: totalItems.toString(),
-                //         pressMenu: () {
-                //           Navigator.pushNamed(
-                //               context, SingleRestaurantScreen.routeName,
-                //               arguments: {
-                //                 'name': dineInItems.first.restaurantName,
-                //                 'location': dineInItems.first.location,
-                //                 'id': id,
-                //                 'selectedCategory': selectedCategory,
-                //               });
-                //         },
-                //         pressCart: () {
-                //           context.read<OrderTypeProvider>().changeHomeState(2);
-                //         },
-                //         pressRemove: () {
-                //           ctx.read<CartProvider>().clearCart(id, 'Dine-in');
-                //         },
-                //       ));
-                // })
+              // Bottom Cart
+              // Consumer<CartProvider>(builder: (ctx, cartProvider, child) {
+              //   if (cartProvider.restaurantCarts.isEmpty) {
+              //     return const SizedBox.shrink();
+              //   }
+              //
+              //   List<CartItem> dineInItems = [];
+              //   int totalItems = 0;
+              //   String id = "";
+              //
+              //   // Iterate through restaurants to find the first "Take-Away" cart items
+              //   for (var restaurantId in cartProvider.restaurantCarts.keys) {
+              //     var items =
+              //         cartProvider.restaurantCarts[restaurantId]?['Dine-in'];
+              //     if (items != null && items.isNotEmpty) {
+              //       dineInItems = items;
+              //       totalItems =
+              //           items.fold(0, (sum, item) => sum + item.quantity);
+              //       id = restaurantId;
+              //       break;
+              //     }
+              //   }
+              //
+              //   // If no "Take-Away" items found in any restaurant
+              //   if (dineInItems.isEmpty) {
+              //     return const SizedBox.shrink();
+              //   }
+              //
+              //   return Positioned(
+              //       bottom: 0,
+              //       child: FoodCartSection(
+              //         name: dineInItems.first.restaurantName,
+              //         items: totalItems.toString(),
+              //         pressMenu: () {
+              //           Navigator.pushNamed(
+              //               context, SingleRestaurantScreen.routeName,
+              //               arguments: {
+              //                 'name': dineInItems.first.restaurantName,
+              //                 'location': dineInItems.first.location,
+              //                 'id': id,
+              //                 'selectedCategory': selectedCategory,
+              //               });
+              //         },
+              //         pressCart: () {
+              //           context.read<OrderTypeProvider>().changeHomeState(2);
+              //         },
+              //         pressRemove: () {
+              //           ctx.read<CartProvider>().clearCart(id, 'Dine-in');
+              //         },
+              //       ));
+              // })
               Consumer<MyBookingProvider>(
                 builder: (ctx, mybookingprovider, child) {
                   var _orders = mybookingprovider.myBookings;
                   if (_orders
                       .where((order) =>
-                      _shouldDisplayBooking(order.user.orderStatus))
+                          _shouldDisplayBooking(order.user.orderStatus))
                       .isNotEmpty) {
                     return ExpansionFloatingButton(
                       orders: _orders,
@@ -598,7 +621,6 @@ class _DineInScreen extends State<DineInScreen> {
                   return const SizedBox.shrink();
                 },
               ),
-
             ],
           ),
         ));

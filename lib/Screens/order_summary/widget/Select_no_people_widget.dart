@@ -1,3 +1,4 @@
+import 'package:eatit/Screens/order_summary/widget/select_table_bottom_sheet.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/provider/order_provider.dart';
 import 'package:flutter/material.dart';
@@ -26,6 +27,26 @@ class _SelectPeopleScreenState extends State<SelectNoPeopleWidget> {
     super.dispose();
   }
 
+  void _onPeopleSelected(int people) {
+    final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+    setState(() {
+      selectedPeople = people;
+      _peopleController.clear();
+      errorMessage = null;
+      _focusNode.unfocus();
+      orderProvider.setNumberOfPeople(selectedPeople.toString());
+
+      // Notify table selection to update
+      if (context.mounted) {
+        final tableBottomSheet =
+            context.findAncestorStateOfType<SelectTableBottomSheetState>();
+        if (tableBottomSheet != null) {
+          tableBottomSheet.updateTableAvailability();
+        }
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final orderProvider = Provider.of<OrderProvider>(context);
@@ -39,15 +60,16 @@ class _SelectPeopleScreenState extends State<SelectNoPeopleWidget> {
     final containerPadding = screenSize.width * 0.025;
     final spacing = screenSize.width * 0.02;
 
-    if (orderProvider.numberOfPeople.isNotEmpty &&
+    if (orderProvider.numberOfPeople != null &&
+        orderProvider.numberOfPeople!.isNotEmpty &&
         selectedPeople == 0 &&
         _peopleController.text.isEmpty) {
-      int? storedPeople = int.tryParse(orderProvider.numberOfPeople);
+      int? storedPeople = int.tryParse(orderProvider.numberOfPeople!);
       if (storedPeople != null) {
         if (storedPeople >= 1 && storedPeople <= 4) {
           selectedPeople = storedPeople;
         } else {
-          _peopleController.text = orderProvider.numberOfPeople;
+          _peopleController.text = orderProvider.numberOfPeople!;
         }
       }
     }
@@ -99,16 +121,7 @@ class _SelectPeopleScreenState extends State<SelectNoPeopleWidget> {
                 }
 
                 return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      selectedPeople = people;
-                      _peopleController.clear();
-                      errorMessage = null;
-                      _focusNode.unfocus();
-                      orderProvider
-                          .setNumberOfPeople(selectedPeople.toString());
-                    });
-                  },
+                  onTap: () => _onPeopleSelected(people),
                   child: Container(
                     padding: EdgeInsets.symmetric(
                       vertical: containerPadding,
@@ -192,6 +205,15 @@ class _SelectPeopleScreenState extends State<SelectNoPeopleWidget> {
                       selectedPeople = 0;
                     }
                     orderProvider.setNumberOfPeople(value);
+
+                    // Notify table selection to update
+                    if (context.mounted) {
+                      final tableBottomSheet = context.findAncestorStateOfType<
+                          SelectTableBottomSheetState>();
+                      if (tableBottomSheet != null) {
+                        tableBottomSheet.updateTableAvailability();
+                      }
+                    }
                   }
                 });
               },
