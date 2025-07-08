@@ -4,6 +4,7 @@ import 'package:eatit/Screens/Takeaway_DineIn//widget/dish_card_widget.dart';
 import 'package:eatit/Screens/Takeaway_DineIn//widget/single_dish.dart';
 import 'package:eatit/Screens/Takeaway_DineIn//widget/toggle_widget.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/widget/added_item.dart';
+import 'package:eatit/Screens/cart_screen/services/cart_service.dart';
 import 'package:eatit/Screens/homes/screen/home_screen.dart';
 import 'package:eatit/api/api_repository.dart';
 import 'package:eatit/api/network_manager.dart';
@@ -22,6 +23,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:dio/dio.dart';
 import 'package:eatit/provider/saved_restaurants_provider.dart';
 import 'package:eatit/models/saved_restaurant_model.dart';
+import 'dart:async';
 
 class SingleRestaurantScreen extends StatefulWidget {
   static const routeName = "/single-restaurant-screen";
@@ -86,6 +88,7 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
   List<String> buttonLabels = ["Best Seller", "Top Rated", "Veg", "Non-Veg"];
   List<bool> isSelected = [false, false, false, false];
 
+  CartService cartService = CartService();
   String selectedSection = 'Sort By';
   String selectedSortOption = '';
   String selectedRatingOption = '';
@@ -384,6 +387,9 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
     filterDishes = null;
     selectedDish = null;
     categorizedDishes.clear();
+
+    _incrementDebounce?.cancel();
+    _decrementDebounce?.cancel();
 
     super.dispose();
   }
@@ -1221,7 +1227,19 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                                                             .id,
                                                                         orderType,
                                                                         cartITem);
-                                                              },
+
+
+                                                                _debouncedIncrement(
+                                                                        () {
+                                                                      cartService.addToCart(
+                                                                          widget.id,
+                                                                          context,
+                                                                          orderType,
+                                                                          widget
+                                                                              .location);
+                                                                    });
+                                                                },
+
                                                               onIncrement: () {
                                                                 ctx
                                                                     .read<
@@ -1231,6 +1249,16 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                                                             .id,
                                                                         orderType,
                                                                         dish.id);
+
+                                                                _debouncedIncrement(
+                                                                    () {
+                                                                  cartService.addToCart(
+                                                                      widget.id,
+                                                                      context,
+                                                                      orderType,
+                                                                      widget
+                                                                          .location);
+                                                                });
                                                               },
                                                               onDecrement: () {
                                                                 ctx
@@ -1241,6 +1269,9 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                                                             .id,
                                                                         orderType,
                                                                         dish.id);
+                                                                _debouncedDecrement(
+                                                                    dish.id,
+                                                                    null,orderType);
                                                               },
                                                             ),
                                                           );
@@ -1317,18 +1348,35 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                               location: widget.location);
                                           cartProvider.addToCart(
                                               widget.id, orderType, cartITem);
+                                          _debouncedIncrement(() {
+                                            cartService.addToCart(
+                                                widget.id,
+                                                context,
+                                                orderType,
+                                                widget.location);
+                                          });
+
                                         },
                                         onIncrement: () {
                                           ctx
                                               .read<CartProvider>()
                                               .incrementQuantity(widget.id,
                                                   orderType, selectedDish!.id);
+                                          _debouncedIncrement(() {
+                                            cartService.addToCart(
+                                                widget.id,
+                                                context,
+                                                orderType,
+                                                widget.location);
+                                          });
                                         },
                                         onDecrement: () {
                                           ctx
                                               .read<CartProvider>()
                                               .decrementQuantity(widget.id,
                                                   orderType, selectedDish!.id);
+                                          _debouncedDecrement(
+                                              selectedDish!.id, null,orderType);
                                         },
                                       ),
                                     );
@@ -1622,5 +1670,29 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
         ),
       );
     }
+  }
+
+  Timer? _incrementDebounce;
+  Timer? _decrementDebounce;
+  Set<String> _pendingDecrementIds = {};
+
+
+  void _debouncedIncrement(VoidCallback action) {
+    _incrementDebounce?.cancel();
+    _incrementDebounce = Timer(const Duration(milliseconds: 800), () {
+      action();
+    });
+  }
+  void _debouncedDecrement(String id, VoidCallback? afterDecrement,String orderType) {
+    _pendingDecrementIds.add(id);
+    _decrementDebounce?.cancel();
+    _decrementDebounce = Timer(const Duration(milliseconds: 800), () {
+      final ids = List<String>.from(_pendingDecrementIds);
+      _pendingDecrementIds.clear();
+      if (ids.isNotEmpty) {
+        cartService.decrementCartItem(ids, widget.id,context,orderType);
+        if (afterDecrement != null) afterDecrement();
+      }
+    });
   }
 }

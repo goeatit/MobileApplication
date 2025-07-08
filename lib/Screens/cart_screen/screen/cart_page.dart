@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:eatit/Screens/My_Booking/screen/my_bookings_screen.dart';
+import 'package:eatit/Screens/cart_screen/services/cart_service.dart';
 import 'package:eatit/Screens/cart_screen/widget/cart_item.dart';
 import 'package:eatit/Screens/order_summary/screen/bill_summary.dart';
 import 'package:eatit/common/constants/colors.dart';
@@ -25,6 +26,7 @@ class CartPageState extends State<CartPage> {
   DateTime? latestTime;
   String? latestId;
   String? latestOrderType;
+  CartService cartService = CartService();
 
   @override
   void initState() {
@@ -97,8 +99,21 @@ class CartPageState extends State<CartPage> {
     }
   }
 
-  void removeItem(int index) {
+  void removeItem(int index) async{
     final removedItem = _cartItems[index];
+
+    // todo delete from the backend
+    final res=await cartService.removeCartItem(removedItem);
+    if(!res){
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to remove item from cart'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     setState(() {
       _cartItems.removeAt(index);
     });
@@ -189,10 +204,8 @@ class CartPageState extends State<CartPage> {
                       initialItemCount: _cartItems.length,
                       itemBuilder: (context, index, animation) {
                         if (index >= _cartItems.length) {
-                          print(index);
                           return const SizedBox.shrink();
                         }
-                        print("outside $index");
                         return _buildCartItem(_cartItems[index], animation);
                       },
                     )),

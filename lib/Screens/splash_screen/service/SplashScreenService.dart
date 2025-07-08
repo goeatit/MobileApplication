@@ -11,12 +11,15 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class SplashScreenServiceInit {
+  final ApiRepository _apiRepository;
+  CancelToken? _cancelToken;
+  SplashScreenServiceInit({ApiRepository? apiRepository})
+      : _apiRepository =
+            apiRepository ?? ApiRepository(NetworkManager(Connectivity()));
+
   Future<bool> checkInitProfile(BuildContext context) async {
     try {
-      final Connectivity connectivity = Connectivity();
-      final NetworkManager networkManager = NetworkManager(connectivity);
-      final ApiRepository apiRepository = ApiRepository(networkManager);
-      final response = await apiRepository.initProfile();
+      final response = await _apiRepository.initProfile();
       if (response == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -56,6 +59,35 @@ class SplashScreenServiceInit {
       );
 
       return false;
+    }
+  }
+
+  Future<Response?> fetchCartItems(BuildContext context) async {
+    try {
+      return await _apiRepository.fetchCartItems();
+    } on DioException catch (e) {
+      print(e.response?.data);
+      if (e.response?.statusCode == 401) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                "Something went wrong. Please try again ${e.response?.data}."),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return null;
+      }
+      return null;
+    } catch (e) {
+      print("catch $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Something went wrong. Please try again."),
+          backgroundColor: Colors.red,
+        ),
+      );
+
+      return null;
     }
   }
 }

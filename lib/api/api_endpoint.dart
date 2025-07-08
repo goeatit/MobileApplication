@@ -29,5 +29,10 @@ class ApiEndpoints {
   static String updateProfile = "/mobile/updateProfile";
   static String initProfile = "/mobile/auth/init";
   static String updatePickupTime = "/mobile/order/updatePickupTime";
+  static String addToCart="/mobile/cart/addToCart";
+  static String incrementCartItem="/mobile/cart/incrementItem";
+  static String decrementCartItem="/mobile/cart/decrementItem";
+  static String deleteCartItem(String cartId)=>"/mobile/cart/removeItem/$cartId";
+  static String fetchCartItems = "/mobile/cart/getCart";
 // Add more dynamically constructed endpoints
 }
