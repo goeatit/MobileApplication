@@ -267,4 +267,83 @@ class ApiRepository {
       );
     });
   }
+
+  Future<Response?> addToCart(String restaurantId, List<CartItem> cartItems,
+      String orderType, String location) {
+    final endpoint = ApiEndpoints.addToCart;
+    return networkManager.makeRequest(() {
+      return networkManager.dioManger.post(endpoint, data: {
+        'restaurantId': restaurantId,
+        'orderType': orderType,
+        'items': cartItems.map((e) {
+          return {
+            '_id': e.id,
+            'quantity': e.quantity,
+            'name': e.dish.dishId.dishName,
+            'price': e.dish.resturantDishPrice,
+            'restaurantName': e.restaurantName,
+          };
+        }).toList(),
+        'location': location
+      });
+    });
+  }
+
+  Future<Response?> incrementCartItem(String cartId, List<CartItem> cartItems) {
+    final endpoint = ApiEndpoints.incrementCartItem;
+    return networkManager.makeRequest(() {
+      return networkManager.dioManger.put(endpoint, data: {
+        'cartId': cartId,
+        'items': cartItems.map((e) {
+          return {
+            '_id': e.id,
+            'quantity': e.quantity,
+            'name': e.dish.dishId.dishName,
+            'price': e.dish.resturantDishPrice,
+            'restaurantName': e.restaurantName,
+          };
+        }).toList(),
+      });
+    });
+  }
+
+  Future<Response?> decrementCartItem(
+    List<CartItem> cartItems,
+    List<String> itemIds,
+    String restaurantId,
+    String orderType,
+  ) {
+    final endpoint = ApiEndpoints.decrementCartItem;
+    return networkManager.makeRequest(() {
+      return networkManager.dioManger.post(endpoint, data: {
+        // 'cartId': cartId,
+        'data': cartItems.map((e) {
+          return {
+            '_id': e.id,
+            'quantity': e.quantity,
+            'name': e.dish.dishId.dishName,
+            'price': e.dish.resturantDishPrice,
+            'restaurantName': e.restaurantName,
+            'cartId': e.cartId,
+          };
+        }).toList(),
+        'restaurantId': restaurantId,
+        'orderType': orderType,
+      });
+    });
+  }
+
+  Future<Response?> deleteCartItem(String cartId) {
+    final endpoint = ApiEndpoints.deleteCartItem(cartId);
+    return networkManager.makeRequest(() {
+      return networkManager.dioManger.delete(endpoint);
+    });
+  }
+
+  Future<Response?> fetchCartItems() {
+    final endpoint = ApiEndpoints.fetchCartItems;
+    return networkManager.makeRequest(() {
+      return networkManager.dioManger.get(endpoint);
+    });
+  }
 }
