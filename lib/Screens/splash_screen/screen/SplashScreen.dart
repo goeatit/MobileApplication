@@ -74,7 +74,24 @@ class _SplashScreenState extends State<SplashScreen>
     if (accessToken != null && refreshToken != null) {
       final response = await screenServiceInit.checkInitProfile(context);
       if (response) {
-        context.read<CartProvider>().loadCartFromStorage();
+        final res = await screenServiceInit.fetchCartItems(context);
+        if (res != null && res.statusCode == 200) {
+          // Successfully fetched cart items, update the cart provider
+        final data = res.data['cart'];
+        context.read<CartProvider>().loadGroupedCartFromResponse(data);
+        print("cart Loaded ");
+        } else {
+          // Failed to fetch cart items, handle accordingly
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Failed to load cart items."),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+
+
+        // context.read<CartProvider>().loadCartFromStorage();
         // User is authenticated, navigate to location screen
         var fetched = await myBookingService.fetchOrderDetails();
         if (fetched != null) {
