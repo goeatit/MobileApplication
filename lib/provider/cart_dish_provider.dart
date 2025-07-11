@@ -277,6 +277,27 @@ class CartProvider extends ChangeNotifier {
       print('🛑 No cart data found in storage.');
     }
   }
+  void loadGroupedCartFromResponse(Map<String, dynamic> response) {
+    _restaurantCarts.clear(); // Optional: clear existing cart data
+
+    response.forEach((restaurantId, orderTypesMap) {
+      orderTypesMap.forEach((orderType, itemsList) {
+        for (var item in itemsList) {
+          try {
+            final cartItem = CartItem.fromMap(item as Map<String, dynamic>);
+
+            // Add to the cart
+            addToCart(restaurantId, orderType, cartItem);
+          } catch (e) {
+            print('❌ Error parsing CartItem: $e');
+          }
+        }
+      });
+    });
+    saveCartToStorage();
+
+    notifyListeners();
+  }
 
 
 }

@@ -171,8 +171,7 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
         final checkResult = restaurantService.checkPriceChangesAndAvailability(
             currentData!, localCartItems);
 
-        final res = await splashScreenServiceInit.fetchCartItems(context);
-        print(res);
+
         if (!mounted || _cancelToken.isCancelled) return;
 
         setState(() {
