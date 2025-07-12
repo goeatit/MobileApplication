@@ -6,22 +6,21 @@ import 'package:eatit/models/cart_items.dart';
 import 'package:eatit/models/dish_retaurant.dart';
 
 class RestaurantService {
+  final ApiRepository _apiRepository;
+  CancelToken? _cancelToken;
+
+  RestaurantService({ApiRepository? apiRepository})
+      : _apiRepository =
+            apiRepository ?? ApiRepository(NetworkManager(Connectivity()));
+
   Future<Response?> getCurrentData(
       String id, String name, List<CartItem> cartItems) async {
-    final Connectivity connectivity = Connectivity();
-    final NetworkManager networkManager = NetworkManager(connectivity);
-    final ApiRepository apiRepository = ApiRepository(networkManager);
-
-    return await apiRepository.fetchCurrentData(id, name, cartItems);
+    return await _apiRepository.fetchCurrentData(id, name, cartItems);
   }
 
   Future<Response?> getCurrentDataWithCancelToken(String id, String name,
       List<CartItem> cartItems, CancelToken cancelToken) async {
-    final Connectivity connectivity = Connectivity();
-    final NetworkManager networkManager = NetworkManager(connectivity);
-    final ApiRepository apiRepository = ApiRepository(networkManager);
-
-    return await apiRepository.fetchCurrentDataWithCancelToken(
+    return await _apiRepository.fetchCurrentDataWithCancelToken(
         id, name, cartItems, cancelToken);
   }
 
@@ -86,10 +85,7 @@ class RestaurantService {
 
   Future<Response?> verifyPayment(String paymentId, String orderId,
       String signature, String orderCreationId) async {
-    final Connectivity connectivity = Connectivity();
-    final NetworkManager networkManager = NetworkManager(connectivity);
-    final ApiRepository apiRepository = ApiRepository(networkManager);
-    return await apiRepository.verifyPayment(
+    return await _apiRepository.verifyPayment(
         paymentId, orderId, signature, orderCreationId);
   }
 }

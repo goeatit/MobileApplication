@@ -9,12 +9,13 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 
 class OtpService {
+  final ApiRepository _apiRepository;
+  OtpService({ApiRepository? apiRepository})
+      : _apiRepository =
+      apiRepository ?? ApiRepository(NetworkManager(Connectivity()));
   Future<bool> sendOtp(String countryCode, String phoneNumber) async {
-    final Connectivity connectivity = Connectivity();
-    final NetworkManager networkManager = NetworkManager(connectivity);
-    final ApiRepository apiRepository = ApiRepository(networkManager);
-    try {
-      final response = await apiRepository.genOtp(countryCode, phoneNumber);
+      try {
+      final response = await _apiRepository.genOtp(countryCode, phoneNumber);
       if (response != null) {
         if (response.statusCode == 200) {
           // Fluttertoast.showToast(
@@ -55,12 +56,9 @@ class OtpService {
 
   Future<bool> verifyOtp(String countryCode, String phoneNumber, String code,
       BuildContext context) async {
-    final Connectivity connectivity = Connectivity();
-    final NetworkManager networkManager = NetworkManager(connectivity);
-    final ApiRepository apiRepository = ApiRepository(networkManager);
-    try {
+        try {
       final response =
-          await apiRepository.verifyOtp(countryCode, phoneNumber, code);
+          await _apiRepository.verifyOtp(countryCode, phoneNumber, code);
       if (response != null) {
         if (response.statusCode == 200) {
           // Fluttertoast.showToast(

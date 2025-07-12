@@ -40,7 +40,7 @@ class _EditProfileScreen extends State<EditProfileScreen> {
         _isloading = true; // Show loader when starting to save
       });
 
-      final editProfileService = EditProfileSerevice();
+      final editProfileService = EditProfileService();
       bool success =
           await editProfileService.saveProfileChanges(_changes, context);
 
