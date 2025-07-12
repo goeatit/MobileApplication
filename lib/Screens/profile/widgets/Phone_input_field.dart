@@ -52,7 +52,7 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
   Timer? _timer;
   bool _canResend = true;
 
-  EditProfileSerevice editProfileSerevice = EditProfileSerevice();
+  EditProfileService editProfileService = EditProfileService();
 
   @override
   void initState() {
@@ -133,7 +133,7 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
       if (widget.isEmail) {
         widget.isLoading?.call(true);
         bool success =
-            await editProfileSerevice.sendEmailOtp(_newValue, context);
+            await editProfileService.sendEmailOtp(_newValue, context);
         if (success) {
           setState(() {
             _isEditing = false;
@@ -163,7 +163,7 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
         widget.isLoading?.call(false);
       } else {
         widget.isLoading?.call(true);
-        bool success = await editProfileSerevice.sendMobileOtp(
+        bool success = await editProfileService.sendMobileOtp(
             _newValue, _selectedCountryCode, context);
         if (success) {
           setState(() {
@@ -238,7 +238,7 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
 
     try {
       if (widget.isEmail) {
-        bool isVerified = await editProfileSerevice.verifyEmailOtp(
+        bool isVerified = await editProfileService.verifyEmailOtp(
           _newValue,
           context,
           _otpController.text,
@@ -279,7 +279,7 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
           );
         }
       } else {
-        bool isVerified = await editProfileSerevice.verifyMobileOtp(
+        bool isVerified = await editProfileService.verifyMobileOtp(
             _newValue, context, _otpController.text, _selectedCountryCode);
 
         if (isVerified) {

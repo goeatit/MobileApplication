@@ -68,10 +68,13 @@ class ApiRepository {
     });
   }
 
-  Future<Response?> fetchSearch(String query) async {
+  Future<Response?> fetchSearch(String query,
+      {CancelToken? cancelToken}) async {
     final endpoint = ApiEndpoints.fetchRestaurantSearchAndFood(query);
     return await networkManager.makeRequest(() {
-      return networkManager.dioManger.get(endpoint);
+      return networkManager.dioManger.get(
+        endpoint, cancelToken: cancelToken, // ✅ Pass the cancel token here
+      );
     });
   }
 

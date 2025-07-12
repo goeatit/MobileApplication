@@ -2,8 +2,10 @@ import 'dart:async';
 import 'package:eatit/Screens/Auth/login_screen/service/auth_mobile_otp_service.dart';
 import 'package:eatit/Screens/CompleteYourProfile/Screen/Complete_your_profile_screen.dart';
 import 'package:eatit/Screens/location/screen/location_screen.dart';
+import 'package:eatit/Screens/splash_screen/service/SplashScreenService.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/models/user_model.dart';
+import 'package:eatit/provider/cart_dish_provider.dart';
 import 'package:eatit/provider/order_type_provider.dart';
 import 'package:eatit/provider/user_provider.dart';
 import 'package:flutter/material.dart';
@@ -29,6 +31,7 @@ class VerifyOtp extends StatefulWidget {
 class _VerifyOtpState extends State<VerifyOtp> with CodeAutoFill {
   final TextEditingController _otpController = TextEditingController();
   final OtpService _otpService = OtpService();
+  final SplashScreenServiceInit screenServiceInit = SplashScreenServiceInit();
   bool _isButtonEnabled = false;
   int _secondsRemaining = 60;
   Timer? _timer;
@@ -57,9 +60,9 @@ class _VerifyOtpState extends State<VerifyOtp> with CodeAutoFill {
       });
     });
   }
+
   @override
   void codeUpdated() {
-
     if (code != null) {
       _otpController.text = code!;
       _verifyOtp(); // Auto verify once code is filled
@@ -72,6 +75,7 @@ class _VerifyOtpState extends State<VerifyOtp> with CodeAutoFill {
     _otpController.dispose();
     cancel();
     super.dispose();
+
   }
 
   void _onOtpChange() {
@@ -90,6 +94,7 @@ class _VerifyOtpState extends State<VerifyOtp> with CodeAutoFill {
 
     var isVerified = await _otpService.verifyOtp(
         widget.countryCode, widget.phoneNumber, _otpController.text, context);
+    if (!mounted) return; // ✅ Check before calling setState
 
     setState(() {
       isVerificationSuccess = isVerified;
@@ -99,8 +104,14 @@ class _VerifyOtpState extends State<VerifyOtp> with CodeAutoFill {
     });
 
     if (isVerified) {
+      final res = await screenServiceInit.fetchCartItems(context);
+      if (res != null && res.statusCode == 200) {
+        final data = res.data['cart'];
+        Provider.of<CartProvider>(context, listen: false)
+            .loadGroupedCartFromResponse(data);
+      }
       // Add delay to show success state before navigation
-      await Future.delayed(const Duration(milliseconds: 1500));
+      // await Future.delayed(const Duration(milliseconds: 1500));
 
       user = Provider.of<UserModelProvider>(context, listen: false).userModel;
       if (!mounted) return; // Check if widget is still mounted
@@ -371,6 +382,4 @@ class _VerifyOtpState extends State<VerifyOtp> with CodeAutoFill {
           ],
         ));
   }
-
-
 }
