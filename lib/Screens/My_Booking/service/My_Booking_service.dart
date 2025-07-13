@@ -51,6 +51,7 @@ class MyBookingService {
   void cancelRequest() {
     if (_cancelToken != null && !_cancelToken!.isCancelled) {
       _cancelToken!.cancel('Request cancelled');
+      _cancelToken = null; // Reset the token after cancellation
     }
   }
 }

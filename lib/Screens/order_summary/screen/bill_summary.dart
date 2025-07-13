@@ -62,8 +62,9 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
   RestaurantService restaurantService = RestaurantService();
   CurrentData? currentData;
   String? currentLocation;
+
   // Add cancellation token for API requests
-  final _cancelToken = CancelToken();
+  // final _cancelToken = CancelToken();
   CartService cartService = CartService();
   SplashScreenServiceInit splashScreenServiceInit = SplashScreenServiceInit();
 
@@ -94,7 +95,8 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
   @override
   void dispose() {
     // Cancel any ongoing API requests
-    _cancelToken.cancel("Screen disposed");
+    // _cancelToken.cancel("Screen disposed");
+    restaurantService.cancelOngoingRequest();
 
     // Clear memory and ongoing operations for local variables only
     currentData = null;
@@ -128,7 +130,7 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
   }
 
   fetchCurrentData() async {
-    if (_cancelToken.isCancelled) return;
+    // if (_cancelToken.isCancelled) return;
 
     setState(() {
       isCheckingConditions = true;
@@ -153,9 +155,12 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
 
       // Pass the _cancelToken to the service call
       final response = await restaurantService.getCurrentDataWithCancelToken(
-          widget.id, widget.name, localCartItems, _cancelToken);
+          widget.id, widget.name, localCartItems);
 
-      if (response != null && !_cancelToken.isCancelled) {
+      if (response != null
+          // && !_cancelToken.isCancelled
+          &&
+          mounted) {
         currentData = CurrentData.fromJson(response.data);
         currentLocation = currentData!.location;
         String? lat = currentData?.latitude;
@@ -171,8 +176,9 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
         final checkResult = restaurantService.checkPriceChangesAndAvailability(
             currentData!, localCartItems);
 
-
-        if (!mounted || _cancelToken.isCancelled) return;
+        if (!mounted
+            // || _cancelToken.isCancelled
+            ) return;
 
         setState(() {
           isRestaurantClosed = checkResult['isRestaurantClosed'];
@@ -184,7 +190,9 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
         });
 
         // If there are changes, show the appropriate dialog
-        if (hasChanges && mounted && !_cancelToken.isCancelled) {
+        if (hasChanges && mounted
+            // && !_cancelToken.isCancelled
+            ) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             _showChangesDialog();
           });
@@ -196,7 +204,9 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
         });
       }
     } on DioException catch (e) {
-      if (!mounted || _cancelToken.isCancelled) return;
+      if (!mounted
+          // || _cancelToken.isCancelled
+          ) return;
 
       print("Error fetching current data: $e");
       setState(() {
@@ -206,7 +216,9 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
       _showErrorDialog("Network Error",
           "Could not connect to the server. Please try again.");
     } catch (error) {
-      if (!mounted || _cancelToken.isCancelled) return;
+      if (!mounted
+          // || _cancelToken.isCancelled
+          ) return;
 
       print("Error fetching current data: $error");
       setState(() {
@@ -925,8 +937,8 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                                   fontWeight: FontWeight.w100),
                         ),
                         Row(
-                          mainAxisSize: MainAxisSize
-                              .min, // Ensures the row only takes necessary space
+                          mainAxisSize: MainAxisSize.min,
+                          // Ensures the row only takes necessary space
                           children: [
                             const Text(
                               "25 Min from location",
@@ -1449,9 +1461,11 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                     child: DishCard(
                       name: dish.dishId.dishName,
                       price: "₹${dish.resturantDishPrice}",
-                      isAvailable: dish.available, // Add this line
+                      isAvailable: dish.available,
+                      // Add this line
 
-                      imageUrl: imageUrl, // Use the cycled image
+                      imageUrl: imageUrl,
+                      // Use the cycled image
                       calories: '200 cal',
                       quantity: context
                           .watch<CartProvider>()

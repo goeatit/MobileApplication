@@ -3,6 +3,7 @@ import 'package:eatit/Screens/Filter/filter_bottom_sheet.dart';
 import 'package:eatit/Screens/Takeaway_DineIn//widget/dish_card_widget.dart';
 import 'package:eatit/Screens/Takeaway_DineIn//widget/single_dish.dart';
 import 'package:eatit/Screens/Takeaway_DineIn//widget/toggle_widget.dart';
+import 'package:eatit/Screens/Takeaway_DineIn/service/restaurant_service.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/widget/added_item.dart';
 import 'package:eatit/Screens/cart_screen/services/cart_service.dart';
 import 'package:eatit/Screens/homes/screen/home_screen.dart';
@@ -75,6 +76,7 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
   bool _isVisible = false;
   DishSchema? dish;
   AvailableDish? selectedDish;
+  final RestaurantService restaurantService = RestaurantService();
   bool isLoading = true; // Loading indicator flag
   DishSchema? filterDishes;
   final Map<String, List<AvailableDish>> categorizedDishes = {};
@@ -83,8 +85,9 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
   var textTheme;
   String searchQuery = ''; // Track search query
   final TextEditingController _searchController = TextEditingController();
+
   // Add CancelToken for API requests
-  final CancelToken _cancelToken = CancelToken();
+  // final CancelToken _cancelToken = CancelToken();
   List<String> buttonLabels = ["Best Seller", "Top Rated", "Veg", "Non-Veg"];
   List<bool> isSelected = [false, false, false, false];
 
@@ -102,12 +105,13 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
     'Offers': false,
     'Price': false,
   };
-  bool _isAnyOptionSelected() {
-    return selectedSortOption.isNotEmpty ||
-        selectedRatingOption.isNotEmpty ||
-        selectedOfferOption.isNotEmpty ||
-        selectedPriceOption.isNotEmpty;
-  }
+
+  // bool _isAnyOptionSelected() {
+  //   return selectedSortOption.isNotEmpty ||
+  //       selectedRatingOption.isNotEmpty ||
+  //       selectedOfferOption.isNotEmpty ||
+  //       selectedPriceOption.isNotEmpty;
+  // }
 
   // Add this flag to prevent recursion
   String _getTopRatedDish() {
@@ -374,9 +378,11 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
     _controller.dispose();
 
     // Cancel any ongoing API requests
-    if (!_cancelToken.isCancelled) {
-      _cancelToken.cancel("Widget disposed");
-    }
+    // if (!_cancelToken.isCancelled) {
+    //   _cancelToken.cancel("Widget disposed");
+    // }
+
+    restaurantService.dispose();
 
     // Dispose of text controller
     _searchController.removeListener(_updateSearchQuery);
@@ -395,16 +401,21 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
   }
 
   fetchDishes() async {
-    if (_cancelToken.isCancelled) return;
-
-    final Connectivity connectivity = Connectivity();
-    final NetworkManager networkManager = NetworkManager(connectivity);
-    final ApiRepository apiRepository = ApiRepository(networkManager);
+    // if (_cancelToken.isCancelled) return;
+    //
+    // final Connectivity connectivity = Connectivity();
+    // final NetworkManager networkManager = NetworkManager(connectivity);
+    // final ApiRepository apiRepository = ApiRepository(networkManager);
     try {
-      final fetchData = await apiRepository.fetchDishesDataWithCancelToken(
-          widget.name, widget.location, _cancelToken);
+      final fetchData =
+          await restaurantService.fetchDishesData(widget.name, widget.location);
 
-      if (fetchData?.statusCode == 200 && !_cancelToken.isCancelled) {
+      // await apiRepository.fetchDishesDataWithCancelToken(
+      //     widget.name, widget.location, _cancelToken);
+
+      if (fetchData?.statusCode == 200
+          // && !_cancelToken.isCancelled
+          ) {
         final data = DishSchema.fromJson(fetchData?.data);
         categorizeAndSetDishes(data);
         if (mounted) {
@@ -414,7 +425,9 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
         }
       }
     } catch (e) {
-      if (mounted && !_cancelToken.isCancelled) {
+      if (mounted
+          // && !_cancelToken.isCancelled
+          ) {
         _showErrorDialog("Error", "An error occurred while fetching data.");
         setState(() {
           errorMessage = "Error: $e";
@@ -441,6 +454,7 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
     }
 
     // Update the state with the categorized data
+    // print("data loaded");
     setState(() {
       filterDishes = data;
       isLoading = false;
@@ -800,10 +814,12 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                                     imageUrl: widget.imageUrl,
                                                     restaurantName: widget.name,
                                                     location: widget.location,
-                                                    cuisineType: widget
-                                                        .cuisineType, // Add this
-                                                    priceRange: widget
-                                                        .priceRange, // Add this
+                                                    cuisineType:
+                                                        widget.cuisineType,
+                                                    // Add this
+                                                    priceRange:
+                                                        widget.priceRange,
+                                                    // Add this
                                                     rating: widget
                                                         .rating, // Add this
                                                     // lat: dish?.restaurant
@@ -822,10 +838,11 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                                   imageUrl: widget.imageUrl,
                                                   restaurantName: widget.name,
                                                   location: widget.location,
-                                                  cuisineType: widget
-                                                      .cuisineType, // Add this
-                                                  priceRange: widget
-                                                      .priceRange, // Add this
+                                                  cuisineType:
+                                                      widget.cuisineType,
+                                                  // Add this
+                                                  priceRange: widget.priceRange,
+                                                  // Add this
                                                   rating:
                                                       widget.rating, // Add this
                                                   // lat: dish?.restaurant
@@ -1033,7 +1050,8 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                       _showFilterBottomSheet();
                                     },
                                     child: SvgPicture.asset(
-                                      'assets/svg/filter.svg', // replace with your actual asset path
+                                      'assets/svg/filter.svg',
+                                      // replace with your actual asset path
                                       width: 40, // adjust the size as needed
                                     ),
                                   ),
@@ -1189,7 +1207,8 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                                               calories:
                                                                   "120 cal",
                                                               isAvailable: dish
-                                                                  .available, // Add this line
+                                                                  .available,
+                                                              // Add this line
 
                                                               quantity: (ctx
                                                                   .watch<
@@ -1228,17 +1247,16 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                                                         orderType,
                                                                         cartITem);
 
-
                                                                 _debouncedIncrement(
-                                                                        () {
-                                                                      cartService.addToCart(
-                                                                          widget.id,
-                                                                          context,
-                                                                          orderType,
-                                                                          widget
-                                                                              .location);
-                                                                    });
-                                                                },
+                                                                    () {
+                                                                  cartService.addToCart(
+                                                                      widget.id,
+                                                                      context,
+                                                                      orderType,
+                                                                      widget
+                                                                          .location);
+                                                                });
+                                                              },
 
                                                               onIncrement: () {
                                                                 ctx
@@ -1271,7 +1289,8 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                                                         dish.id);
                                                                 _debouncedDecrement(
                                                                     dish.id,
-                                                                    null,orderType);
+                                                                    null,
+                                                                    orderType);
                                                               },
                                                             ),
                                                           );
@@ -1355,7 +1374,6 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                                 orderType,
                                                 widget.location);
                                           });
-
                                         },
                                         onIncrement: () {
                                           ctx
@@ -1375,8 +1393,8 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                               .read<CartProvider>()
                                               .decrementQuantity(widget.id,
                                                   orderType, selectedDish!.id);
-                                          _debouncedDecrement(
-                                              selectedDish!.id, null,orderType);
+                                          _debouncedDecrement(selectedDish!.id,
+                                              null, orderType);
                                         },
                                       ),
                                     );
@@ -1676,21 +1694,22 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
   Timer? _decrementDebounce;
   Set<String> _pendingDecrementIds = {};
 
-
   void _debouncedIncrement(VoidCallback action) {
     _incrementDebounce?.cancel();
     _incrementDebounce = Timer(const Duration(milliseconds: 800), () {
       action();
     });
   }
-  void _debouncedDecrement(String id, VoidCallback? afterDecrement,String orderType) {
+
+  void _debouncedDecrement(
+      String id, VoidCallback? afterDecrement, String orderType) {
     _pendingDecrementIds.add(id);
     _decrementDebounce?.cancel();
     _decrementDebounce = Timer(const Duration(milliseconds: 800), () {
       final ids = List<String>.from(_pendingDecrementIds);
       _pendingDecrementIds.clear();
       if (ids.isNotEmpty) {
-        cartService.decrementCartItem(ids, widget.id,context,orderType);
+        cartService.decrementCartItem(ids, widget.id, context, orderType);
         if (afterDecrement != null) afterDecrement();
       }
     });

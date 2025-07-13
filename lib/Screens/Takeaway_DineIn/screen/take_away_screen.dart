@@ -8,6 +8,7 @@ import 'package:eatit/Screens/Takeaway_DineIn/screen/banner_section.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/screen/expansion_floating_button.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/screen/shimmer_loading_effect.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/screen/singe_restaurant_screen.dart';
+import 'package:eatit/Screens/Takeaway_DineIn/service/restaurant_service.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/widget/bottom_cart.dart';
 import 'package:eatit/api/api_client.dart';
 import 'package:eatit/api/api_repository.dart';
@@ -39,6 +40,7 @@ class TakeAwayScreen extends StatefulWidget {
 class _TakeAwayScreen extends State<TakeAwayScreen> {
   // final List<UserElement> _orders = []; // Initialize with an empty list
   final MyBookingService _bookingService = MyBookingService();
+  final RestaurantService restaurantService = RestaurantService();
   bool _isLoadingOrders = false;
   late CancelToken _cancelToken;
   List<RestaurantsData> restaurants = []; // List to store fetched restaurants
@@ -73,6 +75,11 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
   String? city;
   String? country;
 
+  setCityAndCountry() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    city = sharedPreferences.getString("city");
+    country = sharedPreferences.getString("country");
+  }
 
   // Timer? _timer;
   // Add CancelToken for API requests
@@ -80,27 +87,29 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
 
   // Fetch the restaurant data
   fetchData() async {
-    if (_cancelToken.isCancelled) return;
-
-    final Connectivity connectivity = Connectivity();
-    final NetworkManager networkManager = NetworkManager(connectivity);
-    final ApiRepository apiRepository = ApiRepository(networkManager);
+    // if (_cancelToken.isCancelled) return;
+    //
+    // final Connectivity connectivity = Connectivity();
+    // final NetworkManager networkManager = NetworkManager(connectivity);
+    // final ApiRepository apiRepository = ApiRepository(networkManager);
 
     try {
-      SharedPreferences sharedPreferences =
-          await SharedPreferences.getInstance();
-      city = sharedPreferences.getString("city");
-      country = sharedPreferences.getString("country");
-      // city = "Bengaluru";
+      // SharedPreferences sharedPreferences =
+      //     await SharedPreferences.getInstance();
+      // city = sharedPreferences.getString("city");
+      // country = sharedPreferences.getString("country");
+      // // city = "Bengaluru";
       // city = "Bhubaneswar";
 
-      final response = await apiRepository.fetchRestaurantByAreaWithCancelToken(
-          city!, country!, _cancelToken);
+      final response = await restaurantService.fetchRestaurantsByArea();
+      //
+      // await apiRepository.fetchRestaurantByAreaWithCancelToken(
+      //     city!, country!, _cancelToken);
 
       if (response != null &&
           response.data is List &&
           response.data.isNotEmpty &&
-          !_cancelToken.isCancelled &&
+          // !_cancelToken.isCancelled &&
           mounted) {
         setState(() {
           final restaurantModel = RestaurantModel.fromJson(response.data[0]);
@@ -109,7 +118,9 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
               List.from(restaurants); // Initially show all restaurants
           isLoading = false;
         });
-      } else if (mounted && !_cancelToken.isCancelled) {
+      } else if (mounted
+          // && !_cancelToken.isCancelled
+          ) {
         setState(() {
           restaurants = []; // Ensure restaurants list is empty
           filteredRestaurants = [];
@@ -118,7 +129,9 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
         });
       }
     } catch (e) {
-      if (mounted && !_cancelToken.isCancelled) {
+      if (mounted
+          // && !_cancelToken.isCancelled
+          ) {
         setState(() {
           //errorMessage = "Error: $e";
           errorMessage = "assets/images/expand-your-city.png";
@@ -129,12 +142,12 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
   }
 
   fetchDataByCategory() async {
-    // Cancel previous token if exists
-    if (!_cancelToken.isCancelled) {
-      _cancelToken.cancel("New request started");
-    }
-    // Create new token
-    _cancelToken = CancelToken();
+    // // Cancel previous token if exists
+    // if (!_cancelToken.isCancelled) {
+    //   _cancelToken.cancel("New request started");
+    // }
+    // // Create new token
+    // _cancelToken = CancelToken();
     setState(() {
       isLoading = true;
     });
@@ -151,7 +164,9 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
       // If no category is selected, show all restaurants with loading effect
       await Future.delayed(const Duration(
           milliseconds: 300)); // Add small delay for visual feedback
-      if (mounted && !_cancelToken.isCancelled) {
+      if (mounted
+          // && !_cancelToken.isCancelled
+          ) {
         setState(() {
           filteredRestaurants = List.from(restaurants);
           isLoading = false;
@@ -160,31 +175,32 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
       return;
     }
 
-    final Connectivity connectivity = Connectivity();
-    final NetworkManager networkManager = NetworkManager(connectivity);
-    final ApiRepository apiRepository = ApiRepository(networkManager);
+    // final Connectivity connectivity = Connectivity();
+    // final NetworkManager networkManager = NetworkManager(connectivity);
+    // final ApiRepository apiRepository = ApiRepository(networkManager);
 
     try {
-      SharedPreferences sharedPreferences =
-          await SharedPreferences.getInstance();
-      city = sharedPreferences.getString("city");
-      country = sharedPreferences.getString("country");
-      // city = "Bhubaneswar";
+      // SharedPreferences sharedPreferences =
+      //     await SharedPreferences.getInstance();
+      // city = sharedPreferences.getString("city");
+      // country = sharedPreferences.getString("country");
+      // // city = "Bhubaneswar";
       if (selectedCategory == '') {
         return;
       }
 
       final response =
-          await apiRepository.fetchRestaurantByCategoryNameWithCancelToken(
-              city!, country!, _cancelToken, selectedCategory);
+          await restaurantService.fetchRestaurantsByCategory(selectedCategory);
+      // await apiRepository.fetchRestaurantByCategoryNameWithCancelToken(
+      //     city!, country!, _cancelToken, selectedCategory);
 
       if (response != null &&
           response.data is List &&
           response.data.isNotEmpty &&
-          !_cancelToken.isCancelled &&
+          // !_cancelToken.isCancelled &&
           mounted) {
         final restaurantModel = RestaurantModel.fromJson(response.data[0]);
-        print(restaurantModel.restaurants.length);
+        // print(restaurantModel.restaurants.length);
 
         setState(() {
           final restaurantModel = RestaurantModel.fromJson(response.data[0]);
@@ -216,7 +232,9 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
     //   }
     // }
     catch (e) {
-      if (mounted && !_cancelToken.isCancelled) {
+      if (mounted
+          // && !_cancelToken.isCancelled
+          ) {
         setState(() {
           filteredRestaurants = [];
           isLoading = false;
@@ -261,6 +279,7 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
   void initState() {
     super.initState();
     _cancelToken = CancelToken();
+    setCityAndCountry();
     fetchData();
     // startBannerTimer();
     // fetchOrders();
@@ -300,9 +319,10 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
     // _timer = null;
 
     // Cancel any ongoing API requests
-    if (!_cancelToken.isCancelled) {
-      _cancelToken.cancel("Widget disposed");
-    }
+    // if (!_cancelToken.isCancelled) {
+    //   _cancelToken.cancel("Widget disposed");
+    // }
+    restaurantService.dispose();
 
     // Clear data structures to free memory
     restaurants.clear();
@@ -387,15 +407,17 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
                                           restaurantName:
                                               restaurants[0].restaurantName,
                                           cuisineType:
-                                              "Indian • ${restaurants[0].topratedCusine}", // Update this if you have a field for cuisine
-                                          priceRange:
-                                              "₹1200-₹1500 for two", // Update this if you have price range info
+                                              "Indian • ${restaurants[0].topratedCusine}",
+                                          // Update this if you have a field for cuisine
+                                          priceRange: "₹1200-₹1500 for two",
+                                          // Update this if you have price range info
                                           rating:
                                               restaurants[0].ratings.toDouble(),
                                           promotionText:
-                                              "Flat 10% off in booking", // Update if you have promo data
-                                          promoCode:
-                                              "Happy10", // Update this if you have promo codes
+                                              "Flat 10% off in booking",
+                                          // Update if you have promo data
+                                          promoCode: "Happy10",
+                                          // Update this if you have promo codes
                                           location: city!,
                                           lat: restaurants[0].lat,
                                           long: restaurants[0].long,
@@ -543,7 +565,7 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
                 var _orders = mybookingprovider.myBookings;
                 if (_orders
                     .where((order) =>
-                    _shouldDisplayBooking(order.user.orderStatus))
+                        _shouldDisplayBooking(order.user.orderStatus))
                     .isNotEmpty) {
                   return ExpansionFloatingButton(
                     orders: _orders,
