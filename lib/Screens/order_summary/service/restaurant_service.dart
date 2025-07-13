@@ -13,15 +13,16 @@ class RestaurantService {
       : _apiRepository =
             apiRepository ?? ApiRepository(NetworkManager(Connectivity()));
 
-  Future<Response?> getCurrentData(
-      String id, String name, List<CartItem> cartItems) async {
-    return await _apiRepository.fetchCurrentData(id, name, cartItems);
-  }
+  // Future<Response?> getCurrentData(
+  //     String id, String name, List<CartItem> cartItems) async {
+  //   return await _apiRepository.fetchCurrentData(id, name, cartItems);
+  // }
 
-  Future<Response?> getCurrentDataWithCancelToken(String id, String name,
-      List<CartItem> cartItems, CancelToken cancelToken) async {
+  Future<Response?> getCurrentDataWithCancelToken(
+      String id, String name, List<CartItem> cartItems) async {
+    _cancelToken = CancelToken(); // Create a new CancelToken for this request
     return await _apiRepository.fetchCurrentDataWithCancelToken(
-        id, name, cartItems, cancelToken);
+        id, name, cartItems, _cancelToken!);
   }
 
   Map<String, dynamic> checkPriceChangesAndAvailability(
@@ -75,11 +76,11 @@ class RestaurantService {
       String noOfPeople,
       String totalAmount,
       List<CartItem> cartItems) async {
-    final Connectivity connectivity = Connectivity();
-    final NetworkManager networkManager = NetworkManager(connectivity);
-    final ApiRepository apiRepository = ApiRepository(networkManager);
+    // final Connectivity connectivity = Connectivity();
+    // final NetworkManager networkManager = NetworkManager(connectivity);
+    // final ApiRepository apiRepository = ApiRepository(networkManager);
 
-    return await apiRepository.createOrder(
+    return await _apiRepository.createOrder(
         id, orderType, name, pickupTime, noOfPeople, totalAmount, cartItems);
   }
 
@@ -87,5 +88,10 @@ class RestaurantService {
       String signature, String orderCreationId) async {
     return await _apiRepository.verifyPayment(
         paymentId, orderId, signature, orderCreationId);
+  }
+
+  void cancelOngoingRequest() {
+    _cancelToken?.cancel();
+    _cancelToken = null; // Reset the token after cancellation
   }
 }

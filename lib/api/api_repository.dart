@@ -162,15 +162,15 @@ class ApiRepository {
     });
   }
 
-  Future<Response?> fetchCurrentData(
-      String id, String name, List<CartItem> cartItems) async {
-    final endpoint = ApiEndpoints.fetchCurrentData(id, name);
-    return await networkManager.makeRequest(() {
-      return networkManager.dioManger.post(endpoint, data: {
-        'dishIdToBeOrderd': cartItems.map((e) => e.dish.id).toList(),
-      });
-    });
-  }
+  // Future<Response?> fetchCurrentData(
+  //     String id, String name, List<CartItem> cartItems) async {
+  //   final endpoint = ApiEndpoints.fetchCurrentData(id, name);
+  //   return await networkManager.makeRequest(() {
+  //     return networkManager.dioManger.post(endpoint, data: {
+  //       'dishIdToBeOrderd': cartItems.map((e) => e.dish.id).toList(),
+  //     });
+  //   });
+  // }
 
   Future<Response?> fetchCurrentDataWithCancelToken(String id, String name,
       List<CartItem> cartItems, CancelToken cancelToken) async {
