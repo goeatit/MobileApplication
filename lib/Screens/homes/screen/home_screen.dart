@@ -5,6 +5,7 @@ import 'package:eatit/Screens/location/screen/Restaurant_address_screen.dart';
 import 'package:eatit/Screens/profile/screen/profile_screen.dart';
 import 'package:eatit/Screens/search/screen/search_screen.dart';
 import 'package:eatit/main.dart';
+import 'package:eatit/provider/cart_dish_provider.dart';
 import 'package:eatit/provider/order_type_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:eatit/common/constants/colors.dart';
@@ -141,6 +142,11 @@ class _HomePage extends State<HomePage> {
         );
       },
     );
+  }
+
+  Future<void> goToCartPage() async {
+    await context.read<CartProvider>().fetchLatestCart();
+    context.read<OrderTypeProvider>().changeHomeState(2);
   }
 
   @override
@@ -347,7 +353,7 @@ class _HomePage extends State<HomePage> {
                   isSelected: _currentPage == 2,
                   onClick: () {
                     if (_currentPage != 2) {
-                      context.read<OrderTypeProvider>().changeHomeState(2);
+                      goToCartPage();
                     }
                   },
                 ),

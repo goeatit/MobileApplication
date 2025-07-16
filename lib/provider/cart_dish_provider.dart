@@ -7,9 +7,11 @@ import 'package:eatit/models/cart_items.dart';
 
 class CartProvider extends ChangeNotifier {
   final Map<String, Map<String, List<CartItem>>> _restaurantCarts = {};
+  bool _isLoading = false;
 
   Map<String, Map<String, List<CartItem>>> get restaurantCarts =>
       _restaurantCarts;
+  bool get isLoading => _isLoading;
 
   double get totalPrice {
     double total = 0.0;
@@ -278,5 +280,25 @@ class CartProvider extends ChangeNotifier {
     }
   }
 
+  void loadGroupedCartFromResponse(Map<String, dynamic> response) {
+    _restaurantCarts.clear(); // Optional: clear existing cart data
 
+    response.forEach((restaurantId, orderTypesMap) {
+      orderTypesMap.forEach((orderType, itemsList) {
+        for (var item in itemsList) {
+          try {
+            final cartItem = CartItem.fromMap(item as Map<String, dynamic>);
+
+            // Add to the cart
+            addToCart(restaurantId, orderType, cartItem);
+          } catch (e) {
+            print('❌ Error parsing CartItem: $e');
+          }
+        }
+      });
+    });
+    saveCartToStorage();
+
+    notifyListeners();
+  }
 }

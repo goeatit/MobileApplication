@@ -15,8 +15,8 @@ class DashedDivider extends StatelessWidget {
     this.color = Colors.grey,
     this.dashWidth = 6,
     this.dashSpace = 4,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -38,6 +38,11 @@ class _LocationScreenState extends State<LocationScreen> {
     super.initState();
     _fetchLocation();
   }
+  @override
+  void dispose() {
+    _controller.dispose(); // also dispose your TextEditingController
+    super.dispose();
+  }
 
   Future<void> requestLocationPermission() async {
     LocationPermission permission = await Geolocator.requestPermission();
@@ -103,6 +108,7 @@ class _LocationScreenState extends State<LocationScreen> {
 
       if (location != null) {
         String cleanedAddress = cleanAddress(location['fullAddress'] ?? '');
+        if (!mounted) return; // Check if the widget is still mounted
 
         setState(() {
           _currentLatLng =

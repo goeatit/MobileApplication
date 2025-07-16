@@ -4,6 +4,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:eatit/Screens/Filter/filter_bottom_sheet.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/screen/singe_restaurant_screen.dart';
 import 'package:eatit/Screens/location/screen/Restaurant_address_screen.dart';
+import 'package:eatit/Screens/search/service/search_service.dart';
 import 'package:eatit/api/api_repository.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/models/search_model.dart';
@@ -24,6 +25,7 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final SearchService searchService = SearchService();
   String selectedSection = 'Sort By';
   String selectedSortOption = '';
   String selectedRatingOption = '';
@@ -37,6 +39,7 @@ class _SearchScreenState extends State<SearchScreen> {
     'Offers': false,
     'Price': false,
   };
+
   bool _isAnyOptionSelected() {
     return selectedSortOption.isNotEmpty ||
         selectedRatingOption.isNotEmpty ||
@@ -57,6 +60,7 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Timer? _debounce;
+
   void _showFilterBottomSheet() {
     showModalBottomSheet(
       context: context,
@@ -95,12 +99,9 @@ class _SearchScreenState extends State<SearchScreen> {
 
   void onSearchChanged(String query) {
     try {
-      final Connectivity connectivity = Connectivity();
-      final NetworkManager networkManager = NetworkManager(connectivity);
-      final ApiRepository apiRepository = ApiRepository(networkManager);
-
       // Cancel any existing debounce timer
       if (_debounce?.isActive ?? false) _debounce!.cancel();
+      searchService.cancelOngoingRequest();
 
       _debounce = Timer(const Duration(milliseconds: 500), () async {
         if (query.isNotEmpty) {
@@ -110,7 +111,9 @@ class _SearchScreenState extends State<SearchScreen> {
           });
 
           try {
-            final response = await apiRepository.fetchSearch(query);
+            final response = await searchService.getResultQuery(query);
+            // print(response);
+            if (!mounted) return;
 
             if (response != null && response.statusCode == 200) {
               final responseResult = SearchModel.fromJson(response.data);
@@ -120,18 +123,22 @@ class _SearchScreenState extends State<SearchScreen> {
                 isLoading = false;
               });
             } else {
+              if (!mounted) return;
               setState(() {
                 isLoading = false;
-                errorMessage = 'Failed to fetch results. Please try again.';
+                // errorMessage = 'Failed to fetch results. Please try again.';
               });
             }
           } catch (e) {
+            if (!mounted) return;
+
             setState(() {
               isLoading = false;
               errorMessage = e.toString(); // Capture the error message
             });
           }
         } else {
+          if (!mounted) return;
           setState(() {
             searchResultsRestaurant.clear(); // Clear results for empty query
             topDishes.clear();
@@ -195,6 +202,7 @@ class _SearchScreenState extends State<SearchScreen> {
     _debounce?.cancel();
     searchResultsRestaurant.clear();
     topDishes.clear();
+    searchService.cancelOngoingRequest(); // Cancel any ongoing requests
     super.dispose();
   }
 
@@ -492,10 +500,10 @@ class _SearchScreenState extends State<SearchScreen> {
                         TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               if (!isLoading && searchResultsRestaurant.isNotEmpty)
                 GridView.builder(
-                  shrinkWrap:
-                      true, // Makes the grid view take only the necessary space
-                  physics:
-                      const NeverScrollableScrollPhysics(), // Prevents the grid from scrolling
+                  shrinkWrap: true,
+                  // Makes the grid view take only the necessary space
+                  physics: const NeverScrollableScrollPhysics(),
+                  // Prevents the grid from scrolling
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     crossAxisSpacing: 5,
@@ -519,10 +527,10 @@ class _SearchScreenState extends State<SearchScreen> {
                                 imageUrl:
                                     "assets/images/restaurant${(index % 9) + 1}.png",
 
-                                cuisineType:
-                                    "Indian • Biryani", // Add appropriate cuisine type
-                                priceRange:
-                                    "₹1200-₹1500 for two", // Add appropriate price range
+                                cuisineType: "Indian • Biryani",
+                                // Add appropriate cuisine type
+                                priceRange: "₹1200-₹1500 for two",
+                                // Add appropriate price range
                                 rating: double.parse(item.restaurantRating
                                     .toString()), // Convert rating to double
                               ),
@@ -542,7 +550,8 @@ class _SearchScreenState extends State<SearchScreen> {
                                 child: AspectRatio(
                                   aspectRatio: 16 / 9,
                                   child: Image.asset(
-                                    "assets/images/restaurant${(index % 9) + 1}.png", // This will cycle through restaurant1.png to restaurant9.png
+                                    "assets/images/restaurant${(index % 9) + 1}.png",
+                                    // This will cycle through restaurant1.png to restaurant9.png
                                     fit: BoxFit.cover,
                                     errorBuilder: (context, error, stackTrace) {
                                       // Fallback image in case the numbered image is not found
@@ -676,10 +685,10 @@ class _SearchScreenState extends State<SearchScreen> {
                               imageUrl:
                                   "assets/images/restaurant${(index % 9) + 1}.png",
 
-                              cuisineType:
-                                  "Indian • Biryani", // Add appropriate cuisine type
-                              priceRange:
-                                  "₹1200-₹1500 for two", // Add appropriate price range
+                              cuisineType: "Indian • Biryani",
+                              // Add appropriate cuisine type
+                              priceRange: "₹1200-₹1500 for two",
+                              // Add appropriate price range
                               rating: double.parse(item.rating
                                   .toString()), // Convert rating to double
                             ),
@@ -699,7 +708,8 @@ class _SearchScreenState extends State<SearchScreen> {
                               child: AspectRatio(
                                 aspectRatio: 16 / 9,
                                 child: Image.asset(
-                                  "assets/images/restaurant${(index % 9) + 1}.png", // This will cycle through restaurant1.png to restaurant9.png
+                                  "assets/images/restaurant${(index % 9) + 1}.png",
+                                  // This will cycle through restaurant1.png to restaurant9.png
                                   fit: BoxFit.cover,
                                   errorBuilder: (context, error, stackTrace) {
                                     // Fallback image in case the numbered image is not found

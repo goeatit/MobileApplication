@@ -27,10 +27,21 @@ class CartPageState extends State<CartPage> {
   String? latestId;
   String? latestOrderType;
   CartService cartService = CartService();
+  bool _isLoading = false;
+  bool _firstLoad = true;
 
   @override
   void initState() {
     super.initState();
+    _firstLoad = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _fetchCart();
+      if (mounted) {
+        setState(() {
+          _firstLoad = false;
+        });
+      }
+    });
     if (_cartItems.isNotEmpty) {
       final latest =
           _cartItems.reduce((a, b) => a.createdAt.isAfter(b.createdAt) ? a : b);
@@ -38,6 +49,10 @@ class CartPageState extends State<CartPage> {
       latestId = latest.id;
       latestOrderType = latest.orderType;
     }
+  }
+
+  Future<void> _fetchCart() async {
+    await context.read<CartProvider>().fetchLatestCart();
   }
 
   @override
@@ -99,12 +114,12 @@ class CartPageState extends State<CartPage> {
     }
   }
 
-  void removeItem(int index) async{
+  void removeItem(int index) async {
     final removedItem = _cartItems[index];
 
     // todo delete from the backend
-    final res=await cartService.removeCartItem(removedItem);
-    if(!res){
+    final res = await cartService.removeCartItem(removedItem);
+    if (!res) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Failed to remove item from cart'),
@@ -149,8 +164,9 @@ class CartPageState extends State<CartPage> {
 
   @override
   Widget build(BuildContext context) {
-    final cartProvider =
-        context.watch<CartProvider>(); // Ensures UI rebuilds when cart updates
+    final cartProvider = context.watch<CartProvider>();
+    // final showLoading = _firstLoad || cartProvider.isLoading;
+    const showLoading = true;
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading:
@@ -191,28 +207,34 @@ class CartPageState extends State<CartPage> {
           )
         ],
       ),
-      body: _cartItems.isNotEmpty
-          ? Padding(
-              padding: const EdgeInsets.all(16.0),
-              child:
-                  Consumer<CartProvider>(builder: (ctx, cartProvider, child) {
-                return Column(
-                  children: [
-                    Expanded(
-                        child: AnimatedList(
-                      key: _listKey,
-                      initialItemCount: _cartItems.length,
-                      itemBuilder: (context, index, animation) {
-                        if (index >= _cartItems.length) {
-                          return const SizedBox.shrink();
-                        }
-                        return _buildCartItem(_cartItems[index], animation);
-                      },
-                    )),
-                  ],
-                );
-              }))
-          : _buildEmptyCartView(),
+      body: showLoading
+          ? const Center(child: CircularProgressIndicator())
+          : RefreshIndicator(
+              onRefresh: _fetchCart,
+              child: _cartItems.isNotEmpty
+                  ? Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Consumer<CartProvider>(
+                          builder: (ctx, cartProvider, child) {
+                        return Column(
+                          children: [
+                            Expanded(
+                                child: AnimatedList(
+                              key: _listKey,
+                              initialItemCount: _cartItems.length,
+                              itemBuilder: (context, index, animation) {
+                                if (index >= _cartItems.length) {
+                                  return const SizedBox.shrink();
+                                }
+                                return _buildCartItem(
+                                    _cartItems[index], animation);
+                              },
+                            )),
+                          ],
+                        );
+                      }))
+                  : _buildEmptyCartView(),
+            ),
     );
   }
 

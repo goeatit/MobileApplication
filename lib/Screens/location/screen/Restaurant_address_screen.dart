@@ -62,6 +62,7 @@ class _RestaurantAddressScreenState extends State<RestaurantAddressScreen> {
       });
       _moveToLocation(_currentPosition);
     } catch (e) {
+      if(!mounted) return;
       setState(() {
         _error = '';
       });

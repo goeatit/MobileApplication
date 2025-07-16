@@ -59,6 +59,7 @@ class _RestaurantWidgetState extends State<RestaurantWidget> {
 
   // Add this method to start auto-scroll
   void startAutoScroll() {
+
     if (_autoScrollTimer?.isActive ?? false) return;
 
     _autoScrollTimer =
@@ -141,6 +142,8 @@ class _RestaurantWidgetState extends State<RestaurantWidget> {
     return VisibilityDetector(
       key: Key(widget.id), // Use restaurant ID as the key
       onVisibilityChanged: (VisibilityInfo info) {
+        if (!mounted) return; // 🛑 Prevent setState after dispose
+
         setState(() {
           _isVisible = info.visibleFraction >
               0.9; // Consider widget visible if more than 50% is shown

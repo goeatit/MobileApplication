@@ -11,6 +11,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class FacebookSignInService {
+  final ApiRepository _apiRepository;
+  // CancelToken? _cancelToken;
+  FacebookSignInService({ApiRepository? apiRepository})
+      : _apiRepository =
+      apiRepository ?? ApiRepository(NetworkManager(Connectivity()));
   Future<void> signInWithFacebook(BuildContext context) async {
     try {
       // Initiate Facebook sign-in
@@ -30,12 +35,9 @@ class FacebookSignInService {
         }
 
         // Post user data to your backend API
-        final Connectivity connectivity = Connectivity();
-        final NetworkManager networkManager = NetworkManager(connectivity);
-        final ApiRepository apiRepository = ApiRepository(networkManager);
-        TokenManager _tokenManager = TokenManager();
+         TokenManager _tokenManager = TokenManager();
 
-        final responseFromBackend = await apiRepository.facebookLogin(
+        final responseFromBackend = await _apiRepository.facebookLogin(
           userData['email'],
           userData['name'],
           userData['picture']?['data']?['url'] ?? '',
