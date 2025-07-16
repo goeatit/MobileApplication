@@ -16,6 +16,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class GoogleLoginService {
+  final ApiRepository _apiRepository;
+  // CancelToken? _cancelToken;
+  GoogleLoginService({ApiRepository? apiRepository})
+      : _apiRepository =
+      apiRepository ?? ApiRepository(NetworkManager(Connectivity()));
   final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email']);
   // final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
@@ -55,12 +60,9 @@ class GoogleLoginService {
       final userInfo = json.decode(userInfoResponse.body);
 
       // Post user data to your backend API
-      final Connectivity connectivity = Connectivity();
-      final NetworkManager networkManager = NetworkManager(connectivity);
-      final ApiRepository apiRepository = ApiRepository(networkManager);
-      TokenManager _tokenManager = TokenManager();
+     TokenManager _tokenManager = TokenManager();
 
-      final responseFromBackend = await apiRepository.googleLogin(
+      final responseFromBackend = await _apiRepository.googleLogin(
           userInfo["email"], userInfo["name"], userInfo["picture"]);
       // print(responseFromBackend);
       if (responseFromBackend != null) {

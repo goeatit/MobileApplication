@@ -68,10 +68,13 @@ class ApiRepository {
     });
   }
 
-  Future<Response?> fetchSearch(String query) async {
+  Future<Response?> fetchSearch(String query,
+      {CancelToken? cancelToken}) async {
     final endpoint = ApiEndpoints.fetchRestaurantSearchAndFood(query);
     return await networkManager.makeRequest(() {
-      return networkManager.dioManger.get(endpoint);
+      return networkManager.dioManger.get(
+        endpoint, cancelToken: cancelToken, // ✅ Pass the cancel token here
+      );
     });
   }
 
@@ -159,15 +162,15 @@ class ApiRepository {
     });
   }
 
-  Future<Response?> fetchCurrentData(
-      String id, String name, List<CartItem> cartItems) async {
-    final endpoint = ApiEndpoints.fetchCurrentData(id, name);
-    return await networkManager.makeRequest(() {
-      return networkManager.dioManger.post(endpoint, data: {
-        'dishIdToBeOrderd': cartItems.map((e) => e.dish.id).toList(),
-      });
-    });
-  }
+  // Future<Response?> fetchCurrentData(
+  //     String id, String name, List<CartItem> cartItems) async {
+  //   final endpoint = ApiEndpoints.fetchCurrentData(id, name);
+  //   return await networkManager.makeRequest(() {
+  //     return networkManager.dioManger.post(endpoint, data: {
+  //       'dishIdToBeOrderd': cartItems.map((e) => e.dish.id).toList(),
+  //     });
+  //   });
+  // }
 
   Future<Response?> fetchCurrentDataWithCancelToken(String id, String name,
       List<CartItem> cartItems, CancelToken cancelToken) async {

@@ -8,6 +8,7 @@ import 'package:eatit/Screens/Takeaway_DineIn/screen/expansion_floating_button.d
 import 'package:eatit/Screens/Takeaway_DineIn/screen/shimmer_loading_effect.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/screen/singe_restaurant_screen.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/widget/bottom_rating.dart';
+import 'package:eatit/Screens/Takeaway_DineIn/service/restaurant_service.dart';
 import 'package:eatit/api/api_client.dart';
 import 'package:eatit/api/api_repository.dart';
 import 'package:eatit/api/network_manager.dart';
@@ -40,6 +41,7 @@ class DineInScreen extends StatefulWidget {
 
 class _DineInScreen extends State<DineInScreen> {
   // final List<UserElement> _orders = []; // Initialize with an empty list
+  final RestaurantService restaurantService = RestaurantService();
   bool _isLoadingOrders = false;
   final MyBookingService _bookingService = MyBookingService();
   late CancelToken _cancelToken;
@@ -47,6 +49,7 @@ class _DineInScreen extends State<DineInScreen> {
   List<RestaurantsData> filteredRestaurants = []; // Store filtered restaurants
   bool isLoading = true;
   String errorMessage = '';
+
   // All Categories
   final List<Map<String, String>> _allCategories = [
     {"name": "Briyani", "image": "assets/images/briyani.png"},
@@ -94,6 +97,12 @@ class _DineInScreen extends State<DineInScreen> {
     }
   }
 
+  setCityAndCountry() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    city = sharedPreferences.getString("city");
+    country = sharedPreferences.getString("country");
+  }
+
   // int _currentBannerIndex = 0;
   // final List<String> bannerImages = [
   //   "assets/images/banner.png",
@@ -106,26 +115,28 @@ class _DineInScreen extends State<DineInScreen> {
   //final CancelToken _cancelToken = CancelToken();
 
   fetchData() async {
-    if (_cancelToken.isCancelled) return;
-
-    final Connectivity connectivity = Connectivity();
-    final NetworkManager networkManager = NetworkManager(connectivity);
-    final ApiRepository apiRepository = ApiRepository(networkManager);
+    // if (_cancelToken.isCancelled) return;
+    //
+    // final Connectivity connectivity = Connectivity();
+    // final NetworkManager networkManager = NetworkManager(connectivity);
+    // final ApiRepository apiRepository = ApiRepository(networkManager);
 
     try {
-      SharedPreferences sharedPreferences =
-          await SharedPreferences.getInstance();
-      city = sharedPreferences.getString("city");
-      country = sharedPreferences.getString("country");
-      // city = "Bhubaneswar";
+      // SharedPreferences sharedPreferences =
+      //     await SharedPreferences.getInstance();
+      // city = sharedPreferences.getString("city");
+      // country = sharedPreferences.getString("country");
+      // // city = "Bhubaneswar";
 
-      final response = await apiRepository.fetchRestaurantByAreaWithCancelToken(
-          city!, country!, _cancelToken);
+      final response = await restaurantService.fetchRestaurantsByArea();
+      //
+      // await apiRepository.fetchRestaurantByAreaWithCancelToken(
+      //     city!, country!, _cancelToken);
 
       if (response != null &&
           response.data is List &&
           response.data.isNotEmpty &&
-          !_cancelToken.isCancelled &&
+          // !_cancelToken.isCancelled &&
           mounted) {
         setState(() {
           final restaurantModel = RestaurantModel.fromJson(response.data[0]);
@@ -134,7 +145,9 @@ class _DineInScreen extends State<DineInScreen> {
               List.from(restaurants); // Initially show all restaurants
           isLoading = false;
         });
-      } else if (mounted && !_cancelToken.isCancelled) {
+      } else if (mounted
+          // && !_cancelToken.isCancelled
+          ) {
         setState(() {
           restaurants = [];
           filteredRestaurants = [];
@@ -143,7 +156,9 @@ class _DineInScreen extends State<DineInScreen> {
         });
       }
     } catch (e) {
-      if (mounted && !_cancelToken.isCancelled) {
+      if (mounted
+          // && !_cancelToken.isCancelled
+          ) {
         setState(() {
           errorMessage = "assets/images/expand-your-city.png";
           isLoading = false;
@@ -154,11 +169,11 @@ class _DineInScreen extends State<DineInScreen> {
 
   fetchDataByCategory() async {
     // Cancel previous token if exists
-    if (!_cancelToken.isCancelled) {
-      _cancelToken.cancel("New request started");
-    }
+    // if (!_cancelToken.isCancelled) {
+    //   _cancelToken.cancel("New request started");
+    // }
     // Create new token
-    _cancelToken = CancelToken();
+    // _cancelToken = CancelToken();
 
     setState(() {
       isLoading = true;
@@ -176,7 +191,9 @@ class _DineInScreen extends State<DineInScreen> {
       // If no category is selected, show all restaurants with loading effect
       await Future.delayed(const Duration(
           milliseconds: 300)); // Add small delay for visual feedback
-      if (mounted && !_cancelToken.isCancelled) {
+      if (mounted
+          // && !_cancelToken.isCancelled
+          ) {
         setState(() {
           filteredRestaurants = List.from(restaurants);
           isLoading = false;
@@ -185,31 +202,28 @@ class _DineInScreen extends State<DineInScreen> {
       return;
     }
 
-    final Connectivity connectivity = Connectivity();
-    final NetworkManager networkManager = NetworkManager(connectivity);
-    final ApiRepository apiRepository = ApiRepository(networkManager);
-
     try {
-      SharedPreferences sharedPreferences =
-          await SharedPreferences.getInstance();
-      city = sharedPreferences.getString("city");
-      country = sharedPreferences.getString("country");
+      // SharedPreferences sharedPreferences =
+      //     await SharedPreferences.getInstance();
+      // city = sharedPreferences.getString("city");
+      // country = sharedPreferences.getString("country");
       // city = "Bhubaneswar";
       if (selectedCategory == '') {
         return;
       }
 
       final response =
-          await apiRepository.fetchRestaurantByCategoryNameWithCancelToken(
-              city!, country!, _cancelToken, selectedCategory);
+          await restaurantService.fetchRestaurantsByCategory(selectedCategory);
+      // await apiRepository.fetchRestaurantByCategoryNameWithCancelToken(
+      //     city!, country!, _cancelToken, selectedCategory);
 
       if (response != null &&
           response.data is List &&
           response.data.isNotEmpty &&
-          !_cancelToken.isCancelled &&
+          // !_cancelToken.isCancelled &&
           mounted) {
         final restaurantModel = RestaurantModel.fromJson(response.data[0]);
-        print(restaurantModel.restaurants.length);
+        // print(restaurantModel.restaurants.length);
 
         setState(() {
           final restaurantModel = RestaurantModel.fromJson(response.data[0]);
@@ -218,6 +232,7 @@ class _DineInScreen extends State<DineInScreen> {
           isLoading = false;
         });
       } else {
+        if (!mounted) return;
         setState(() {
           filteredRestaurants = [];
           isLoading = false;
@@ -241,7 +256,9 @@ class _DineInScreen extends State<DineInScreen> {
     //   }
     // }
     catch (e) {
-      if (mounted && !_cancelToken.isCancelled) {
+      if (mounted
+          // && !_cancelToken.isCancelled
+          ) {
         setState(() {
           filteredRestaurants = [];
           isLoading = false;
@@ -286,6 +303,7 @@ class _DineInScreen extends State<DineInScreen> {
   void initState() {
     super.initState();
     _cancelToken = CancelToken();
+    setCityAndCountry();
     fetchData();
     // startBannerTimer();
     // fetchOrders();
@@ -325,10 +343,10 @@ class _DineInScreen extends State<DineInScreen> {
     // _timer = null;
 
     // Cancel any ongoing API requests
-    if (!_cancelToken.isCancelled) {
-      _cancelToken.cancel("Widget disposed");
-    }
-
+    // if (!_cancelToken.isCancelled) {
+    //   _cancelToken.cancel("Widget disposed");
+    // }
+    restaurantService.dispose();
     // Clear data structures to free memory
     restaurants.clear();
     city = null;

@@ -6,14 +6,17 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
-class EditProfileSerevice {
+class EditProfileService {
+  final ApiRepository _apiRepository;
+  CancelToken? _cancelToken;
+
+  EditProfileService({ApiRepository? apiRepository})
+      : _apiRepository =
+            apiRepository ?? ApiRepository(NetworkManager(Connectivity()));
+
   Future<bool> sendEmailOtp(String email, BuildContext context) async {
     try {
-      final Connectivity connectivity = Connectivity();
-      final NetworkManager networkManager = NetworkManager(connectivity);
-      final ApiRepository apiRepository = ApiRepository(networkManager);
-
-      final res = await apiRepository.sendOtpEmail(email);
+      final res = await _apiRepository.sendOtpEmail(email);
       if (res != null) {
         if (res.statusCode == 200) {
           return true;
@@ -31,11 +34,7 @@ class EditProfileSerevice {
   Future<bool> verifyEmailOtp(
       String email, BuildContext context, String otp) async {
     try {
-      final Connectivity connectivity = Connectivity();
-      final NetworkManager networkManager = NetworkManager(connectivity);
-      final ApiRepository apiRepository = ApiRepository(networkManager);
-
-      final res = await apiRepository.verifyOtpEmail(email, otp);
+      final res = await _apiRepository.verifyOtpEmail(email, otp);
       if (res != null) {
         if (res.statusCode == 200) {
           return true;
@@ -72,11 +71,7 @@ class EditProfileSerevice {
   Future<bool> verifyMobileOtp(String phoneNumber, BuildContext context,
       String otp, String countryCode) async {
     try {
-      final Connectivity connectivity = Connectivity();
-      final NetworkManager networkManager = NetworkManager(connectivity);
-      final ApiRepository apiRepository = ApiRepository(networkManager);
-
-      final res = await apiRepository.verifyOtpPhoneNumber(
+      final res = await _apiRepository.verifyOtpPhoneNumber(
           phoneNumber, countryCode, otp);
       if (res != null) {
         if (res.statusCode == 200) {
@@ -114,12 +109,8 @@ class EditProfileSerevice {
   Future<bool> saveProfileChanges(
       Map<String, String?> changes, BuildContext context) async {
     try {
-      final Connectivity connectivity = Connectivity();
-      final NetworkManager networkManager = NetworkManager(connectivity);
-      final ApiRepository apiRepository = ApiRepository(networkManager);
-
-      print(changes);
-      final res = await apiRepository.updateProfile(changes);
+      // print(changes);
+      final res = await _apiRepository.updateProfile(changes);
       if (res != null) {
         if (res.statusCode == 200) {
           return true;
@@ -151,11 +142,7 @@ class EditProfileSerevice {
   Future<bool> sendMobileOtp(
       String phoneNumber, String countryCode, BuildContext context) async {
     try {
-      final Connectivity connectivity = Connectivity();
-      final NetworkManager networkManager = NetworkManager(connectivity);
-      final ApiRepository apiRepository = ApiRepository(networkManager);
-
-      final res = await apiRepository.genOtp(countryCode, phoneNumber);
+      final res = await _apiRepository.genOtp(countryCode, phoneNumber);
       if (res != null) {
         if (res.statusCode == 200) {
           return true;

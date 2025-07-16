@@ -37,7 +37,7 @@ class SplashScreenServiceInit {
       }
       return false;
     } on DioException catch (e) {
-      print(e.response?.data);
+      // print(e.response?.data);
       if (e.response?.statusCode == 401) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -50,7 +50,7 @@ class SplashScreenServiceInit {
       }
       return false;
     } catch (e) {
-      print("catch $e");
+      // print("catch $e");
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Something went wrong. Please try again."),
@@ -66,7 +66,7 @@ class SplashScreenServiceInit {
     try {
       return await _apiRepository.fetchCartItems();
     } on DioException catch (e) {
-      print(e.response?.data);
+      // print(e.response?.data);
       if (e.response?.statusCode == 401) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -79,7 +79,7 @@ class SplashScreenServiceInit {
       }
       return null;
     } catch (e) {
-      print("catch $e");
+      // print("catch $e");
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Something went wrong. Please try again."),
