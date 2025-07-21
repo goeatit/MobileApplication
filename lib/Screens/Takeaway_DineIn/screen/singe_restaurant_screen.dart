@@ -87,7 +87,6 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
   var textTheme;
   String searchQuery = ''; // Track search query
   final TextEditingController _searchController = TextEditingController();
-
   // Add CancelToken for API requests
   // final CancelToken _cancelToken = CancelToken();
   List<String> buttonLabels = ["Best Seller", "Top Rated", "Veg", "Non-Veg"];
@@ -373,32 +372,163 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
     _controller.forward();
   }
 
+  Timer? _incrementDebounce;
+  Timer? _decrementDebounce;
+  Set<String> _pendingDecrementIds = {};
+  Map<String, int> _previousQuantities = {};
+
+  void _debouncedIncrement(VoidCallback action) {
+    _incrementDebounce?.cancel();
+    _incrementDebounce = Timer(const Duration(milliseconds: 800), () {
+      action();
+    });
+  }
+
+  void _debouncedDecrement(
+      String id, VoidCallback? afterDecrement, String orderType) {
+    _pendingDecrementIds.add(id);
+    _decrementDebounce?.cancel();
+    _decrementDebounce = Timer(const Duration(milliseconds: 800), () async {
+      final ids = List<String>.from(_pendingDecrementIds);
+      _pendingDecrementIds.clear();
+      if (ids.isNotEmpty) {
+        try {
+          final response = await cartService.decrementCartItem(
+              ids, widget.id, context, orderType);
+          if (response == null || response.statusCode != 200) {
+            print('Decrement:  API call failed ');
+            // API failed, revert to previous state
+            for (var dishId in ids) {
+              _revertQuantity(dishId, orderType,
+                  Provider.of<CartProvider>(context, listen: false));
+            }
+            _showErrorSnackBar('Failed to update cart');
+          } else {
+            print('Decrement:  api call success ');
+          }
+        } catch (e) {
+          print('Decrement:  Exception ');
+          for (var dishId in ids) {
+            _revertQuantity(dishId, orderType,
+                Provider.of<CartProvider>(context, listen: false));
+          }
+          _showErrorSnackBar('Network error occurred');
+        }
+        if (afterDecrement != null) afterDecrement();
+      } else {
+        print('Decrement:  API not called ');
+      }
+    });
+  }
+
+  // Enhanced cart operations with error handling and debounce
+  Future<void> _handleAddToCart(
+      String dishId, String orderType, CartItem cartItem) async {
+    final cartProvider = Provider.of<CartProvider>(context, listen: false);
+    _previousQuantities[dishId] =
+        cartProvider.getQuantity(widget.id, orderType, dishId);
+    cartProvider.addToCart(widget.id, orderType, cartItem);
+    print('Add to cart: Local state updated for dishId: '
+        ' $dishId orderType: $orderType');
+    _debouncedIncrement(() async {
+      try {
+        final response = await cartService.addToCart(
+            widget.id, context, orderType, widget.location);
+        if (response == null || response.statusCode != 200) {
+          print('Add to cart:  API call failed for dishId: $dishId, response: '
+              ' ${response?.statusCode}');
+          _revertQuantity(dishId, orderType, cartProvider);
+          _showErrorSnackBar('Failed to add item to cart');
+        } else {
+          print('Add to cart:  API call success for dishId: $dishId');
+        }
+      } catch (e) {
+        print('Add to cart:  Exception for dishId: $dishId, error: $e');
+        _revertQuantity(dishId, orderType, cartProvider);
+        _showErrorSnackBar('Network error occurred');
+      }
+    });
+  }
+
+  Future<void> _handleIncrement(String dishId, String orderType) async {
+    final cartProvider = Provider.of<CartProvider>(context, listen: false);
+    _previousQuantities[dishId] =
+        cartProvider.getQuantity(widget.id, orderType, dishId);
+    cartProvider.incrementQuantity(widget.id, orderType, dishId);
+    print('Increment: Local state updated for dishId: '
+        '$dishId  orderType: $orderType');
+    _debouncedIncrement(() async {
+      try {
+        final response = await cartService.addToCart(
+            widget.id, context, orderType, widget.location);
+        if (response == null || response.statusCode != 200) {
+          print('Increment: API call failed for dishId: $dishId, response: '
+              '${response?.statusCode}');
+          _revertQuantity(dishId, orderType, cartProvider);
+          _showErrorSnackBar('Failed to update cart');
+        } else {
+          print('Increment:  API call success for dishId: $dishId');
+        }
+      } catch (e) {
+        print('Increment:  Exception for dishId: $dishId, error: $e');
+        _revertQuantity(dishId, orderType, cartProvider);
+        _showErrorSnackBar('Network error occurred');
+      }
+    });
+  }
+
+  Future<void> _handleDecrement(String dishId, String orderType) async {
+    final cartProvider = Provider.of<CartProvider>(context, listen: false);
+    _previousQuantities[dishId] =
+        cartProvider.getQuantity(widget.id, orderType, dishId);
+    cartProvider.decrementQuantity(widget.id, orderType, dishId);
+    print('Decrement: Local state updated for dishId: '
+        '$dishId , orderType: $orderType');
+    _debouncedDecrement(dishId, () {
+      print('Decrement: Debounced API not called for dishId: $dishId ');
+    }, orderType);
+  }
+
+  void _revertQuantity(
+      String dishId, String orderType, CartProvider cartProvider) {
+    final previousQty = _previousQuantities[dishId] ?? 0;
+    final currentQty = cartProvider.getQuantity(widget.id, orderType, dishId);
+    if (previousQty == 0 && currentQty > 0) {
+      cartProvider.removeFromCart(widget.id, orderType, dishId);
+    } else if (previousQty > currentQty) {
+      for (int i = currentQty; i < previousQty; i++) {
+        cartProvider.incrementQuantity(widget.id, orderType, dishId);
+      }
+    } else if (previousQty < currentQty) {
+      for (int i = currentQty; i > previousQty; i--) {
+        cartProvider.decrementQuantity(widget.id, orderType, dishId);
+      }
+    }
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
   @override
   void dispose() {
-    // Make sure animation controller is properly disposed
     _controller.stop();
     _controller.dispose();
-
-    // Cancel any ongoing API requests
-    // if (!_cancelToken.isCancelled) {
-    //   _cancelToken.cancel("Widget disposed");
-    // }
-
     restaurantService.dispose();
-
-    // Dispose of text controller
     _searchController.removeListener(_updateSearchQuery);
     _searchController.dispose();
-
-    // Clear large data structures
     dish = null;
     filterDishes = null;
     selectedDish = null;
     categorizedDishes.clear();
-
     _incrementDebounce?.cancel();
     _decrementDebounce?.cancel();
-
     super.dispose();
   }
 
@@ -546,6 +676,9 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
       isLoading = true;
       errorMessage = '';
     });
+    // Refresh cart data from API
+    await cartService.fetchAndUpdateCart(context);
+    // Then refresh restaurant data
     await fetchDishes();
   }
 
@@ -1247,14 +1380,8 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                                                         dish.id)),
                                                                 // Default to 0 if cartItem.quantity is null
                                                                 onAddToCart:
-                                                                    () {
-                                                                  final cartProvider = Provider.of<
-                                                                          CartProvider>(
-                                                                      context,
-                                                                      listen:
-                                                                          false);
-
-                                                                  final cartITem = CartItem(
+                                                                    () async {
+                                                                  final cartItem = CartItem(
                                                                       id: dish
                                                                           .id,
                                                                       restaurantName:
@@ -1272,58 +1399,22 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                                                       restaurantImageUrl:
                                                                           widget
                                                                               .imageUrl);
-                                                                  cartProvider.addToCart(
-                                                                      widget.id,
+                                                                  await _handleAddToCart(
+                                                                      dish.id,
                                                                       orderType,
-                                                                      cartITem);
-
-                                                                  _debouncedIncrement(
-                                                                      () {
-                                                                    cartService.addToCart(
-                                                                        widget
-                                                                            .id,
-                                                                        context,
-                                                                        orderType,
-                                                                        widget
-                                                                            .location);
-                                                                  });
+                                                                      cartItem);
                                                                 },
 
                                                                 onIncrement:
-                                                                    () {
-                                                                  ctx
-                                                                      .read<
-                                                                          CartProvider>()
-                                                                      .incrementQuantity(
-                                                                          widget
-                                                                              .id,
-                                                                          orderType,
-                                                                          dish.id);
-
-                                                                  _debouncedIncrement(
-                                                                      () {
-                                                                    cartService.addToCart(
-                                                                        widget
-                                                                            .id,
-                                                                        context,
-                                                                        orderType,
-                                                                        widget
-                                                                            .location);
-                                                                  });
+                                                                    () async {
+                                                                  await _handleIncrement(
+                                                                      dish.id,
+                                                                      orderType);
                                                                 },
                                                                 onDecrement:
-                                                                    () {
-                                                                  ctx
-                                                                      .read<
-                                                                          CartProvider>()
-                                                                      .decrementQuantity(
-                                                                          widget
-                                                                              .id,
-                                                                          orderType,
-                                                                          dish.id);
-                                                                  _debouncedDecrement(
+                                                                    () async {
+                                                                  await _handleDecrement(
                                                                       dish.id,
-                                                                      null,
                                                                       orderType);
                                                                 },
                                                               ),
@@ -1386,12 +1477,8 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                             selectedDish!.dishId.dishCatagory,
                                         price: selectedDish!.resturantDishPrice
                                             .toString(),
-                                        onAddToCart: () {
-                                          final cartProvider =
-                                              Provider.of<CartProvider>(context,
-                                                  listen: false);
-
-                                          final cartITem = CartItem(
+                                        onAddToCart: () async {
+                                          final cartItem = CartItem(
                                               id: selectedDish!.id,
                                               restaurantName: widget.name,
                                               restaurantImageUrl:
@@ -1400,36 +1487,18 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                               dish: selectedDish!,
                                               quantity: 1,
                                               location: widget.location);
-                                          cartProvider.addToCart(
-                                              widget.id, orderType, cartITem);
-                                          _debouncedIncrement(() {
-                                            cartService.addToCart(
-                                                widget.id,
-                                                context,
-                                                orderType,
-                                                widget.location);
-                                          });
+                                          await _handleAddToCart(
+                                              selectedDish!.id,
+                                              orderType,
+                                              cartItem);
                                         },
-                                        onIncrement: () {
-                                          ctx
-                                              .read<CartProvider>()
-                                              .incrementQuantity(widget.id,
-                                                  orderType, selectedDish!.id);
-                                          _debouncedIncrement(() {
-                                            cartService.addToCart(
-                                                widget.id,
-                                                context,
-                                                orderType,
-                                                widget.location);
-                                          });
+                                        onIncrement: () async {
+                                          await _handleIncrement(
+                                              selectedDish!.id, orderType);
                                         },
-                                        onDecrement: () {
-                                          ctx
-                                              .read<CartProvider>()
-                                              .decrementQuantity(widget.id,
-                                                  orderType, selectedDish!.id);
-                                          _debouncedDecrement(selectedDish!.id,
-                                              null, orderType);
+                                        onDecrement: () async {
+                                          await _handleDecrement(
+                                              selectedDish!.id, orderType);
                                         },
                                       ),
                                     );
@@ -1627,10 +1696,7 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                           quantity: ctx
                               .watch<CartProvider>()
                               .getQuantity(widget.id, orderType, dish.id),
-                          onAddToCart: () {
-                            final cartProvider = Provider.of<CartProvider>(
-                                context,
-                                listen: false);
+                          onAddToCart: () async {
                             final cartItem = CartItem(
                               id: dish.id,
                               restaurantName: widget.name,
@@ -1640,16 +1706,14 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                               location: widget.location,
                               restaurantImageUrl: widget.imageUrl,
                             );
-                            cartProvider.addToCart(
-                                widget.id, orderType, cartItem);
+                            await _handleAddToCart(
+                                dish.id, orderType, cartItem);
                           },
-                          onIncrement: () {
-                            ctx.read<CartProvider>().incrementQuantity(
-                                widget.id, orderType, dish.id);
+                          onIncrement: () async {
+                            await _handleIncrement(dish.id, orderType);
                           },
-                          onDecrement: () {
-                            ctx.read<CartProvider>().decrementQuantity(
-                                widget.id, orderType, dish.id);
+                          onDecrement: () async {
+                            await _handleDecrement(dish.id, orderType);
                           },
                         );
                       },
@@ -1723,30 +1787,5 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
         ),
       );
     }
-  }
-
-  Timer? _incrementDebounce;
-  Timer? _decrementDebounce;
-  Set<String> _pendingDecrementIds = {};
-
-  void _debouncedIncrement(VoidCallback action) {
-    _incrementDebounce?.cancel();
-    _incrementDebounce = Timer(const Duration(milliseconds: 800), () {
-      action();
-    });
-  }
-
-  void _debouncedDecrement(
-      String id, VoidCallback? afterDecrement, String orderType) {
-    _pendingDecrementIds.add(id);
-    _decrementDebounce?.cancel();
-    _decrementDebounce = Timer(const Duration(milliseconds: 800), () {
-      final ids = List<String>.from(_pendingDecrementIds);
-      _pendingDecrementIds.clear();
-      if (ids.isNotEmpty) {
-        cartService.decrementCartItem(ids, widget.id, context, orderType);
-        if (afterDecrement != null) afterDecrement();
-      }
-    });
   }
 }

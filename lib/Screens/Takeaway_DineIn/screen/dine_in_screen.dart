@@ -33,7 +33,8 @@ import 'dart:async';
 import '../widget/resturant_widget.dart';
 
 class DineInScreen extends StatefulWidget {
-  const DineInScreen({super.key});
+  final bool isCartLoading;
+  const DineInScreen({super.key, this.isCartLoading = false});
 
   @override
   State<StatefulWidget> createState() => _DineInScreen();
@@ -358,290 +359,290 @@ class _DineInScreen extends State<DineInScreen> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-        canPop: !isLoading,
-        onPopInvokedWithResult: (didPop, result) {
-          if (isLoading) {
-            // Cancel the loading state and reset category
-            setState(() {
-              isLoading = false;
-              selectedCategory = '';
-              Provider.of<SelectedCategoryProvider>(context, listen: false)
-                  .setSelectedCategory('');
-            });
+      canPop: !isLoading,
+      onPopInvokedWithResult: (didPop, result) {
+        if (isLoading) {
+          // Cancel the loading state and reset category
+          setState(() {
+            isLoading = false;
+            selectedCategory = '';
+            Provider.of<SelectedCategoryProvider>(context, listen: false)
+                .setSelectedCategory('');
+          });
 
-            // Cancel any ongoing API requests
-            if (!_cancelToken.isCancelled) {
-              _cancelToken.cancel("User pressed back");
-            }
-
-            // Create a new CancelToken for future requests
-            _cancelToken = CancelToken();
+          // Cancel any ongoing API requests
+          if (!_cancelToken.isCancelled) {
+            _cancelToken.cancel("User pressed back");
           }
-        },
-        child: Scaffold(
-          body: Stack(
-            children: [
-              isLoading
-                  ? const ShimmerLoadingEffect()
-                  : errorMessage.isNotEmpty
-                      ? Center(
-                          child: Image.asset(
-                            errorMessage,
-                            fit: BoxFit.contain,
-                            height: 350,
-                          ),
-                        )
-                      : SingleChildScrollView(
-                          child: restaurants.isNotEmpty
-                              ? Column(
-                                  children: [
-                                    // Replace banner section with new widget
-                                    const BannerSection(),
-                                    if (selectedCategory.isNotEmpty &&
-                                        filteredRestaurants.isEmpty)
-                                      Container()
-                                    else
-                                      Column(
-                                        children: [
-                                          // Promoted Restaurant Section
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 16),
-                                            width: double.infinity,
-                                            child: const Text(
-                                              "Promoted Restaurants",
-                                              style: TextStyle(
-                                                fontSize: 22,
-                                                color: Color(0xFF1D1929),
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ),
-                                          RestaurantWidget(
-                                            imageUrl:
-                                                'assets/images/restaurant.png',
-                                            restaurantName:
-                                                restaurants[0].restaurantName,
-                                            cuisineType:
-                                                "Indian • ${restaurants[0].topratedCusine}",
-                                            priceRange: getPriceRangeText(
-                                                restaurants[0]
-                                                    .topratedCusinePrice),
-                                            rating: restaurants[0]
-                                                .ratings
-                                                .toDouble(),
-                                            promotionText:
-                                                "Flat 10% off in booking !",
-                                            promoCode: "Happy10",
-                                            location: city!,
-                                            lat: restaurants[0].lat,
-                                            long: restaurants[0].long,
-                                            id: restaurants[0].id,
-                                          ),
-                                        ],
-                                      ),
-                                    // Categories Section
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 16),
-                                      width: double.infinity,
-                                      child: const Text(
-                                        "What do you want to Eat Today",
-                                        style: TextStyle(
-                                          fontSize: 20,
-                                          color: Color(0xFF1D1929),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 20),
 
-                                    SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      child: Row(
-                                        children: [
-                                          // Selected category
-                                          selectedCategory.isNotEmpty
-                                              ? categoryItem(
-                                                  selectedCategory,
-                                                  _allCategories.firstWhere(
-                                                        (category) =>
-                                                            category['name'] ==
-                                                            selectedCategory,
-                                                      )?['image'] ??
-                                                      '',
-                                                )
-                                              : const SizedBox.shrink(),
-                                          // Other categories
-                                          ..._allCategories
-                                              .where((category) =>
-                                                  category['name'] !=
-                                                  selectedCategory)
-                                              .map((category) {
-                                            return categoryItem(
-                                                category['name'] ?? '',
-                                                category['image'] ?? '');
-                                          }).toList(),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(height: 17),
-                                    const FilterWidget(),
-                                    const SizedBox(height: 18),
-                                    // Restaurants Section
-                                    if (selectedCategory.isNotEmpty &&
-                                        filteredRestaurants.isEmpty)
-                                      Center(
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            const SizedBox(height: 50),
-                                            Icon(
-                                              Icons.restaurant_menu,
-                                              size: 50,
-                                              color: Colors.grey[400],
-                                            ),
-                                            const SizedBox(height: 10),
-                                            Text(
-                                              "No restaurants found for $selectedCategory ",
-                                              style: const TextStyle(
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 10),
-                                            Text(
-                                              "Hmm, looks like $selectedCategory is playing hide-and-seek. 😉 , Want to try another delicious adventure? 🌮🍜🥗",
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                color: Colors.grey[600],
-                                              ),
-                                              textAlign: TextAlign.center,
-                                            ),
-                                          ],
+          // Create a new CancelToken for future requests
+          _cancelToken = CancelToken();
+        }
+      },
+      child: Stack(
+        children: [
+          if (widget.isCartLoading)
+            Container(
+              color: Colors.black.withOpacity(0.3),
+              child: const Center(child: CircularProgressIndicator()),
+            ),
+          isLoading
+              ? const ShimmerLoadingEffect()
+              : errorMessage.isNotEmpty
+                  ? Center(
+                      child: Image.asset(
+                        errorMessage,
+                        fit: BoxFit.contain,
+                        height: 350,
+                      ),
+                    )
+                  : SingleChildScrollView(
+                      child: restaurants.isNotEmpty
+                          ? Column(
+                              children: [
+                                // Replace banner section with new widget
+                                const BannerSection(),
+                                if (selectedCategory.isNotEmpty &&
+                                    filteredRestaurants.isEmpty)
+                                  Container()
+                                else
+                                  Column(
+                                    children: [
+                                      // Promoted Restaurant Section
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 16),
+                                        width: double.infinity,
+                                        child: const Text(
+                                          "Promoted Restaurants",
+                                          style: TextStyle(
+                                            fontSize: 22,
+                                            color: Color(0xFF1D1929),
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         ),
-                                      )
-                                    else
-                                      // Restaurant List
-                                      ListView.builder(
-                                        shrinkWrap: true,
-                                        physics:
-                                            const NeverScrollableScrollPhysics(),
-                                        itemCount: restaurants.length > 1
-                                            ? restaurants.length - 1
-                                            : 0,
-                                        itemBuilder: (context, index) {
-                                          final restaurant =
-                                              restaurants[index + 1];
-                                          final imageIndex = (index % 9) + 1;
-                                          return RestaurantWidget(
-                                            imageUrl:
-                                                'assets/images/restaurant$imageIndex.png',
-                                            restaurantName:
-                                                restaurant.restaurantName,
-                                            location: city!,
-                                            cuisineType:
-                                                "Indian • ${restaurant.topratedCusine}",
-                                            priceRange: getPriceRangeText(
-                                                restaurant.topratedCusinePrice),
-                                            rating:
-                                                restaurant.ratings.toDouble(),
-                                            long: restaurant.long,
-                                            lat: restaurant.lat,
-                                            id: restaurant.id,
-                                          );
-                                        },
                                       ),
-                                    // Add bottom padding for cart
-                                    const SizedBox(height: 80),
-                                  ],
-                                )
-                              : Center(
-                                  child: Image.asset(
-                                    'assets/images/expand-your-city.png',
-                                    fit: BoxFit.contain,
+                                      RestaurantWidget(
+                                        imageUrl:
+                                            'assets/images/restaurant.png',
+                                        restaurantName:
+                                            restaurants[0].restaurantName,
+                                        cuisineType:
+                                            "Indian • ${restaurants[0].topratedCusine}",
+                                        priceRange: getPriceRangeText(
+                                            restaurants[0].topratedCusinePrice),
+                                        rating:
+                                            restaurants[0].ratings.toDouble(),
+                                        promotionText:
+                                            "Flat 10% off in booking !",
+                                        promoCode: "Happy10",
+                                        location: city!,
+                                        lat: restaurants[0].lat,
+                                        long: restaurants[0].long,
+                                        id: restaurants[0].id,
+                                      ),
+                                    ],
+                                  ),
+                                // Categories Section
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16),
+                                  width: double.infinity,
+                                  child: const Text(
+                                    "What do you want to Eat Today",
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      color: Color(0xFF1D1929),
+                                    ),
                                   ),
                                 ),
-                        ),
-              // if (_orders
-              //     .where(
-              //         (order) => _shouldDisplayBooking(order.user.orderStatus))
-              //     .isNotEmpty)
-              //   ExpansionFloatingButton(
-              //     orders: _orders,
-              //     onRefresh: fetchOrders,
-              //   )
-              // else
-              // Bottom Cart
-              // Consumer<CartProvider>(builder: (ctx, cartProvider, child) {
-              //   if (cartProvider.restaurantCarts.isEmpty) {
-              //     return const SizedBox.shrink();
-              //   }
-              //
-              //   List<CartItem> dineInItems = [];
-              //   int totalItems = 0;
-              //   String id = "";
-              //
-              //   // Iterate through restaurants to find the first "Take-Away" cart items
-              //   for (var restaurantId in cartProvider.restaurantCarts.keys) {
-              //     var items =
-              //         cartProvider.restaurantCarts[restaurantId]?['Dine-in'];
-              //     if (items != null && items.isNotEmpty) {
-              //       dineInItems = items;
-              //       totalItems =
-              //           items.fold(0, (sum, item) => sum + item.quantity);
-              //       id = restaurantId;
-              //       break;
-              //     }
-              //   }
-              //
-              //   // If no "Take-Away" items found in any restaurant
-              //   if (dineInItems.isEmpty) {
-              //     return const SizedBox.shrink();
-              //   }
-              //
-              //   return Positioned(
-              //       bottom: 0,
-              //       child: FoodCartSection(
-              //         name: dineInItems.first.restaurantName,
-              //         items: totalItems.toString(),
-              //         pressMenu: () {
-              //           Navigator.pushNamed(
-              //               context, SingleRestaurantScreen.routeName,
-              //               arguments: {
-              //                 'name': dineInItems.first.restaurantName,
-              //                 'location': dineInItems.first.location,
-              //                 'id': id,
-              //                 'selectedCategory': selectedCategory,
-              //               });
-              //         },
-              //         pressCart: () {
-              //           context.read<OrderTypeProvider>().changeHomeState(2);
-              //         },
-              //         pressRemove: () {
-              //           ctx.read<CartProvider>().clearCart(id, 'Dine-in');
-              //         },
-              //       ));
-              // })
-              Consumer<MyBookingProvider>(
-                builder: (ctx, mybookingprovider, child) {
-                  var _orders = mybookingprovider.myBookings;
-                  if (_orders
-                      .where((order) =>
-                          _shouldDisplayBooking(order.user.orderStatus))
-                      .isNotEmpty) {
-                    return ExpansionFloatingButton(
-                      orders: _orders,
-                      onRefresh: fetchOrders,
-                    );
-                  }
+                                const SizedBox(height: 20),
 
-                  return const SizedBox.shrink();
-                },
-              ),
-            ],
+                                SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
+                                    children: [
+                                      // Selected category
+                                      selectedCategory.isNotEmpty
+                                          ? categoryItem(
+                                              selectedCategory,
+                                              _allCategories.firstWhere(
+                                                    (category) =>
+                                                        category['name'] ==
+                                                        selectedCategory,
+                                                  )?['image'] ??
+                                                  '',
+                                            )
+                                          : const SizedBox.shrink(),
+                                      // Other categories
+                                      ..._allCategories
+                                          .where((category) =>
+                                              category['name'] !=
+                                              selectedCategory)
+                                          .map((category) {
+                                        return categoryItem(
+                                            category['name'] ?? '',
+                                            category['image'] ?? '');
+                                      }).toList(),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 17),
+                                const FilterWidget(),
+                                const SizedBox(height: 18),
+                                // Restaurants Section
+                                if (selectedCategory.isNotEmpty &&
+                                    filteredRestaurants.isEmpty)
+                                  Center(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        const SizedBox(height: 50),
+                                        Icon(
+                                          Icons.restaurant_menu,
+                                          size: 50,
+                                          color: Colors.grey[400],
+                                        ),
+                                        const SizedBox(height: 10),
+                                        Text(
+                                          "No restaurants found for $selectedCategory ",
+                                          style: const TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 10),
+                                        Text(
+                                          "Hmm, looks like $selectedCategory is playing hide-and-seek. 😉 , Want to try another delicious adventure? 🌮🍜🥗",
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.grey[600],
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                else
+                                  // Restaurant List
+                                  ListView.builder(
+                                    shrinkWrap: true,
+                                    physics:
+                                        const NeverScrollableScrollPhysics(),
+                                    itemCount: restaurants.length > 1
+                                        ? restaurants.length - 1
+                                        : 0,
+                                    itemBuilder: (context, index) {
+                                      final restaurant = restaurants[index + 1];
+                                      final imageIndex = (index % 9) + 1;
+                                      return RestaurantWidget(
+                                        imageUrl:
+                                            'assets/images/restaurant$imageIndex.png',
+                                        restaurantName:
+                                            restaurant.restaurantName,
+                                        location: city!,
+                                        cuisineType:
+                                            "Indian • ${restaurant.topratedCusine}",
+                                        priceRange: getPriceRangeText(
+                                            restaurant.topratedCusinePrice),
+                                        rating: restaurant.ratings.toDouble(),
+                                        long: restaurant.long,
+                                        lat: restaurant.lat,
+                                        id: restaurant.id,
+                                      );
+                                    },
+                                  ),
+                                // Add bottom padding for cart
+                                const SizedBox(height: 80),
+                              ],
+                            )
+                          : Center(
+                              child: Image.asset(
+                                'assets/images/expand-your-city.png',
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                    ),
+          // if (_orders
+          //     .where(
+          //         (order) => _shouldDisplayBooking(order.user.orderStatus))
+          //     .isNotEmpty)
+          //   ExpansionFloatingButton(
+          //     orders: _orders,
+          //     onRefresh: fetchOrders,
+          //   )
+          // else
+          // Bottom Cart
+          // Consumer<CartProvider>(builder: (ctx, cartProvider, child) {
+          //   if (cartProvider.restaurantCarts.isEmpty) {
+          //     return const SizedBox.shrink();
+          //   }
+          //
+          //   List<CartItem> dineInItems = [];
+          //   int totalItems = 0;
+          //   String id = "";
+          //
+          //   // Iterate through restaurants to find the first "Take-Away" cart items
+          //   for (var restaurantId in cartProvider.restaurantCarts.keys) {
+          //     var items =
+          //         cartProvider.restaurantCarts[restaurantId]?['Dine-in'];
+          //     if (items != null && items.isNotEmpty) {
+          //       dineInItems = items;
+          //       totalItems =
+          //           items.fold(0, (sum, item) => sum + item.quantity);
+          //       id = restaurantId;
+          //       break;
+          //     }
+          //   }
+          //
+          //   // If no "Take-Away" items found in any restaurant
+          //   if (dineInItems.isEmpty) {
+          //     return const SizedBox.shrink();
+          //   }
+          //
+          //   return Positioned(
+          //       bottom: 0,
+          //       child: FoodCartSection(
+          //         name: dineInItems.first.restaurantName,
+          //         items: totalItems.toString(),
+          //         pressMenu: () {
+          //           Navigator.pushNamed(
+          //               context, SingleRestaurantScreen.routeName,
+          //               arguments: {
+          //                 'name': dineInItems.first.restaurantName,
+          //                 'location': dineInItems.first.location,
+          //                 'id': id,
+          //                 'selectedCategory': selectedCategory,
+          //               });
+          //         },
+          //         pressCart: () {
+          //           context.read<OrderTypeProvider>().changeHomeState(2);
+          //         },
+          //         pressRemove: () {
+          //           ctx.read<CartProvider>().clearCart(id, 'Dine-in');
+          //         },
+          //       ));
+          // })
+          Consumer<MyBookingProvider>(
+            builder: (ctx, mybookingprovider, child) {
+              var _orders = mybookingprovider.myBookings;
+              if (_orders
+                  .where(
+                      (order) => _shouldDisplayBooking(order.user.orderStatus))
+                  .isNotEmpty) {
+                return ExpansionFloatingButton(
+                  orders: _orders,
+                  onRefresh: fetchOrders,
+                );
+              }
+
+              return const SizedBox.shrink();
+            },
           ),
-        ));
+        ],
+      ),
+    );
   }
 
   Widget categoryItem(String label, String imagePath) {

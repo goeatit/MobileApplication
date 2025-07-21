@@ -27,32 +27,28 @@ class CartPageState extends State<CartPage> {
   String? latestId;
   String? latestOrderType;
   CartService cartService = CartService();
+
   bool _isLoading = false;
-  bool _firstLoad = true;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    _firstLoad = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await _fetchCart();
-      if (mounted) {
-        setState(() {
-          _firstLoad = false;
-        });
-      }
-    });
-    if (_cartItems.isNotEmpty) {
-      final latest =
-          _cartItems.reduce((a, b) => a.createdAt.isAfter(b.createdAt) ? a : b);
-      latestTime = latest.createdAt;
-      latestId = latest.id;
-      latestOrderType = latest.orderType;
-    }
+    _isLoading = true;
+    _fetchCart();
   }
 
   Future<void> _fetchCart() async {
-    await context.read<CartProvider>().fetchLatestCart();
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    final (success, errorMsg) = await cartService.fetchAndUpdateCart(context);
+    if (!mounted) return;
+    setState(() {
+      _isLoading = false;
+      _error = success ? null : (errorMsg ?? 'Failed to load cart');
+    });
   }
 
   @override
@@ -164,9 +160,8 @@ class CartPageState extends State<CartPage> {
 
   @override
   Widget build(BuildContext context) {
-    final cartProvider = context.watch<CartProvider>();
-    // final showLoading = _firstLoad || cartProvider.isLoading;
-    const showLoading = true;
+    final cartProvider =
+        context.watch<CartProvider>(); // Ensures UI rebuilds when cart updates
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading:
@@ -207,34 +202,61 @@ class CartPageState extends State<CartPage> {
           )
         ],
       ),
-      body: showLoading
+      body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: _fetchCart,
-              child: _cartItems.isNotEmpty
-                  ? Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Consumer<CartProvider>(
-                          builder: (ctx, cartProvider, child) {
-                        return Column(
+          : _error != null
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.error_outline,
+                          size: 64, color: Colors.red),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Error: \\$_error',
+                        style: const TextStyle(fontSize: 16, color: Colors.red),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _fetchCart,
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                )
+              : RefreshIndicator(
+                  onRefresh: _fetchCart,
+                  child: _cartItems.isNotEmpty
+                      ? Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Consumer<CartProvider>(
+                              builder: (ctx, cartProvider, child) {
+                            return Column(
+                              children: [
+                                Expanded(
+                                    child: AnimatedList(
+                                  key: _listKey,
+                                  initialItemCount: _cartItems.length,
+                                  itemBuilder: (context, index, animation) {
+                                    if (index >= _cartItems.length) {
+                                      return const SizedBox.shrink();
+                                    }
+                                    return _buildCartItem(
+                                        _cartItems[index], animation);
+                                  },
+                                )),
+                              ],
+                            );
+                          }))
+                      : ListView(
                           children: [
-                            Expanded(
-                                child: AnimatedList(
-                              key: _listKey,
-                              initialItemCount: _cartItems.length,
-                              itemBuilder: (context, index, animation) {
-                                if (index >= _cartItems.length) {
-                                  return const SizedBox.shrink();
-                                }
-                                return _buildCartItem(
-                                    _cartItems[index], animation);
-                              },
-                            )),
+                            SizedBox(
+                              height: MediaQuery.of(context).size.height * 0.7,
+                              child: _buildEmptyCartView(),
+                            ),
                           ],
-                        );
-                      }))
-                  : _buildEmptyCartView(),
-            ),
+                        ),
+                ),
     );
   }
 
