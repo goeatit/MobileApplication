@@ -31,7 +31,8 @@ import 'package:provider/provider.dart';
 import '../widget/resturant_widget.dart';
 
 class TakeAwayScreen extends StatefulWidget {
-  const TakeAwayScreen({super.key});
+  final bool isCartLoading;
+  const TakeAwayScreen({super.key, this.isCartLoading = false});
 
   @override
   State<StatefulWidget> createState() => _TakeAwayScreen();
@@ -355,15 +356,13 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
             _cancelToken = CancelToken();
           }
         },
-        child: Scaffold(
-            // floatingActionButtonLocation:
-            //     FloatingActionButtonLocation.centerDocked,
-            // floatingActionButton: ExpansionFloatingButton(
-            //   orders: _orders,
-            //   onRefresh: () => fetchOrders(), // Add refresh callback
-            // ),
-            body: Stack(
+        child: Stack(
           children: [
+            if (widget.isCartLoading)
+              Container(
+                color: Colors.black.withOpacity(0.3),
+                child: const Center(child: CircularProgressIndicator()),
+              ),
             isLoading
                 ? const ShimmerLoadingEffect() // Replace CircularProgressIndicator with ShimmerLoadingEffect
                 : errorMessage.isNotEmpty
@@ -622,10 +621,11 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
             //           pressRemove: () {
             //             ctx.read<CartProvider>().clearCart(id, 'Take-away');
             //           },
+            //           // TODO: Pass onCartLoading from HomePage here if uncommented
             //         ));
             //   })
           ],
-        )));
+        ));
   }
 
   Widget categoryItem(String label, String imagePath) {
