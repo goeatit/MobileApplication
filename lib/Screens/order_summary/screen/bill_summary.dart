@@ -11,6 +11,7 @@ import 'package:eatit/Screens/order_summary/service/restaurant_service.dart';
 import 'package:eatit/Screens/order_summary/widget/Order_summary_cart.dart';
 import 'package:eatit/Screens/order_summary/widget/Select_no_people_widget.dart';
 import 'package:eatit/Screens/order_summary/widget/Time_slot_reserve_widget.dart';
+import 'package:eatit/Screens/order_summary/widget/select_table_bottom_sheet.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/models/cart_items.dart';
 import 'package:eatit/models/dish_retaurant.dart';
@@ -67,6 +68,9 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
   // final _cancelToken = CancelToken();
   CartService cartService = CartService();
   SplashScreenServiceInit splashScreenServiceInit = SplashScreenServiceInit();
+
+  // Add previous quantities map for optimistic update/revert
+  Map<String, int> _previousQuantities = {};
 
   @override
   void initState() {
@@ -719,33 +723,81 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
     );
   }
 
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _revertQuantity(
+      String dishId, String orderType, CartProvider cartProvider) {
+    final previousQty = _previousQuantities[dishId] ?? 0;
+    final currentQty = cartProvider.getQuantity(widget.id, orderType, dishId);
+    if (previousQty == 0 && currentQty > 0) {
+      cartProvider.removeFromCart(widget.id, orderType, dishId);
+    } else if (previousQty > currentQty) {
+      for (int i = currentQty; i < previousQty; i++) {
+        cartProvider.incrementQuantity(widget.id, orderType, dishId);
+      }
+    } else if (previousQty < currentQty) {
+      for (int i = currentQty; i > previousQty; i--) {
+        cartProvider.decrementQuantity(widget.id, orderType, dishId);
+      }
+    }
+  }
+
+  // Refactor _incrementItem with debounce, optimistic update, and error handling
   void _incrementItem(CartItem item) async {
     final cartProvider = Provider.of<CartProvider>(context, listen: false);
     final orderProvider = Provider.of<OrderProvider>(context, listen: false);
-
-    // Increment the item quantity
-    cartProvider.incrementQuantity(widget.id, widget.orderType, item.id);
+    final dishId = item.id;
+    final orderType = widget.orderType;
+    _previousQuantities[dishId] =
+        cartProvider.getQuantity(widget.id, orderType, dishId);
+    cartProvider.incrementQuantity(widget.id, orderType, dishId);
     cartProvider.printStoredCartItems();
-    // Refresh cart items
     setState(() {
-      cartItems = cartProvider.getItemsByOrderTypeAndRestaurant(
-          widget.id, widget.orderType);
-
-      // Update order provider with updated cart items
+      cartItems =
+          cartProvider.getItemsByOrderTypeAndRestaurant(widget.id, orderType);
       orderProvider.updateCartItems(cartItems);
-
-      _debouncedIncrement(() {
-        cartService.addToCart(
-            widget.id, context, widget.orderType, widget.locationOfRestaurant);
-      });
+    });
+    _debouncedIncrement(() async {
+      try {
+        final response = await cartService.addToCart(
+            widget.id, context, orderType, widget.locationOfRestaurant);
+        if (response == null || response.statusCode != 200) {
+          _revertQuantity(dishId, orderType, cartProvider);
+          setState(() {
+            cartItems = cartProvider.getItemsByOrderTypeAndRestaurant(
+                widget.id, orderType);
+            orderProvider.updateCartItems(cartItems);
+          });
+          _showErrorSnackBar('Failed to update cart');
+        }
+      } catch (e) {
+        _revertQuantity(dishId, orderType, cartProvider);
+        setState(() {
+          cartItems = cartProvider.getItemsByOrderTypeAndRestaurant(
+              widget.id, orderType);
+          orderProvider.updateCartItems(cartItems);
+        });
+        _showErrorSnackBar('Network error occurred');
+      }
     });
   }
 
-  void _decrementItem(CartItem item) {
+  // Refactor _decrementItem with debounce, optimistic update, and error handling
+  void _decrementItem(CartItem item) async {
     final cartProvider = Provider.of<CartProvider>(context, listen: false);
     final orderProvider = Provider.of<OrderProvider>(context, listen: false);
-
-    // If quantity is 1, show a confirmation dialog before removing
+    final dishId = item.id;
+    final orderType = widget.orderType;
+    _previousQuantities[dishId] =
+        cartProvider.getQuantity(widget.id, orderType, dishId);
     if (item.quantity == 1) {
       showDialog(
         context: context,
@@ -812,16 +864,9 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                     child: TextButton(
                       onPressed: () {
                         Navigator.of(ctx).pop();
-
-                        // Check if this is the last item in the cart
                         if (cartItems.length == 1) {
-                          // Remove the item
                           cartProvider.removeItem(widget.id, item.dish.id);
-
-                          // Clear the order provider
                           orderProvider.clearOrder();
-
-                          // Pop back to previous screen
                           Navigator.of(context).pop();
                         } else {
                           _removeItem(item);
@@ -850,18 +895,36 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
         ),
       );
     } else {
-      // Decrement the item quantity
-      cartProvider.decrementQuantity(widget.id, widget.orderType, item.id);
-
-      // Refresh cart items
+      cartProvider.decrementQuantity(widget.id, orderType, dishId);
       setState(() {
-        cartItems = cartProvider.getItemsByOrderTypeAndRestaurant(
-            widget.id, widget.orderType);
-
-        // Update order provider with updated cart items
+        cartItems =
+            cartProvider.getItemsByOrderTypeAndRestaurant(widget.id, orderType);
         orderProvider.updateCartItems(cartItems);
-        _debouncedDecrement(item.dish.id, null, widget.orderType);
       });
+      _debouncedDecrement(dishId, () async {
+        try {
+          final ids = [dishId];
+          final response = await cartService.decrementCartItem(
+              ids, widget.id, context, orderType);
+          if (response == null || response.statusCode != 200) {
+            _revertQuantity(dishId, orderType, cartProvider);
+            setState(() {
+              cartItems = cartProvider.getItemsByOrderTypeAndRestaurant(
+                  widget.id, orderType);
+              orderProvider.updateCartItems(cartItems);
+            });
+            _showErrorSnackBar('Failed to update cart');
+          }
+        } catch (e) {
+          _revertQuantity(dishId, orderType, cartProvider);
+          setState(() {
+            cartItems = cartProvider.getItemsByOrderTypeAndRestaurant(
+                widget.id, orderType);
+            orderProvider.updateCartItems(cartItems);
+          });
+          _showErrorSnackBar('Network error occurred');
+        }
+      }, orderType);
     }
   }
 
@@ -1374,9 +1437,21 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
                               ),
                               onPressed: isReadyToContinue
                                   ? () {
-                                      // If all required info is provided, go straight to confirmation/payment
-                                      Navigator.pushNamed(context,
-                                          OrderSummaryScreen.routeName);
+                                      // For dine-in orders, show the table selection bottom sheet
+                                      if (widget.orderType.toLowerCase() ==
+                                          "dine-in") {
+                                        showModalBottomSheet(
+                                          context: context,
+                                          isScrollControlled: true,
+                                          backgroundColor: Colors.transparent,
+                                          builder: (context) =>
+                                              const SelectTableBottomSheet(),
+                                        );
+                                      } else {
+                                        // For other order types, go straight to confirmation/payment
+                                        Navigator.pushNamed(context,
+                                            OrderSummaryScreen.routeName);
+                                      }
                                     }
                                   : null,
                               child: const Text(

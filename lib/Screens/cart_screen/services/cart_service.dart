@@ -53,7 +53,6 @@ class CartService {
       // TODO: Replace with actual cartItems and cartId
       final cartProvider = Provider.of<CartProvider>(context, listen: false);
 
-
       final responses = await _apiRepository.decrementCartItem(
           cartProvider.getItemsByOrderTypeAndRestaurant(
               restaurantId, orderType),
@@ -66,28 +65,48 @@ class CartService {
       return responses;
     } on DioException catch (e) {
       print(e.response?.data);
-      return null;
+      return e.response;
     } catch (e) {
       print(e);
       return null;
     }
   }
 
-  Future<bool> removeCartItem(CartItemWithDetails catItemDetails)async {
+  Future<bool> removeCartItem(CartItemWithDetails catItemDetails) async {
     try {
-      final responses=await _apiRepository.deleteCartItem(catItemDetails.cartItem.cartId!);
+      final responses =
+          await _apiRepository.deleteCartItem(catItemDetails.cartItem.cartId!);
       if (responses?.statusCode != 200) {
         return false;
       }
-    return true;
-
-
+      return true;
     } on DioException catch (e) {
       print(e.response?.data);
       return false;
     } catch (e) {
       print(e);
       return false;
+    }
+  }
+
+  // Fetch cart items from API and update CartProvider
+  Future<(bool, String?)> fetchAndUpdateCart(BuildContext context) async {
+    try {
+      final response = await _apiRepository.fetchCartItems();
+      if (response == null || response.statusCode != 200) {
+        return (false, 'Failed to fetch cart items');
+      }
+      final data = response.data['cart'];
+      if (data != null) {
+        context.read<CartProvider>().loadGroupedCartFromResponse(data);
+        return (true, null);
+      } else {
+        return (false, 'No cart data found');
+      }
+    } on DioException catch (e) {
+      return (false, e.response?.data?.toString() ?? 'Network error');
+    } catch (e) {
+      return (false, e.toString());
     }
   }
 }

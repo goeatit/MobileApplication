@@ -55,6 +55,8 @@ class SingleRestaurantScreen extends StatefulWidget {
 
 class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
     with SingleTickerProviderStateMixin {
+  final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
+      GlobalKey<RefreshIndicatorState>();
   late AnimationController _controller;
   late Animation<Offset> _offsetAnimation;
   List<String> imgurls = [
@@ -85,7 +87,6 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
   var textTheme;
   String searchQuery = ''; // Track search query
   final TextEditingController _searchController = TextEditingController();
-
   // Add CancelToken for API requests
   // final CancelToken _cancelToken = CancelToken();
   List<String> buttonLabels = ["Best Seller", "Top Rated", "Veg", "Non-Veg"];
@@ -371,32 +372,163 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
     _controller.forward();
   }
 
+  Timer? _incrementDebounce;
+  Timer? _decrementDebounce;
+  Set<String> _pendingDecrementIds = {};
+  Map<String, int> _previousQuantities = {};
+
+  void _debouncedIncrement(VoidCallback action) {
+    _incrementDebounce?.cancel();
+    _incrementDebounce = Timer(const Duration(milliseconds: 800), () {
+      action();
+    });
+  }
+
+  void _debouncedDecrement(
+      String id, VoidCallback? afterDecrement, String orderType) {
+    _pendingDecrementIds.add(id);
+    _decrementDebounce?.cancel();
+    _decrementDebounce = Timer(const Duration(milliseconds: 800), () async {
+      final ids = List<String>.from(_pendingDecrementIds);
+      _pendingDecrementIds.clear();
+      if (ids.isNotEmpty) {
+        try {
+          final response = await cartService.decrementCartItem(
+              ids, widget.id, context, orderType);
+          if (response == null || response.statusCode != 200) {
+            print('Decrement:  API call failed ');
+            // API failed, revert to previous state
+            for (var dishId in ids) {
+              _revertQuantity(dishId, orderType,
+                  Provider.of<CartProvider>(context, listen: false));
+            }
+            _showErrorSnackBar('Failed to update cart');
+          } else {
+            print('Decrement:  api call success ');
+          }
+        } catch (e) {
+          print('Decrement:  Exception ');
+          for (var dishId in ids) {
+            _revertQuantity(dishId, orderType,
+                Provider.of<CartProvider>(context, listen: false));
+          }
+          _showErrorSnackBar('Network error occurred');
+        }
+        if (afterDecrement != null) afterDecrement();
+      } else {
+        print('Decrement:  API not called ');
+      }
+    });
+  }
+
+  // Enhanced cart operations with error handling and debounce
+  Future<void> _handleAddToCart(
+      String dishId, String orderType, CartItem cartItem) async {
+    final cartProvider = Provider.of<CartProvider>(context, listen: false);
+    _previousQuantities[dishId] =
+        cartProvider.getQuantity(widget.id, orderType, dishId);
+    cartProvider.addToCart(widget.id, orderType, cartItem);
+    print('Add to cart: Local state updated for dishId: '
+        ' $dishId orderType: $orderType');
+    _debouncedIncrement(() async {
+      try {
+        final response = await cartService.addToCart(
+            widget.id, context, orderType, widget.location);
+        if (response == null || response.statusCode != 200) {
+          print('Add to cart:  API call failed for dishId: $dishId, response: '
+              ' ${response?.statusCode}');
+          _revertQuantity(dishId, orderType, cartProvider);
+          _showErrorSnackBar('Failed to add item to cart');
+        } else {
+          print('Add to cart:  API call success for dishId: $dishId');
+        }
+      } catch (e) {
+        print('Add to cart:  Exception for dishId: $dishId, error: $e');
+        _revertQuantity(dishId, orderType, cartProvider);
+        _showErrorSnackBar('Network error occurred');
+      }
+    });
+  }
+
+  Future<void> _handleIncrement(String dishId, String orderType) async {
+    final cartProvider = Provider.of<CartProvider>(context, listen: false);
+    _previousQuantities[dishId] =
+        cartProvider.getQuantity(widget.id, orderType, dishId);
+    cartProvider.incrementQuantity(widget.id, orderType, dishId);
+    print('Increment: Local state updated for dishId: '
+        '$dishId  orderType: $orderType');
+    _debouncedIncrement(() async {
+      try {
+        final response = await cartService.addToCart(
+            widget.id, context, orderType, widget.location);
+        if (response == null || response.statusCode != 200) {
+          print('Increment: API call failed for dishId: $dishId, response: '
+              '${response?.statusCode}');
+          _revertQuantity(dishId, orderType, cartProvider);
+          _showErrorSnackBar('Failed to update cart');
+        } else {
+          print('Increment:  API call success for dishId: $dishId');
+        }
+      } catch (e) {
+        print('Increment:  Exception for dishId: $dishId, error: $e');
+        _revertQuantity(dishId, orderType, cartProvider);
+        _showErrorSnackBar('Network error occurred');
+      }
+    });
+  }
+
+  Future<void> _handleDecrement(String dishId, String orderType) async {
+    final cartProvider = Provider.of<CartProvider>(context, listen: false);
+    _previousQuantities[dishId] =
+        cartProvider.getQuantity(widget.id, orderType, dishId);
+    cartProvider.decrementQuantity(widget.id, orderType, dishId);
+    print('Decrement: Local state updated for dishId: '
+        '$dishId , orderType: $orderType');
+    _debouncedDecrement(dishId, () {
+      print('Decrement: Debounced API not called for dishId: $dishId ');
+    }, orderType);
+  }
+
+  void _revertQuantity(
+      String dishId, String orderType, CartProvider cartProvider) {
+    final previousQty = _previousQuantities[dishId] ?? 0;
+    final currentQty = cartProvider.getQuantity(widget.id, orderType, dishId);
+    if (previousQty == 0 && currentQty > 0) {
+      cartProvider.removeFromCart(widget.id, orderType, dishId);
+    } else if (previousQty > currentQty) {
+      for (int i = currentQty; i < previousQty; i++) {
+        cartProvider.incrementQuantity(widget.id, orderType, dishId);
+      }
+    } else if (previousQty < currentQty) {
+      for (int i = currentQty; i > previousQty; i--) {
+        cartProvider.decrementQuantity(widget.id, orderType, dishId);
+      }
+    }
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
   @override
   void dispose() {
-    // Make sure animation controller is properly disposed
     _controller.stop();
     _controller.dispose();
-
-    // Cancel any ongoing API requests
-    // if (!_cancelToken.isCancelled) {
-    //   _cancelToken.cancel("Widget disposed");
-    // }
-
     restaurantService.dispose();
-
-    // Dispose of text controller
     _searchController.removeListener(_updateSearchQuery);
     _searchController.dispose();
-
-    // Clear large data structures
     dish = null;
     filterDishes = null;
     selectedDish = null;
     categorizedDishes.clear();
-
     _incrementDebounce?.cancel();
     _decrementDebounce?.cancel();
-
     super.dispose();
   }
 
@@ -539,6 +671,17 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
     );
   }
 
+  Future<void> _refreshRestaurantData() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = '';
+    });
+    // Refresh cart data from API
+    await cartService.fetchAndUpdateCart(context);
+    // Then refresh restaurant data
+    await fetchDishes();
+  }
+
   @override
   Widget build(BuildContext context) {
     screenWidth = MediaQuery.sizeOf(context).width * 0.35;
@@ -605,208 +748,238 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
           ? const Center(child: CircularProgressIndicator())
           : Stack(
               children: [
-                SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.only(
-                        bottom: 80), // Add padding for bottom navigation
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Stack(
-                                children: [
-                                  // Restaurant Image
-                                  // Replace this part in the Stack
-                                  SizedBox(
-                                    width: double.infinity,
-                                    height: 200,
-                                    child: Image.asset(
-                                      widget
-                                          .imageUrl, // Use the passed imageUrl
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-
-                                  // Back Button
-                                  Positioned(
-                                    top: 10,
-                                    left: 10,
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        Navigator.pop(context);
-                                      },
-                                      child: SvgPicture.asset(
-                                        "assets/svg/whitebackArrow.svg",
-                                        width: 50,
-                                        height: 50,
+                RefreshIndicator(
+                  key: _refreshIndicatorKey,
+                  onRefresh: _refreshRestaurantData,
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                          bottom: 80), // Add padding for bottom navigation
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Stack(
+                                  children: [
+                                    // Restaurant Image
+                                    // Replace this part in the Stack
+                                    SizedBox(
+                                      width: double.infinity,
+                                      height: 200,
+                                      child: Image.asset(
+                                        widget
+                                            .imageUrl, // Use the passed imageUrl
+                                        fit: BoxFit.cover,
                                       ),
                                     ),
-                                  ),
-                                  // Bookmark Button
-                                  // In SingleRestaurantScreen class, replace the existing bookmark button with:
 
-                                  Positioned(
-                                    top: 10,
-                                    right: 10,
-                                    child: Consumer<SavedRestaurantsProvider>(
-                                      builder: (context, savedProvider, child) {
-                                        bool isSaved = savedProvider
-                                            .isRestaurantSaved(widget.id);
+                                    // Back Button
+                                    Positioned(
+                                      top: 10,
+                                      left: 10,
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          Navigator.pop(context);
+                                        },
+                                        child: SvgPicture.asset(
+                                          "assets/svg/whitebackArrow.svg",
+                                          width: 50,
+                                          height: 50,
+                                        ),
+                                      ),
+                                    ),
+                                    // Bookmark Button
+                                    // In SingleRestaurantScreen class, replace the existing bookmark button with:
 
-                                        return GestureDetector(
-                                          onTap: () async {
-                                            if (isSaved) {
-                                              // Show delete confirmation dialog
-                                              bool? remove =
-                                                  await showDialog<bool>(
-                                                context: context,
-                                                builder: (context) =>
-                                                    AlertDialog(
-                                                  backgroundColor: Colors.white,
-                                                  titlePadding:
-                                                      const EdgeInsets.only(
-                                                          top: 20, bottom: 5),
-                                                  title: Column(
-                                                    children: [
-                                                      const Icon(
-                                                        Icons.warning_rounded,
-                                                        color:
-                                                            Color(0xFFF8951D),
-                                                        size: 40,
-                                                      ),
-                                                      const SizedBox(height: 8),
-                                                      Text(
-                                                        'Remove Restaurant',
-                                                        style: Theme.of(context)
-                                                            .textTheme
-                                                            .titleLarge,
+                                    Positioned(
+                                      top: 10,
+                                      right: 10,
+                                      child: Consumer<SavedRestaurantsProvider>(
+                                        builder:
+                                            (context, savedProvider, child) {
+                                          bool isSaved = savedProvider
+                                              .isRestaurantSaved(widget.id);
+
+                                          return GestureDetector(
+                                            onTap: () async {
+                                              if (isSaved) {
+                                                // Show delete confirmation dialog
+                                                bool? remove =
+                                                    await showDialog<bool>(
+                                                  context: context,
+                                                  builder: (context) =>
+                                                      AlertDialog(
+                                                    backgroundColor:
+                                                        Colors.white,
+                                                    titlePadding:
+                                                        const EdgeInsets.only(
+                                                            top: 20, bottom: 5),
+                                                    title: Column(
+                                                      children: [
+                                                        const Icon(
+                                                          Icons.warning_rounded,
+                                                          color:
+                                                              Color(0xFFF8951D),
+                                                          size: 40,
+                                                        ),
+                                                        const SizedBox(
+                                                            height: 8),
+                                                        Text(
+                                                          'Remove Restaurant',
+                                                          style:
+                                                              Theme.of(context)
+                                                                  .textTheme
+                                                                  .titleLarge,
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    contentPadding:
+                                                        const EdgeInsets.only(
+                                                      top: 5,
+                                                      left: 24,
+                                                      right: 24,
+                                                      bottom: 20,
+                                                    ),
+                                                    content: Text(
+                                                      'Remove ${widget.name} from saved?',
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                      style: Theme.of(context)
+                                                          .textTheme
+                                                          .labelLarge
+                                                          ?.copyWith(
+                                                            color: const Color(
+                                                                0xFF666666),
+                                                          ),
+                                                    ),
+                                                    actions: [
+                                                      Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .fromLTRB(
+                                                                0, 0, 0, 0),
+                                                        child: Row(
+                                                          children: [
+                                                            Expanded(
+                                                              child: TextButton(
+                                                                onPressed: () =>
+                                                                    Navigator.pop(
+                                                                        context,
+                                                                        false),
+                                                                style: TextButton
+                                                                    .styleFrom(
+                                                                  backgroundColor:
+                                                                      Colors
+                                                                          .white,
+                                                                  padding: const EdgeInsets
+                                                                      .symmetric(
+                                                                      vertical:
+                                                                          12),
+                                                                  side:
+                                                                      const BorderSide(
+                                                                    color: Color(
+                                                                        0xFFF8951D),
+                                                                    width: 1,
+                                                                  ),
+                                                                  shape:
+                                                                      RoundedRectangleBorder(
+                                                                    borderRadius:
+                                                                        BorderRadius.circular(
+                                                                            10),
+                                                                  ),
+                                                                ),
+                                                                child: Text(
+                                                                  'Cancel',
+                                                                  style: Theme.of(
+                                                                          context)
+                                                                      .textTheme
+                                                                      .labelMedium
+                                                                      ?.copyWith(
+                                                                        color: const Color(
+                                                                            0xFFF8951D),
+                                                                        fontWeight:
+                                                                            FontWeight.w600,
+                                                                      ),
+                                                                ),
+                                                              ),
+                                                            ),
+                                                            const SizedBox(
+                                                                width: 10),
+                                                            Expanded(
+                                                              child: TextButton(
+                                                                onPressed: () =>
+                                                                    Navigator.pop(
+                                                                        context,
+                                                                        true),
+                                                                style: TextButton
+                                                                    .styleFrom(
+                                                                  backgroundColor:
+                                                                      const Color(
+                                                                          0xFFF8951D),
+                                                                  padding: const EdgeInsets
+                                                                      .symmetric(
+                                                                      vertical:
+                                                                          12),
+                                                                  shape:
+                                                                      RoundedRectangleBorder(
+                                                                    borderRadius:
+                                                                        BorderRadius.circular(
+                                                                            10),
+                                                                  ),
+                                                                ),
+                                                                child: Text(
+                                                                  'Remove',
+                                                                  style: Theme.of(
+                                                                          context)
+                                                                      .textTheme
+                                                                      .labelMedium
+                                                                      ?.copyWith(
+                                                                        color: Colors
+                                                                            .white,
+                                                                        fontWeight:
+                                                                            FontWeight.w600,
+                                                                      ),
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
                                                       ),
                                                     ],
                                                   ),
-                                                  contentPadding:
-                                                      const EdgeInsets.only(
-                                                    top: 5,
-                                                    left: 24,
-                                                    right: 24,
-                                                    bottom: 20,
-                                                  ),
-                                                  content: Text(
-                                                    'Remove ${widget.name} from saved?',
-                                                    textAlign: TextAlign.center,
-                                                    style: Theme.of(context)
-                                                        .textTheme
-                                                        .labelLarge
-                                                        ?.copyWith(
-                                                          color: const Color(
-                                                              0xFF666666),
-                                                        ),
-                                                  ),
-                                                  actions: [
-                                                    Padding(
-                                                      padding: const EdgeInsets
-                                                          .fromLTRB(0, 0, 0, 0),
-                                                      child: Row(
-                                                        children: [
-                                                          Expanded(
-                                                            child: TextButton(
-                                                              onPressed: () =>
-                                                                  Navigator.pop(
-                                                                      context,
-                                                                      false),
-                                                              style: TextButton
-                                                                  .styleFrom(
-                                                                backgroundColor:
-                                                                    Colors
-                                                                        .white,
-                                                                padding:
-                                                                    const EdgeInsets
-                                                                        .symmetric(
-                                                                        vertical:
-                                                                            12),
-                                                                side:
-                                                                    const BorderSide(
-                                                                  color: Color(
-                                                                      0xFFF8951D),
-                                                                  width: 1,
-                                                                ),
-                                                                shape:
-                                                                    RoundedRectangleBorder(
-                                                                  borderRadius:
-                                                                      BorderRadius
-                                                                          .circular(
-                                                                              10),
-                                                                ),
-                                                              ),
-                                                              child: Text(
-                                                                'Cancel',
-                                                                style: Theme.of(
-                                                                        context)
-                                                                    .textTheme
-                                                                    .labelMedium
-                                                                    ?.copyWith(
-                                                                      color: const Color(
-                                                                          0xFFF8951D),
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .w600,
-                                                                    ),
-                                                              ),
-                                                            ),
-                                                          ),
-                                                          const SizedBox(
-                                                              width: 10),
-                                                          Expanded(
-                                                            child: TextButton(
-                                                              onPressed: () =>
-                                                                  Navigator.pop(
-                                                                      context,
-                                                                      true),
-                                                              style: TextButton
-                                                                  .styleFrom(
-                                                                backgroundColor:
-                                                                    const Color(
-                                                                        0xFFF8951D),
-                                                                padding:
-                                                                    const EdgeInsets
-                                                                        .symmetric(
-                                                                        vertical:
-                                                                            12),
-                                                                shape:
-                                                                    RoundedRectangleBorder(
-                                                                  borderRadius:
-                                                                      BorderRadius
-                                                                          .circular(
-                                                                              10),
-                                                                ),
-                                                              ),
-                                                              child: Text(
-                                                                'Remove',
-                                                                style: Theme.of(
-                                                                        context)
-                                                                    .textTheme
-                                                                    .labelMedium
-                                                                    ?.copyWith(
-                                                                      color: Colors
-                                                                          .white,
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .w600,
-                                                                    ),
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              );
+                                                );
 
-                                              if (remove == true) {
+                                                if (remove == true) {
+                                                  await savedProvider
+                                                      .toggleSaveRestaurant(
+                                                    SavedRestaurant(
+                                                      id: widget.id,
+                                                      imageUrl: widget.imageUrl,
+                                                      restaurantName:
+                                                          widget.name,
+                                                      location: widget.location,
+                                                      cuisineType:
+                                                          widget.cuisineType,
+                                                      // Add this
+                                                      priceRange:
+                                                          widget.priceRange,
+                                                      // Add this
+                                                      rating: widget
+                                                          .rating, // Add this
+                                                      // lat: dish?.restaurant
+                                                      //     .resturantLatitute, // Optional
+                                                      // long: dish?.restaurant
+                                                      //     .resturantLongitute, // Optional
+                                                    ),
+                                                  );
+                                                }
+                                              } else {
+                                                // Direct save
                                                 await savedProvider
                                                     .toggleSaveRestaurant(
                                                   SavedRestaurant(
@@ -829,480 +1002,433 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                                   ),
                                                 );
                                               }
-                                            } else {
-                                              // Direct save
-                                              await savedProvider
-                                                  .toggleSaveRestaurant(
-                                                SavedRestaurant(
-                                                  id: widget.id,
-                                                  imageUrl: widget.imageUrl,
-                                                  restaurantName: widget.name,
-                                                  location: widget.location,
-                                                  cuisineType:
-                                                      widget.cuisineType,
-                                                  // Add this
-                                                  priceRange: widget.priceRange,
-                                                  // Add this
-                                                  rating:
-                                                      widget.rating, // Add this
-                                                  // lat: dish?.restaurant
-                                                  //     .resturantLatitute, // Optional
-                                                  // long: dish?.restaurant
-                                                  //     .resturantLongitute, // Optional
-                                                ),
-                                              );
-                                            }
-                                          },
-                                          child: SvgPicture.asset(
-                                            isSaved
-                                                ? "assets/svg/Saved.svg"
-                                                : "assets/svg/bookmark.svg",
-                                            width: 50,
-                                            height: 50,
-                                          ),
-                                        );
-                                      },
+                                            },
+                                            child: SvgPicture.asset(
+                                              isSaved
+                                                  ? "assets/svg/Saved.svg"
+                                                  : "assets/svg/bookmark.svg",
+                                              width: 50,
+                                              height: 50,
+                                            ),
+                                          );
+                                        },
+                                      ),
                                     ),
-                                  ),
 
-                                  Positioned(
-                                      bottom: 10,
-                                      right: 10,
-                                      child: Container(
-                                        height: 35,
-                                        decoration: BoxDecoration(
-                                          gradient: mapLinearGradient,
-                                          borderRadius: BorderRadius.circular(
-                                              20), // Adjust as needed
-                                        ),
-                                        child: ElevatedButton.icon(
-                                          onPressed: () => _openMap(
-                                              dish?.restaurant
-                                                  .resturantLatitute,
-                                              dish?.restaurant
-                                                  .resturantLongitute,
-                                              name: dish
-                                                  ?.restaurant.restaurantName),
-                                          label: const Text("Map",
-                                              style: TextStyle(fontSize: 12)),
-                                          icon: const Icon(
-                                            IconData(0xf8ca,
-                                                fontFamily: "CupertinoIcons",
-                                                fontPackage: "cupertino_icons"),
-                                            color: Colors.white,
+                                    Positioned(
+                                        bottom: 10,
+                                        right: 10,
+                                        child: Container(
+                                          height: 35,
+                                          decoration: BoxDecoration(
+                                            gradient: mapLinearGradient,
+                                            borderRadius: BorderRadius.circular(
+                                                20), // Adjust as needed
                                           ),
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.transparent,
-                                            foregroundColor: Colors.white,
-                                            shadowColor: Colors.transparent,
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 20),
+                                          child: ElevatedButton.icon(
+                                            onPressed: () => _openMap(
+                                                dish?.restaurant
+                                                    .resturantLatitute,
+                                                dish?.restaurant
+                                                    .resturantLongitute,
+                                                name: dish?.restaurant
+                                                    .restaurantName),
+                                            label: const Text("Map",
+                                                style: TextStyle(fontSize: 12)),
+                                            icon: const Icon(
+                                              IconData(0xf8ca,
+                                                  fontFamily: "CupertinoIcons",
+                                                  fontPackage:
+                                                      "cupertino_icons"),
+                                              color: Colors.white,
+                                            ),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor:
+                                                  Colors.transparent,
+                                              foregroundColor: Colors.white,
+                                              shadowColor: Colors.transparent,
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 20),
+                                            ),
                                           ),
-                                        ),
-                                      )),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-                              Text(
-                                widget.name,
-                                style: const TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
+                                        )),
+                                  ],
                                 ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 5),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    "${dish?.restaurant.restaurantRating}",
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF4F4F4F),
-                                    ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  widget.name,
+                                  style: const TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                  Icon(
-                                    Icons.star, // or Icons.star_rate
-                                    color: Theme.of(context).primaryColor,
-                                    size: 15, // Adjust size as needed
-                                  ),
-                                  Text(
-                                    //" | Indian • ${widget.cuisineType} | ${_getTopRatedDish()}",
-                                    " | Indian • ${_getTopRatedDish()} | 2.3km ",
-                                    style: const TextStyle(
-                                      color: Color(0xFF4F4F4F),
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const Icon(
-                                    Icons.keyboard_arrow_right_outlined,
-                                    size: 23,
-                                    color: Color(0xFF4F4F4F),
-                                  )
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        const Center(
-                          child: DineInTakeawayToggle(),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 40, vertical: 10),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                  width: 1, color: const Color(0xffE5E5E5)),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                const Column(
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 5),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
-                                      "₹1200-₹1500",
+                                      "${dish?.restaurant.restaurantRating}",
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF4F4F4F),
+                                      ),
+                                    ),
+                                    Icon(
+                                      Icons.star, // or Icons.star_rate
+                                      color: Theme.of(context).primaryColor,
+                                      size: 15, // Adjust size as needed
+                                    ),
+                                    Text(
+                                      //" | Indian • ${widget.cuisineType} | ${_getTopRatedDish()}",
+                                      " | Indian • ${_getTopRatedDish()} | 2.3km ",
+                                      style: const TextStyle(
+                                        color: Color(0xFF4F4F4F),
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const Icon(
+                                      Icons.keyboard_arrow_right_outlined,
+                                      size: 23,
+                                      color: Color(0xFF4F4F4F),
+                                    )
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const Center(
+                            child: DineInTakeawayToggle(),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 40, vertical: 10),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                    width: 1, color: const Color(0xffE5E5E5)),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceAround,
+                                children: [
+                                  Column(
+                                    children: [
+                                      Text(
+                                        widget.priceRange.split(" for")[0],
+                                        style: const TextStyle(
+                                            color: primaryColor,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      const Text(
+                                        "for two",
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ],
+                                  ),
+                                  Container(
+                                    height: 55,
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                          width: 1,
+                                          color: const Color(0xffE5E5E5)),
+                                    ),
+                                  ),
+                                  const Column(children: [
+                                    Text(
+                                      "20 mins",
                                       style: TextStyle(
                                           color: primaryColor,
                                           fontWeight: FontWeight.bold),
                                     ),
                                     Text(
-                                      "for two",
+                                      "before reaching",
                                       style: TextStyle(
                                           fontWeight: FontWeight.bold),
                                     ),
-                                  ],
-                                ),
-                                Container(
-                                  height: 55,
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                        width: 1,
-                                        color: const Color(0xffE5E5E5)),
-                                  ),
-                                ),
-                                const Column(children: [
-                                  Text(
-                                    "20 mins",
-                                    style: TextStyle(
-                                        color: primaryColor,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                  Text(
-                                    "before reaching",
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                ])
-                              ],
+                                  ])
+                                ],
+                              ),
                             ),
                           ),
-                        ),
 
-                        // Search Field
-                        Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: Color(
-                                      0x0D000000), // This is #0000000D in RGBA
-                                  spreadRadius: 0,
-                                  blurRadius: 20,
-                                  offset: Offset(
-                                      0, 2), // 0px horizontal, 2px vertical
-                                ),
-                              ],
-                              borderRadius: BorderRadius.circular(
-                                  20), // Optional: Rounded corners
-                            ),
-                            child: TextField(
-                              controller: _searchController,
-                              decoration: InputDecoration(
-                                icon: Padding(
-                                  padding: const EdgeInsets.only(left: 10.0),
-                                  child: SvgPicture.asset(
-                                    'assets/svg/search.svg',
-                                    width: 30,
+                          // Search Field
+                          Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Color(
+                                        0x0D000000), // This is #0000000D in RGBA
+                                    spreadRadius: 0,
+                                    blurRadius: 20,
+                                    offset: Offset(
+                                        0, 2), // 0px horizontal, 2px vertical
                                   ),
-                                ),
-                                hintText: "Search for Dishes",
-                                hintStyle: const TextStyle(
-                                  color: Color(0xff737373),
-                                ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(
-                                      8.0), // Match with the container
-                                  borderSide: BorderSide.none, // No border
-                                ),
-                                suffixIcon: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        isFilterOpen = true;
-                                      });
-                                      _showFilterBottomSheet();
-                                    },
+                                ],
+                                borderRadius: BorderRadius.circular(
+                                    20), // Optional: Rounded corners
+                              ),
+                              child: TextField(
+                                controller: _searchController,
+                                decoration: InputDecoration(
+                                  icon: Padding(
+                                    padding: const EdgeInsets.only(left: 10.0),
                                     child: SvgPicture.asset(
-                                      'assets/svg/filter.svg',
-                                      // replace with your actual asset path
-                                      width: 40, // adjust the size as needed
+                                      'assets/svg/search.svg',
+                                      width: 30,
+                                    ),
+                                  ),
+                                  hintText: "Search for Dishes",
+                                  hintStyle: const TextStyle(
+                                    color: Color(0xff737373),
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(
+                                        8.0), // Match with the container
+                                    borderSide: BorderSide.none, // No border
+                                  ),
+                                  suffixIcon: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          isFilterOpen = true;
+                                        });
+                                        _showFilterBottomSheet();
+                                      },
+                                      child: SvgPicture.asset(
+                                        'assets/svg/filter.svg',
+                                        // replace with your actual asset path
+                                        width: 40, // adjust the size as needed
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                        // Filter Buttons
-                        _buildFilterButtons(),
-                        // Dishes Categories
-                        // Show recommended dishes only when a category is selected
-                        if (context
-                            .watch<SelectedCategoryProvider>()
-                            .selectedCategory
-                            .isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: _buildRecommendedDishes(),
-                          ),
+                          // Filter Buttons
+                          _buildFilterButtons(),
+                          // Dishes Categories
+                          // Show recommended dishes only when a category is selected
+                          if (context
+                              .watch<SelectedCategoryProvider>()
+                              .selectedCategory
+                              .isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: _buildRecommendedDishes(),
+                            ),
 
-                        isLoading
-                            ? const Center(child: CircularProgressIndicator())
-                            : (errorMessage.isNotEmpty
-                                ? Center(child: Text(errorMessage))
-                                : categorizedDishes
-                                        .isEmpty // Check if there are no dishes
-                                    ? const Center(
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            SizedBox(height: 45),
-                                            Icon(
-                                              Icons
-                                                  .no_meals_outlined, // or Icons.search_off
-                                              size: 32,
-                                              color: Colors.grey,
-                                            ),
-                                            SizedBox(height: 5),
-                                            Text(
-                                              'No dishes found',
-                                              style: TextStyle(
-                                                fontSize: 18,
-                                                color: Colors.grey,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                            SizedBox(height: 8),
-                                            Text(
-                                              'Try adjusting your search or filters',
-                                              style: TextStyle(
-                                                fontSize: 14,
+                          isLoading
+                              ? const Center(child: CircularProgressIndicator())
+                              : (errorMessage.isNotEmpty
+                                  ? Center(child: Text(errorMessage))
+                                  : categorizedDishes
+                                          .isEmpty // Check if there are no dishes
+                                      ? const Center(
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              SizedBox(height: 45),
+                                              Icon(
+                                                Icons
+                                                    .no_meals_outlined, // or Icons.search_off
+                                                size: 32,
                                                 color: Colors.grey,
                                               ),
-                                            ),
-                                          ],
-                                        ),
-                                      )
-                                    : Column(
-                                        children: categorizedDishes.entries
-                                            .map((entry) {
-                                          String category = entry.key;
-                                          List<AvailableDish> dishes =
-                                              entry.value;
-
-                                          // Skip this category if it's the selected one
-                                          if (category.toLowerCase() ==
-                                              context
-                                                  .watch<
-                                                      SelectedCategoryProvider>()
-                                                  .selectedCategory
-                                                  .toLowerCase()) {
-                                            return const SizedBox.shrink();
-                                          }
-
-                                          return Padding(
-                                            padding: const EdgeInsets.all(10.0),
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  category,
-                                                  style: const TextStyle(
-                                                      fontSize: 18,
-                                                      fontWeight:
-                                                          FontWeight.bold),
+                                              SizedBox(height: 5),
+                                              Text(
+                                                'No dishes found',
+                                                style: TextStyle(
+                                                  fontSize: 18,
+                                                  color: Colors.grey,
+                                                  fontWeight: FontWeight.w500,
                                                 ),
-                                                const SizedBox(height: 10),
-                                                Container(
-                                                    height:
-                                                        220, // Adjust based on your UI needs
-                                                    padding:
-                                                        const EdgeInsets.all(5),
-                                                    child:
-                                                        Consumer<CartProvider>(
-                                                            builder: (ctx,
-                                                                cartProvider,
-                                                                child) {
-                                                      return ListView.builder(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .symmetric(
-                                                                vertical: 8),
-                                                        scrollDirection:
-                                                            Axis.horizontal,
-                                                        itemCount:
-                                                            dishes.length,
-                                                        itemBuilder:
-                                                            (context, index) {
-                                                          final dish =
-                                                              dishes[index];
-                                                          int stored = ctx
-                                                              .watch<
-                                                                  OrderTypeProvider>()
-                                                              .orderType;
-                                                          String orderType = "";
-                                                          if (stored == 0) {
-                                                            orderType =
-                                                                "Dine-in";
-                                                          } else {
-                                                            orderType =
-                                                                "Take-away";
-                                                          }
-                                                          // final cartItem = cartProvider
-                                                          //     .restaurantCarts[
-                                                          //         widget.name]?[orderType]
-                                                          //     ?.firstWhere(
-                                                          //   (item) => item.id == dish.id,
-                                                          //   orElse: () => CartItem(
-                                                          //       id: dish.id,
-                                                          //       restaurantName:
-                                                          //           widget.name,
-                                                          //       orderType: orderType,
-                                                          //       dish: dish,
-                                                          //       quantity: 0),
-                                                          // );
-                                                          return GestureDetector(
-                                                            onTap: dish
-                                                                    .available
-                                                                ? () =>
-                                                                    _showSlidingScreen(
-                                                                        dish)
-                                                                : null,
-                                                            child: DishCard(
-                                                              name: dish.dishId
-                                                                  .dishName,
-                                                              price:
-                                                                  "₹${dish.resturantDishPrice}",
-                                                              imageUrl: imgurls[
-                                                                  index % 9],
-                                                              calories:
-                                                                  "120 cal",
-                                                              isAvailable: dish
-                                                                  .available,
-                                                              // Add this line
+                                              ),
+                                              SizedBox(height: 8),
+                                              Text(
+                                                'Try adjusting your search or filters',
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        )
+                                      : Column(
+                                          children: categorizedDishes.entries
+                                              .map((entry) {
+                                            String category = entry.key;
+                                            List<AvailableDish> dishes =
+                                                entry.value;
 
-                                                              quantity: (ctx
-                                                                  .watch<
-                                                                      CartProvider>()
-                                                                  .getQuantity(
-                                                                      widget.id,
-                                                                      orderType,
-                                                                      dish.id)),
-                                                              // Default to 0 if cartItem.quantity is null
-                                                              onAddToCart: () {
-                                                                final cartProvider =
-                                                                    Provider.of<
-                                                                            CartProvider>(
-                                                                        context,
-                                                                        listen:
-                                                                            false);
+                                            // Skip this category if it's the selected one
+                                            if (category.toLowerCase() ==
+                                                context
+                                                    .watch<
+                                                        SelectedCategoryProvider>()
+                                                    .selectedCategory
+                                                    .toLowerCase()) {
+                                              return const SizedBox.shrink();
+                                            }
 
-                                                                final cartITem = CartItem(
-                                                                    id: dish.id,
-                                                                    restaurantName:
-                                                                        widget
-                                                                            .name,
-                                                                    orderType:
-                                                                        orderType,
-                                                                    dish: dish,
-                                                                    quantity: 1,
-                                                                    location: widget
-                                                                        .location,
-                                                                    restaurantImageUrl:
-                                                                        widget
-                                                                            .imageUrl);
-                                                                cartProvider
-                                                                    .addToCart(
-                                                                        widget
-                                                                            .id,
-                                                                        orderType,
-                                                                        cartITem);
+                                            return Padding(
+                                              padding:
+                                                  const EdgeInsets.all(10.0),
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    category,
+                                                    style: const TextStyle(
+                                                        fontSize: 18,
+                                                        fontWeight:
+                                                            FontWeight.bold),
+                                                  ),
+                                                  const SizedBox(height: 10),
+                                                  Container(
+                                                      height:
+                                                          220, // Adjust based on your UI needs
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              5),
+                                                      child: Consumer<
+                                                              CartProvider>(
+                                                          builder: (ctx,
+                                                              cartProvider,
+                                                              child) {
+                                                        return ListView.builder(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .symmetric(
+                                                                  vertical: 8),
+                                                          scrollDirection:
+                                                              Axis.horizontal,
+                                                          itemCount:
+                                                              dishes.length,
+                                                          itemBuilder:
+                                                              (context, index) {
+                                                            final dish =
+                                                                dishes[index];
+                                                            int stored = ctx
+                                                                .watch<
+                                                                    OrderTypeProvider>()
+                                                                .orderType;
+                                                            String orderType =
+                                                                "";
+                                                            if (stored == 0) {
+                                                              orderType =
+                                                                  "Dine-in";
+                                                            } else {
+                                                              orderType =
+                                                                  "Take-away";
+                                                            }
+                                                            // final cartItem = cartProvider
+                                                            //     .restaurantCarts[
+                                                            //         widget.name]?[orderType]
+                                                            //     ?.firstWhere(
+                                                            //   (item) => item.id == dish.id,
+                                                            //   orElse: () => CartItem(
+                                                            //       id: dish.id,
+                                                            //       restaurantName:
+                                                            //           widget.name,
+                                                            //       orderType: orderType,
+                                                            //       dish: dish,
+                                                            //       quantity: 0),
+                                                            // );
+                                                            return GestureDetector(
+                                                              onTap: dish
+                                                                      .available
+                                                                  ? () =>
+                                                                      _showSlidingScreen(
+                                                                          dish)
+                                                                  : null,
+                                                              child: DishCard(
+                                                                name: dish
+                                                                    .dishId
+                                                                    .dishName,
+                                                                price:
+                                                                    "₹${dish.resturantDishPrice}",
+                                                                imageUrl:
+                                                                    imgurls[
+                                                                        index %
+                                                                            9],
+                                                                calories:
+                                                                    "120 cal",
+                                                                isAvailable: dish
+                                                                    .available,
+                                                                // Add this line
 
-                                                                _debouncedIncrement(
-                                                                    () {
-                                                                  cartService.addToCart(
-                                                                      widget.id,
-                                                                      context,
-                                                                      orderType,
-                                                                      widget
-                                                                          .location);
-                                                                });
-                                                              },
-
-                                                              onIncrement: () {
-                                                                ctx
-                                                                    .read<
+                                                                quantity: (ctx
+                                                                    .watch<
                                                                         CartProvider>()
-                                                                    .incrementQuantity(
+                                                                    .getQuantity(
                                                                         widget
                                                                             .id,
                                                                         orderType,
-                                                                        dish.id);
-
-                                                                _debouncedIncrement(
-                                                                    () {
-                                                                  cartService.addToCart(
-                                                                      widget.id,
-                                                                      context,
+                                                                        dish.id)),
+                                                                // Default to 0 if cartItem.quantity is null
+                                                                onAddToCart:
+                                                                    () async {
+                                                                  final cartItem = CartItem(
+                                                                      id: dish
+                                                                          .id,
+                                                                      restaurantName:
+                                                                          widget
+                                                                              .name,
+                                                                      orderType:
+                                                                          orderType,
+                                                                      dish:
+                                                                          dish,
+                                                                      quantity:
+                                                                          1,
+                                                                      location:
+                                                                          widget
+                                                                              .location,
+                                                                      restaurantImageUrl:
+                                                                          widget
+                                                                              .imageUrl);
+                                                                  await _handleAddToCart(
+                                                                      dish.id,
                                                                       orderType,
-                                                                      widget
-                                                                          .location);
-                                                                });
-                                                              },
-                                                              onDecrement: () {
-                                                                ctx
-                                                                    .read<
-                                                                        CartProvider>()
-                                                                    .decrementQuantity(
-                                                                        widget
-                                                                            .id,
-                                                                        orderType,
-                                                                        dish.id);
-                                                                _debouncedDecrement(
-                                                                    dish.id,
-                                                                    null,
-                                                                    orderType);
-                                                              },
-                                                            ),
-                                                          );
-                                                        },
-                                                      );
-                                                    })),
-                                              ],
-                                            ),
-                                          );
-                                        }).toList(),
-                                      )),
-                      ],
+                                                                      cartItem);
+                                                                },
+
+                                                                onIncrement:
+                                                                    () async {
+                                                                  await _handleIncrement(
+                                                                      dish.id,
+                                                                      orderType);
+                                                                },
+                                                                onDecrement:
+                                                                    () async {
+                                                                  await _handleDecrement(
+                                                                      dish.id,
+                                                                      orderType);
+                                                                },
+                                                              ),
+                                                            );
+                                                          },
+                                                        );
+                                                      })),
+                                                ],
+                                              ),
+                                            );
+                                          }).toList(),
+                                        )),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -1351,12 +1477,8 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                             selectedDish!.dishId.dishCatagory,
                                         price: selectedDish!.resturantDishPrice
                                             .toString(),
-                                        onAddToCart: () {
-                                          final cartProvider =
-                                              Provider.of<CartProvider>(context,
-                                                  listen: false);
-
-                                          final cartITem = CartItem(
+                                        onAddToCart: () async {
+                                          final cartItem = CartItem(
                                               id: selectedDish!.id,
                                               restaurantName: widget.name,
                                               restaurantImageUrl:
@@ -1365,36 +1487,18 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                                               dish: selectedDish!,
                                               quantity: 1,
                                               location: widget.location);
-                                          cartProvider.addToCart(
-                                              widget.id, orderType, cartITem);
-                                          _debouncedIncrement(() {
-                                            cartService.addToCart(
-                                                widget.id,
-                                                context,
-                                                orderType,
-                                                widget.location);
-                                          });
+                                          await _handleAddToCart(
+                                              selectedDish!.id,
+                                              orderType,
+                                              cartItem);
                                         },
-                                        onIncrement: () {
-                                          ctx
-                                              .read<CartProvider>()
-                                              .incrementQuantity(widget.id,
-                                                  orderType, selectedDish!.id);
-                                          _debouncedIncrement(() {
-                                            cartService.addToCart(
-                                                widget.id,
-                                                context,
-                                                orderType,
-                                                widget.location);
-                                          });
+                                        onIncrement: () async {
+                                          await _handleIncrement(
+                                              selectedDish!.id, orderType);
                                         },
-                                        onDecrement: () {
-                                          ctx
-                                              .read<CartProvider>()
-                                              .decrementQuantity(widget.id,
-                                                  orderType, selectedDish!.id);
-                                          _debouncedDecrement(selectedDish!.id,
-                                              null, orderType);
+                                        onDecrement: () async {
+                                          await _handleDecrement(
+                                              selectedDish!.id, orderType);
                                         },
                                       ),
                                     );
@@ -1592,10 +1696,7 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                           quantity: ctx
                               .watch<CartProvider>()
                               .getQuantity(widget.id, orderType, dish.id),
-                          onAddToCart: () {
-                            final cartProvider = Provider.of<CartProvider>(
-                                context,
-                                listen: false);
+                          onAddToCart: () async {
                             final cartItem = CartItem(
                               id: dish.id,
                               restaurantName: widget.name,
@@ -1605,16 +1706,14 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                               location: widget.location,
                               restaurantImageUrl: widget.imageUrl,
                             );
-                            cartProvider.addToCart(
-                                widget.id, orderType, cartItem);
+                            await _handleAddToCart(
+                                dish.id, orderType, cartItem);
                           },
-                          onIncrement: () {
-                            ctx.read<CartProvider>().incrementQuantity(
-                                widget.id, orderType, dish.id);
+                          onIncrement: () async {
+                            await _handleIncrement(dish.id, orderType);
                           },
-                          onDecrement: () {
-                            ctx.read<CartProvider>().decrementQuantity(
-                                widget.id, orderType, dish.id);
+                          onDecrement: () async {
+                            await _handleDecrement(dish.id, orderType);
                           },
                         );
                       },
@@ -1688,30 +1787,5 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
         ),
       );
     }
-  }
-
-  Timer? _incrementDebounce;
-  Timer? _decrementDebounce;
-  Set<String> _pendingDecrementIds = {};
-
-  void _debouncedIncrement(VoidCallback action) {
-    _incrementDebounce?.cancel();
-    _incrementDebounce = Timer(const Duration(milliseconds: 800), () {
-      action();
-    });
-  }
-
-  void _debouncedDecrement(
-      String id, VoidCallback? afterDecrement, String orderType) {
-    _pendingDecrementIds.add(id);
-    _decrementDebounce?.cancel();
-    _decrementDebounce = Timer(const Duration(milliseconds: 800), () {
-      final ids = List<String>.from(_pendingDecrementIds);
-      _pendingDecrementIds.clear();
-      if (ids.isNotEmpty) {
-        cartService.decrementCartItem(ids, widget.id, context, orderType);
-        if (afterDecrement != null) afterDecrement();
-      }
-    });
   }
 }
