@@ -13,6 +13,8 @@ import 'package:eatit/provider/cart_dish_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../api/api_repository.dart';
+
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -25,8 +27,11 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _animationController;
   final TokenManager _tokenManager = TokenManager();
   bool _isFirstTime = true;
-  SplashScreenServiceInit screenServiceInit = SplashScreenServiceInit();
-  MyBookingService myBookingService = MyBookingService();
+
+  // SplashScreenServiceInit screenServiceInit = SplashScreenServiceInit();
+  // MyBookingService myBookingService = MyBookingService();
+  late SplashScreenServiceInit? _screenServiceInit;
+  late MyBookingService? _myBookingService;
 
   @override
   void initState() {
@@ -38,6 +43,19 @@ class _SplashScreenState extends State<SplashScreen>
 
     // Initialize app data and check authentication status
     _initializeApp();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_myBookingService == null || _screenServiceInit == null) {
+      final apiRepository = Provider.of<ApiRepository>(context, listen: false);
+      _screenServiceInit =
+          SplashScreenServiceInit(apiRepository: apiRepository);
+      _myBookingService = MyBookingService(apiRepository: apiRepository);
+    }
+
+    _initializeApp(); // Call this here once dependencies are ready
   }
 
   Future<void> _initializeApp() async {
@@ -72,14 +90,14 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted) return;
 
     if (accessToken != null && refreshToken != null) {
-      final response = await screenServiceInit.checkInitProfile(context);
+      final response = await _screenServiceInit!.checkInitProfile(context);
       if (response) {
-        final res = await screenServiceInit.fetchCartItems(context);
+        final res = await _screenServiceInit!.fetchCartItems(context);
         if (res != null && res.statusCode == 200) {
           // Successfully fetched cart items, update the cart provider
-        final data = res.data['cart'];
-        context.read<CartProvider>().loadGroupedCartFromResponse(data);
-        print("cart Loaded ");
+          final data = res.data['cart'];
+          context.read<CartProvider>().loadGroupedCartFromResponse(data);
+          print("cart Loaded ");
         } else {
           // Failed to fetch cart items, handle accordingly
           ScaffoldMessenger.of(context).showSnackBar(
@@ -90,10 +108,9 @@ class _SplashScreenState extends State<SplashScreen>
           );
         }
 
-
         // context.read<CartProvider>().loadCartFromStorage();
         // User is authenticated, navigate to location screen
-        var fetched = await myBookingService.fetchOrderDetails();
+        var fetched = await _myBookingService!.fetchOrderDetails();
         if (fetched != null) {
           context.read<MyBookingProvider>().setMyBookings(fetched.user);
         }
@@ -117,6 +134,9 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void dispose() {
     _animationController.dispose();
+    _myBookingService?.dispose();
+    _myBookingService= null;
+    _screenServiceInit = null;
     super.dispose();
   }
 

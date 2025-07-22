@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:eatit/Screens/splash_screen/screen/SplashScreen.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/provider/cart_dish_provider.dart';
@@ -15,13 +16,22 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'api/api_repository.dart';
+import 'api/network_manager.dart';
+
 void main() async {
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.dark,
   ));
+  final connectivity = Connectivity();
+  final networkManager = NetworkManager(connectivity);
+  final apiRepository = ApiRepository(networkManager);
   runApp(MultiProvider(
     providers: [
+      Provider<Connectivity>.value(value: connectivity),
+      Provider<NetworkManager>.value(value: networkManager),
+      Provider<ApiRepository>.value(value: apiRepository),
       ChangeNotifierProvider(create: (context) => CartProvider()),
       ChangeNotifierProvider(create: (context) => OrderTypeProvider()),
       ChangeNotifierProvider(create: (context) => UserModelProvider()),

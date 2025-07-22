@@ -9,9 +9,13 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'api_client.dart';
 
 class NetworkManager {
-  final Dio dioManger; // Dio instance
+  final Dio dioManger;
   final Connectivity _connectivity;
   final TokenManager _tokenManager;
+
+  // Cache internet result for 5 seconds
+  DateTime? _lastCheckTime;
+  bool _lastConnectionStatus = false;
 
   NetworkManager(this._connectivity)
       : dioManger = ApiClient().dio,
@@ -33,9 +37,8 @@ class NetworkManager {
       },
       onError: (DioException e, handler) async {
         if (e.response?.statusCode == 401) {
-          // Token expired, check if refresh is already in progress
           if (isRefreshing) {
-            await refreshCompleter?.future; // Wait for the token to refresh
+            await refreshCompleter?.future;
           } else {
             isRefreshing = true;
             refreshCompleter = Completer<void>();
@@ -62,15 +65,14 @@ class NetworkManager {
               return handler.next(e);
             } finally {
               isRefreshing = false;
-              refreshCompleter?.complete(); // Notify all waiting requests
+              refreshCompleter?.complete();
             }
           }
 
-          // Retry the failed request with the new token
           final newAccessToken = await _tokenManager.getAccessToken();
           if (newAccessToken != null) {
             e.requestOptions.headers['Authorization'] =
-                'Bearer $newAccessToken';
+            'Bearer $newAccessToken';
             return handler.resolve(await dioManger.fetch(e.requestOptions));
           }
         }
@@ -80,29 +82,39 @@ class NetworkManager {
   }
 
   Future<bool> isConnected() async {
-    final List<ConnectivityResult> connectivityResult =
-        await Connectivity().checkConnectivity();
-
-    if (connectivityResult.any((result) =>
-        result == ConnectivityResult.wifi ||
-        result == ConnectivityResult.mobile)) {
-      // Check if internet is actually reachable
-      try {
-        final result = await InternetAddress.lookup('google.com');
-        return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
-      } catch (e) {
-        return false; // No actual internet despite being connected
-      }
+    // Return cached result if within 5 seconds
+    final now = DateTime.now();
+    if (_lastCheckTime != null &&
+        now.difference(_lastCheckTime!) < Duration(seconds: 5)) {
+      return _lastConnectionStatus;
     }
-    return false; // No network connection
+
+    final connectivityResult = await _connectivity.checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
+      _lastCheckTime = now;
+      _lastConnectionStatus = false;
+      return false;
+    }
+
+    try {
+      final result = await InternetAddress.lookup('example.com')
+          .timeout(Duration(seconds: 3));
+      _lastCheckTime = now;
+      _lastConnectionStatus =
+          result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+      return _lastConnectionStatus;
+    } catch (_) {
+      _lastCheckTime = now;
+      _lastConnectionStatus = false;
+      return false;
+    }
   }
 
   Future<Response?> makeRequest(
-    Future<Response> Function() request, {
-    bool retryOnFailure = false,
-  }) async {
+      Future<Response> Function() request, {
+        bool retryOnFailure = false,
+      }) async {
     try {
-      // Check for internet connection
       if (!await isConnected()) {
         Fluttertoast.showToast(
           msg: "No internet connection",
@@ -114,16 +126,14 @@ class NetworkManager {
         throw Exception("No internet connection");
       }
 
-      // Execute the request
       return await request();
     } on DioException catch (e) {
-      if (retryOnFailure && e.type == DioExceptionType.values) {
-        // Retry logic for network errors
+      if (retryOnFailure && e.type == DioExceptionType.connectionError) {
         return await request();
       }
-      rethrow; // Re-throw error if not retried
+      rethrow;
     } catch (e) {
-      rethrow; // Re-throw general exceptions
+      rethrow;
     }
   }
 }
