@@ -1,7 +1,11 @@
 import 'package:eatit/Screens/order_summary/service/time_slot_generater.dart';
+import 'package:eatit/main.dart';
 import 'package:eatit/models/my_booking_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:eatit/Screens/My_Booking/service/My_Booking_service.dart';
+import 'package:provider/provider.dart';
+
+import '../../../api/api_repository.dart';
 
 // Custom Dashed Divider
 class DashedDivider extends StatelessWidget {
@@ -54,13 +58,35 @@ class BookingBottomSheet extends StatefulWidget {
 }
 
 class _BookingBottomSheetState extends State<BookingBottomSheet> {
+  late final MyBookingService? _bookingService;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (_bookingService == null) {
+      final apiRepository = Provider.of<ApiRepository>(context, listen: false);
+      _bookingService = MyBookingService(apiRepository: apiRepository);
+    }
+  }
+
+  @override
+  void dispose() {
+    _bookingService!.cancelRequest(); // cancel any ongoing requests
+    _bookingService = null; // reset the service
+    super.dispose();
+  }
+
   void _showTimeSlotDialog(BuildContext context, UserElement order) {
     final timeSlots = TimeSlotGenerator().generateTimeSlots(
       order.user.vendorWaitingTime ?? 0,
       order.user.restaurantTiming ?? "10:00 AM - 10:00 PM",
     );
     String? selectedTime;
-    final bookingService = MyBookingService();
 
     showDialog(
       context: context,
@@ -199,7 +225,7 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
         final loadingOverlay = _showLoadingOverlay(context);
 
         // Call API to update pickup time
-        final success = await bookingService.updatePickupTime(
+        final success = await _bookingService!.updatePickupTime(
             order.user.orderId, selectedTime);
 
         // Hide loading indicator
