@@ -9,12 +9,14 @@ class FoodCartSection extends StatefulWidget {
       required this.items,
       required this.pressMenu,
       required this.pressCart,
-      required this.pressRemove});
+      required this.pressRemove,
+      this.onCartLoading});
   final String name;
   final String items;
   final VoidCallback pressMenu;
   final VoidCallback pressCart;
   final VoidCallback pressRemove;
+  final VoidCallback? onCartLoading;
 
   @override
   State<FoodCartSection> createState() => _FoodCartSectionState();
@@ -190,7 +192,13 @@ class _FoodCartSectionState extends State<FoodCartSection> {
                                       width: 114,
                                       height: 44,
                                       child: ElevatedButton(
-                                        onPressed: widget.pressCart,
+                                        onPressed: () {
+                                          if (widget.onCartLoading != null) {
+                                            widget.onCartLoading!();
+                                          } else {
+                                            widget.pressCart();
+                                          }
+                                        },
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: primaryColor,
                                           shape: RoundedRectangleBorder(

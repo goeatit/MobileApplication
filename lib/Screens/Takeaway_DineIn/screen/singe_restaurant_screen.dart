@@ -55,6 +55,8 @@ class SingleRestaurantScreen extends StatefulWidget {
 
 class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
     with SingleTickerProviderStateMixin {
+  final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
+      GlobalKey<RefreshIndicatorState>();
   late AnimationController _controller;
   late Animation<Offset> _offsetAnimation;
   List<String> imgurls = [
@@ -85,7 +87,6 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
   var textTheme;
   String searchQuery = ''; // Track search query
   final TextEditingController _searchController = TextEditingController();
-
   // Add CancelToken for API requests
   // final CancelToken _cancelToken = CancelToken();
   List<String> buttonLabels = ["Best Seller", "Top Rated", "Veg", "Non-Veg"];
@@ -137,12 +138,11 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
 
     if (latitude == null || longitude == null) {
       googleMapsUrl = Uri.parse(
-          "https://www.google.com/maps/search/?api=1&query=${Uri
-              .encodeComponent(name!)}");
+          "https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(name!)}");
     } else if (name != null && name.isNotEmpty) {
       // Use `q=$latitude,$longitude+($name)` instead of `near`
       final String encodedQuery =
-      Uri.encodeComponent("$latitude,$longitude ($name)");
+          Uri.encodeComponent("$latitude,$longitude ($name)");
       googleMapsUrl = Uri.parse(
           "https://www.google.com/maps/search/?api=1&query=$encodedQuery");
     } else {
@@ -164,14 +164,14 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
     fetchDishes();
     _controller = AnimationController(
       duration:
-      const Duration(milliseconds: 200), // Short but noticeable duration
+          const Duration(milliseconds: 200), // Short but noticeable duration
       vsync: this,
     );
     _offsetAnimation =
         Tween<Offset>(begin: const Offset(0, 1), end: const Offset(0, 0))
             .animate(
-          CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-        );
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
     _searchController.addListener(_updateSearchQuery);
   }
 
@@ -205,8 +205,7 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
       // Apply search filter if search query exists
       if (searchQuery.isNotEmpty) {
         filteredDishes = filteredDishes
-            .where((d) =>
-            d.dishId.dishName
+            .where((d) => d.dishId.dishName
                 .toLowerCase()
                 .contains(searchQuery.toLowerCase()))
             .toList();
@@ -249,19 +248,19 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
         if (selectedPriceOption.contains('Less than ₹150')) {
           filteredDishes = filteredDishes
               .where((d) =>
-          d.resturantDishPrice != null && d.resturantDishPrice <= 150)
+                  d.resturantDishPrice != null && d.resturantDishPrice <= 150)
               .toList();
         } else if (selectedPriceOption.contains('₹150 - ₹300')) {
           filteredDishes = filteredDishes
               .where((d) =>
-          d.resturantDishPrice != null &&
-              d.resturantDishPrice > 150 &&
-              d.resturantDishPrice <= 300)
+                  d.resturantDishPrice != null &&
+                  d.resturantDishPrice > 150 &&
+                  d.resturantDishPrice <= 300)
               .toList();
         } else if (selectedPriceOption.contains('More than ₹300')) {
           filteredDishes = filteredDishes
               .where((d) =>
-          d.resturantDishPrice != null && d.resturantDishPrice > 300)
+                  d.resturantDishPrice != null && d.resturantDishPrice > 300)
               .toList();
         }
       }
@@ -346,23 +345,22 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) =>
-          PopScope(
-            canPop: false,
-            child: AlertDialog(
-              title: Text(title),
-              content: Text(message),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(ctx).pop();
-                    Navigator.of(context).pop(); // Go back to previous screen
-                  },
-                  child: const Text('OK'),
-                ),
-              ],
+      builder: (ctx) => PopScope(
+        canPop: false,
+        child: AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(ctx).pop();
+                Navigator.of(context).pop(); // Go back to previous screen
+              },
+              child: const Text('OK'),
             ),
-          ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -374,32 +372,163 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
     _controller.forward();
   }
 
+  Timer? _incrementDebounce;
+  Timer? _decrementDebounce;
+  Set<String> _pendingDecrementIds = {};
+  Map<String, int> _previousQuantities = {};
+
+  void _debouncedIncrement(VoidCallback action) {
+    _incrementDebounce?.cancel();
+    _incrementDebounce = Timer(const Duration(milliseconds: 800), () {
+      action();
+    });
+  }
+
+  void _debouncedDecrement(
+      String id, VoidCallback? afterDecrement, String orderType) {
+    _pendingDecrementIds.add(id);
+    _decrementDebounce?.cancel();
+    _decrementDebounce = Timer(const Duration(milliseconds: 800), () async {
+      final ids = List<String>.from(_pendingDecrementIds);
+      _pendingDecrementIds.clear();
+      if (ids.isNotEmpty) {
+        try {
+          final response = await cartService.decrementCartItem(
+              ids, widget.id, context, orderType);
+          if (response == null || response.statusCode != 200) {
+            print('Decrement:  API call failed ');
+            // API failed, revert to previous state
+            for (var dishId in ids) {
+              _revertQuantity(dishId, orderType,
+                  Provider.of<CartProvider>(context, listen: false));
+            }
+            _showErrorSnackBar('Failed to update cart');
+          } else {
+            print('Decrement:  api call success ');
+          }
+        } catch (e) {
+          print('Decrement:  Exception ');
+          for (var dishId in ids) {
+            _revertQuantity(dishId, orderType,
+                Provider.of<CartProvider>(context, listen: false));
+          }
+          _showErrorSnackBar('Network error occurred');
+        }
+        if (afterDecrement != null) afterDecrement();
+      } else {
+        print('Decrement:  API not called ');
+      }
+    });
+  }
+
+  // Enhanced cart operations with error handling and debounce
+  Future<void> _handleAddToCart(
+      String dishId, String orderType, CartItem cartItem) async {
+    final cartProvider = Provider.of<CartProvider>(context, listen: false);
+    _previousQuantities[dishId] =
+        cartProvider.getQuantity(widget.id, orderType, dishId);
+    cartProvider.addToCart(widget.id, orderType, cartItem);
+    print('Add to cart: Local state updated for dishId: '
+        ' $dishId orderType: $orderType');
+    _debouncedIncrement(() async {
+      try {
+        final response = await cartService.addToCart(
+            widget.id, context, orderType, widget.location);
+        if (response == null || response.statusCode != 200) {
+          print('Add to cart:  API call failed for dishId: $dishId, response: '
+              ' ${response?.statusCode}');
+          _revertQuantity(dishId, orderType, cartProvider);
+          _showErrorSnackBar('Failed to add item to cart');
+        } else {
+          print('Add to cart:  API call success for dishId: $dishId');
+        }
+      } catch (e) {
+        print('Add to cart:  Exception for dishId: $dishId, error: $e');
+        _revertQuantity(dishId, orderType, cartProvider);
+        _showErrorSnackBar('Network error occurred');
+      }
+    });
+  }
+
+  Future<void> _handleIncrement(String dishId, String orderType) async {
+    final cartProvider = Provider.of<CartProvider>(context, listen: false);
+    _previousQuantities[dishId] =
+        cartProvider.getQuantity(widget.id, orderType, dishId);
+    cartProvider.incrementQuantity(widget.id, orderType, dishId);
+    print('Increment: Local state updated for dishId: '
+        '$dishId  orderType: $orderType');
+    _debouncedIncrement(() async {
+      try {
+        final response = await cartService.addToCart(
+            widget.id, context, orderType, widget.location);
+        if (response == null || response.statusCode != 200) {
+          print('Increment: API call failed for dishId: $dishId, response: '
+              '${response?.statusCode}');
+          _revertQuantity(dishId, orderType, cartProvider);
+          _showErrorSnackBar('Failed to update cart');
+        } else {
+          print('Increment:  API call success for dishId: $dishId');
+        }
+      } catch (e) {
+        print('Increment:  Exception for dishId: $dishId, error: $e');
+        _revertQuantity(dishId, orderType, cartProvider);
+        _showErrorSnackBar('Network error occurred');
+      }
+    });
+  }
+
+  Future<void> _handleDecrement(String dishId, String orderType) async {
+    final cartProvider = Provider.of<CartProvider>(context, listen: false);
+    _previousQuantities[dishId] =
+        cartProvider.getQuantity(widget.id, orderType, dishId);
+    cartProvider.decrementQuantity(widget.id, orderType, dishId);
+    print('Decrement: Local state updated for dishId: '
+        '$dishId , orderType: $orderType');
+    _debouncedDecrement(dishId, () {
+      print('Decrement: Debounced API not called for dishId: $dishId ');
+    }, orderType);
+  }
+
+  void _revertQuantity(
+      String dishId, String orderType, CartProvider cartProvider) {
+    final previousQty = _previousQuantities[dishId] ?? 0;
+    final currentQty = cartProvider.getQuantity(widget.id, orderType, dishId);
+    if (previousQty == 0 && currentQty > 0) {
+      cartProvider.removeFromCart(widget.id, orderType, dishId);
+    } else if (previousQty > currentQty) {
+      for (int i = currentQty; i < previousQty; i++) {
+        cartProvider.incrementQuantity(widget.id, orderType, dishId);
+      }
+    } else if (previousQty < currentQty) {
+      for (int i = currentQty; i > previousQty; i--) {
+        cartProvider.decrementQuantity(widget.id, orderType, dishId);
+      }
+    }
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
   @override
   void dispose() {
-    // Make sure animation controller is properly disposed
     _controller.stop();
     _controller.dispose();
-
-    // Cancel any ongoing API requests
-    // if (!_cancelToken.isCancelled) {
-    //   _cancelToken.cancel("Widget disposed");
-    // }
-
     restaurantService.dispose();
-
-    // Dispose of text controller
     _searchController.removeListener(_updateSearchQuery);
     _searchController.dispose();
-
-    // Clear large data structures
     dish = null;
     filterDishes = null;
     selectedDish = null;
     categorizedDishes.clear();
-
     _incrementDebounce?.cancel();
     _decrementDebounce?.cancel();
-
     super.dispose();
   }
 
@@ -411,14 +540,14 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
     // final ApiRepository apiRepository = ApiRepository(networkManager);
     try {
       final fetchData =
-      await restaurantService.fetchDishesData(widget.name, widget.location);
+          await restaurantService.fetchDishesData(widget.name, widget.location);
 
       // await apiRepository.fetchDishesDataWithCancelToken(
       //     widget.name, widget.location, _cancelToken);
 
       if (fetchData?.statusCode == 200
-      // && !_cancelToken.isCancelled
-      ) {
+          // && !_cancelToken.isCancelled
+          ) {
         final data = DishSchema.fromJson(fetchData?.data);
         categorizeAndSetDishes(data);
         if (mounted) {
@@ -429,8 +558,8 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
       }
     } catch (e) {
       if (mounted
-      // && !_cancelToken.isCancelled
-      ) {
+          // && !_cancelToken.isCancelled
+          ) {
         _showErrorDialog("Error", "An error occurred while fetching data.");
         setState(() {
           errorMessage = "Error: $e";
@@ -479,79 +608,84 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) =>
-          FilterBottomSheet(
-            selectedSection: selectedSection,
-            selectedSortOption: selectedSortOption,
-            selectedRatingOption: selectedRatingOption,
-            selectedOfferOption: selectedOfferOption,
-            selectedPriceOption: selectedPriceOption,
-            onApplyFilters: (sortOption, ratingOption, offerOption,
-                priceOption) {
-              setState(() {
-                selectedSortOption = sortOption;
-                selectedRatingOption = ratingOption;
-                selectedOfferOption = offerOption;
-                selectedPriceOption = priceOption;
-                isFilterOpen = false;
+      builder: (context) => FilterBottomSheet(
+        selectedSection: selectedSection,
+        selectedSortOption: selectedSortOption,
+        selectedRatingOption: selectedRatingOption,
+        selectedOfferOption: selectedOfferOption,
+        selectedPriceOption: selectedPriceOption,
+        onApplyFilters: (sortOption, ratingOption, offerOption, priceOption) {
+          setState(() {
+            selectedSortOption = sortOption;
+            selectedRatingOption = ratingOption;
+            selectedOfferOption = offerOption;
+            selectedPriceOption = priceOption;
+            isFilterOpen = false;
 
-                // Set veg/non-veg filters based on selection
-                if (offerOption == 'Pure Veg') {
-                  isSelected[2] = true; // Veg
-                  isSelected[3] = false; // Non-Veg
-                } else if (offerOption == 'Non-Veg') {
-                  isSelected[2] = false; // Veg
-                  isSelected[3] = true; // Non-Veg
-                } else {
-                  // Keep the current selection for veg/non-veg
-                }
+            // Set veg/non-veg filters based on selection
+            if (offerOption == 'Pure Veg') {
+              isSelected[2] = true; // Veg
+              isSelected[3] = false; // Non-Veg
+            } else if (offerOption == 'Non-Veg') {
+              isSelected[2] = false; // Veg
+              isSelected[3] = true; // Non-Veg
+            } else {
+              // Keep the current selection for veg/non-veg
+            }
 
-                // Now apply filters using the existing method
-                _filterDishes();
-              });
-            },
-            onClearFilters: () {
-              setState(() {
-                // Clear all filter values
-                selectedSortOption = '';
-                selectedRatingOption = '';
-                selectedOfferOption = '';
-                selectedPriceOption = '';
-                selectedFilters.updateAll((key, value) => false);
+            // Now apply filters using the existing method
+            _filterDishes();
+          });
+        },
+        onClearFilters: () {
+          setState(() {
+            // Clear all filter values
+            selectedSortOption = '';
+            selectedRatingOption = '';
+            selectedOfferOption = '';
+            selectedPriceOption = '';
+            selectedFilters.updateAll((key, value) => false);
 
-                // Reset the filter buttons
-                isSelected = [false, false, false, false];
+            // Reset the filter buttons
+            isSelected = [false, false, false, false];
 
-                // Log the reset
+            // Log the reset
 
-                // Fetch the original dishes to reset to initial state
-                if (dish != null) {
-                  filterDishes = DishSchema(
-                    restaurant: dish!.restaurant,
-                    availableDishes: dish!.availableDishes,
-                    categories: dish!.categories,
-                  );
+            // Fetch the original dishes to reset to initial state
+            if (dish != null) {
+              filterDishes = DishSchema(
+                restaurant: dish!.restaurant,
+                availableDishes: dish!.availableDishes,
+                categories: dish!.categories,
+              );
 
-                  // Re-categorize dishes from the original dataset, but skip additional filtering
-                  categorizeAndSetDishes(filterDishes, skipFiltering: true);
-                } else {
-                  // If no original dishes are available, just apply the reset filters
-                  _filterDishes();
-                }
-              });
-            },
-          ),
+              // Re-categorize dishes from the original dataset, but skip additional filtering
+              categorizeAndSetDishes(filterDishes, skipFiltering: true);
+            } else {
+              // If no original dishes are available, just apply the reset filters
+              _filterDishes();
+            }
+          });
+        },
+      ),
     );
+  }
+
+  Future<void> _refreshRestaurantData() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = '';
+    });
+    // Refresh cart data from API
+    await cartService.fetchAndUpdateCart(context);
+    // Then refresh restaurant data
+    await fetchDishes();
   }
 
   @override
   Widget build(BuildContext context) {
-    screenWidth = MediaQuery
-        .sizeOf(context)
-        .width * 0.35;
-    textTheme = Theme
-        .of(context)
-        .textTheme;
+    screenWidth = MediaQuery.sizeOf(context).width * 0.35;
+    textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -561,9 +695,7 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
       ),
       bottomNavigationBar: Consumer<CartProvider>(
         builder: (ctx, cartProvider, child) {
-          int stored = ctx
-              .watch<OrderTypeProvider>()
-              .orderType;
+          int stored = ctx.watch<OrderTypeProvider>().orderType;
           String orderType = stored == 0 ? "Dine-in" : "Take-away";
           int totalCount = ctx
               .watch<CartProvider>()
@@ -582,32 +714,32 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
             },
             child: totalCount > 0
                 ? Container(
-              width: double.infinity,
-              key: totalCount > 0
-                  ? const ValueKey<int>(1)
-                  : const ValueKey<int>(0),
-              decoration: BoxDecoration(
-                color: primaryColor,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, -5),
-                  ),
-                ],
-              ),
-              child: SafeArea(
-                child: AddedItemButton(
-                  itemCount: totalCount,
-                  onPressed: () {
-                    Navigator.pop(context);
-                    ctx.read<OrderTypeProvider>().changeHomeState(2);
-                    Navigator.pushReplacementNamed(
-                        context, HomePage.routeName);
-                  },
-                ),
-              ),
-            )
+                    width: double.infinity,
+                    key: totalCount > 0
+                        ? const ValueKey<int>(1)
+                        : const ValueKey<int>(0),
+                    decoration: BoxDecoration(
+                      color: primaryColor,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, -5),
+                        ),
+                      ],
+                    ),
+                    child: SafeArea(
+                      child: AddedItemButton(
+                        itemCount: totalCount,
+                        onPressed: () {
+                          Navigator.pop(context);
+                          ctx.read<OrderTypeProvider>().changeHomeState(2);
+                          Navigator.pushReplacementNamed(
+                              context, HomePage.routeName);
+                        },
+                      ),
+                    ),
+                  )
                 : const SizedBox.shrink(),
           );
         },
@@ -615,815 +747,768 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : Stack(
-        children: [
-          SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.only(
-                  bottom: 80), // Add padding for bottom navigation
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Stack(
-                          children: [
-                            // Restaurant Image
-                            // Replace this part in the Stack
-                            SizedBox(
-                              width: double.infinity,
-                              height: 200,
-                              child: Image.asset(
-                                widget
-                                    .imageUrl, // Use the passed imageUrl
-                                fit: BoxFit.cover,
-                              ),
-                            ),
+              children: [
+                RefreshIndicator(
+                  key: _refreshIndicatorKey,
+                  onRefresh: _refreshRestaurantData,
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                          bottom: 80), // Add padding for bottom navigation
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Stack(
+                                  children: [
+                                    // Restaurant Image
+                                    // Replace this part in the Stack
+                                    SizedBox(
+                                      width: double.infinity,
+                                      height: 200,
+                                      child: Image.asset(
+                                        widget
+                                            .imageUrl, // Use the passed imageUrl
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
 
-                            // Back Button
-                            Positioned(
-                              top: 10,
-                              left: 10,
-                              child: GestureDetector(
-                                onTap: () {
-                                  Navigator.pop(context);
-                                },
-                                child: SvgPicture.asset(
-                                  "assets/svg/whitebackArrow.svg",
-                                  width: 50,
-                                  height: 50,
-                                ),
-                              ),
-                            ),
-                            // Bookmark Button
-                            // In SingleRestaurantScreen class, replace the existing bookmark button with:
+                                    // Back Button
+                                    Positioned(
+                                      top: 10,
+                                      left: 10,
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          Navigator.pop(context);
+                                        },
+                                        child: SvgPicture.asset(
+                                          "assets/svg/whitebackArrow.svg",
+                                          width: 50,
+                                          height: 50,
+                                        ),
+                                      ),
+                                    ),
+                                    // Bookmark Button
+                                    // In SingleRestaurantScreen class, replace the existing bookmark button with:
 
-                            Positioned(
-                              top: 10,
-                              right: 10,
-                              child: Consumer<SavedRestaurantsProvider>(
-                                builder: (context, savedProvider, child) {
-                                  bool isSaved = savedProvider
-                                      .isRestaurantSaved(widget.id);
+                                    Positioned(
+                                      top: 10,
+                                      right: 10,
+                                      child: Consumer<SavedRestaurantsProvider>(
+                                        builder:
+                                            (context, savedProvider, child) {
+                                          bool isSaved = savedProvider
+                                              .isRestaurantSaved(widget.id);
 
-                                  return GestureDetector(
-                                    onTap: () async {
-                                      if (isSaved) {
-                                        // Show delete confirmation dialog
-                                        bool? remove =
-                                        await showDialog<bool>(
-                                          context: context,
-                                          builder: (context) =>
-                                              AlertDialog(
-                                                backgroundColor: Colors.white,
-                                                titlePadding:
-                                                const EdgeInsets.only(
-                                                    top: 20, bottom: 5),
-                                                title: Column(
-                                                  children: [
-                                                    const Icon(
-                                                      Icons.warning_rounded,
-                                                      color:
-                                                      Color(0xFFF8951D),
-                                                      size: 40,
-                                                    ),
-                                                    const SizedBox(height: 8),
-                                                    Text(
-                                                      'Remove Restaurant',
-                                                      style: Theme
-                                                          .of(context)
-                                                          .textTheme
-                                                          .titleLarge,
-                                                    ),
-                                                  ],
-                                                ),
-                                                contentPadding:
-                                                const EdgeInsets.only(
-                                                  top: 5,
-                                                  left: 24,
-                                                  right: 24,
-                                                  bottom: 20,
-                                                ),
-                                                content: Text(
-                                                  'Remove ${widget
-                                                      .name} from saved?',
-                                                  textAlign: TextAlign.center,
-                                                  style: Theme
-                                                      .of(context)
-                                                      .textTheme
-                                                      .labelLarge
-                                                      ?.copyWith(
-                                                    color: const Color(
-                                                        0xFF666666),
-                                                  ),
-                                                ),
-                                                actions: [
-                                                  Padding(
-                                                    padding: const EdgeInsets
-                                                        .fromLTRB(0, 0, 0, 0),
-                                                    child: Row(
+                                          return GestureDetector(
+                                            onTap: () async {
+                                              if (isSaved) {
+                                                // Show delete confirmation dialog
+                                                bool? remove =
+                                                    await showDialog<bool>(
+                                                  context: context,
+                                                  builder: (context) =>
+                                                      AlertDialog(
+                                                    backgroundColor:
+                                                        Colors.white,
+                                                    titlePadding:
+                                                        const EdgeInsets.only(
+                                                            top: 20, bottom: 5),
+                                                    title: Column(
                                                       children: [
-                                                        Expanded(
-                                                          child: TextButton(
-                                                            onPressed: () =>
-                                                                Navigator.pop(
-                                                                    context,
-                                                                    false),
-                                                            style: TextButton
-                                                                .styleFrom(
-                                                              backgroundColor:
-                                                              Colors
-                                                                  .white,
-                                                              padding:
-                                                              const EdgeInsets
-                                                                  .symmetric(
-                                                                  vertical:
-                                                                  12),
-                                                              side:
-                                                              const BorderSide(
-                                                                color: Color(
-                                                                    0xFFF8951D),
-                                                                width: 1,
-                                                              ),
-                                                              shape:
-                                                              RoundedRectangleBorder(
-                                                                borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                    10),
-                                                              ),
-                                                            ),
-                                                            child: Text(
-                                                              'Cancel',
-                                                              style: Theme
-                                                                  .of(
-                                                                  context)
-                                                                  .textTheme
-                                                                  .labelMedium
-                                                                  ?.copyWith(
-                                                                color: const Color(
-                                                                    0xFFF8951D),
-                                                                fontWeight:
-                                                                FontWeight
-                                                                    .w600,
-                                                              ),
-                                                            ),
-                                                          ),
+                                                        const Icon(
+                                                          Icons.warning_rounded,
+                                                          color:
+                                                              Color(0xFFF8951D),
+                                                          size: 40,
                                                         ),
                                                         const SizedBox(
-                                                            width: 10),
-                                                        Expanded(
-                                                          child: TextButton(
-                                                            onPressed: () =>
-                                                                Navigator.pop(
-                                                                    context,
-                                                                    true),
-                                                            style: TextButton
-                                                                .styleFrom(
-                                                              backgroundColor:
-                                                              const Color(
-                                                                  0xFFF8951D),
-                                                              padding:
-                                                              const EdgeInsets
-                                                                  .symmetric(
-                                                                  vertical:
-                                                                  12),
-                                                              shape:
-                                                              RoundedRectangleBorder(
-                                                                borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                    10),
-                                                              ),
-                                                            ),
-                                                            child: Text(
-                                                              'Remove',
-                                                              style: Theme
-                                                                  .of(
-                                                                  context)
+                                                            height: 8),
+                                                        Text(
+                                                          'Remove Restaurant',
+                                                          style:
+                                                              Theme.of(context)
                                                                   .textTheme
-                                                                  .labelMedium
-                                                                  ?.copyWith(
-                                                                color: Colors
-                                                                    .white,
-                                                                fontWeight:
-                                                                FontWeight
-                                                                    .w600,
-                                                              ),
-                                                            ),
-                                                          ),
+                                                                  .titleLarge,
                                                         ),
                                                       ],
                                                     ),
+                                                    contentPadding:
+                                                        const EdgeInsets.only(
+                                                      top: 5,
+                                                      left: 24,
+                                                      right: 24,
+                                                      bottom: 20,
+                                                    ),
+                                                    content: Text(
+                                                      'Remove ${widget.name} from saved?',
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                      style: Theme.of(context)
+                                                          .textTheme
+                                                          .labelLarge
+                                                          ?.copyWith(
+                                                            color: const Color(
+                                                                0xFF666666),
+                                                          ),
+                                                    ),
+                                                    actions: [
+                                                      Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .fromLTRB(
+                                                                0, 0, 0, 0),
+                                                        child: Row(
+                                                          children: [
+                                                            Expanded(
+                                                              child: TextButton(
+                                                                onPressed: () =>
+                                                                    Navigator.pop(
+                                                                        context,
+                                                                        false),
+                                                                style: TextButton
+                                                                    .styleFrom(
+                                                                  backgroundColor:
+                                                                      Colors
+                                                                          .white,
+                                                                  padding: const EdgeInsets
+                                                                      .symmetric(
+                                                                      vertical:
+                                                                          12),
+                                                                  side:
+                                                                      const BorderSide(
+                                                                    color: Color(
+                                                                        0xFFF8951D),
+                                                                    width: 1,
+                                                                  ),
+                                                                  shape:
+                                                                      RoundedRectangleBorder(
+                                                                    borderRadius:
+                                                                        BorderRadius.circular(
+                                                                            10),
+                                                                  ),
+                                                                ),
+                                                                child: Text(
+                                                                  'Cancel',
+                                                                  style: Theme.of(
+                                                                          context)
+                                                                      .textTheme
+                                                                      .labelMedium
+                                                                      ?.copyWith(
+                                                                        color: const Color(
+                                                                            0xFFF8951D),
+                                                                        fontWeight:
+                                                                            FontWeight.w600,
+                                                                      ),
+                                                                ),
+                                                              ),
+                                                            ),
+                                                            const SizedBox(
+                                                                width: 10),
+                                                            Expanded(
+                                                              child: TextButton(
+                                                                onPressed: () =>
+                                                                    Navigator.pop(
+                                                                        context,
+                                                                        true),
+                                                                style: TextButton
+                                                                    .styleFrom(
+                                                                  backgroundColor:
+                                                                      const Color(
+                                                                          0xFFF8951D),
+                                                                  padding: const EdgeInsets
+                                                                      .symmetric(
+                                                                      vertical:
+                                                                          12),
+                                                                  shape:
+                                                                      RoundedRectangleBorder(
+                                                                    borderRadius:
+                                                                        BorderRadius.circular(
+                                                                            10),
+                                                                  ),
+                                                                ),
+                                                                child: Text(
+                                                                  'Remove',
+                                                                  style: Theme.of(
+                                                                          context)
+                                                                      .textTheme
+                                                                      .labelMedium
+                                                                      ?.copyWith(
+                                                                        color: Colors
+                                                                            .white,
+                                                                        fontWeight:
+                                                                            FontWeight.w600,
+                                                                      ),
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ),
-                                                ],
-                                              ),
-                                        );
+                                                );
 
-                                        if (remove == true) {
-                                          await savedProvider
-                                              .toggleSaveRestaurant(
-                                            SavedRestaurant(
-                                              id: widget.id,
-                                              imageUrl: widget.imageUrl,
-                                              restaurantName: widget.name,
-                                              location: widget.location,
-                                              cuisineType:
-                                              widget.cuisineType,
-                                              // Add this
-                                              priceRange:
-                                              widget.priceRange,
-                                              // Add this
-                                              rating: widget
-                                                  .rating, // Add this
-                                              // lat: dish?.restaurant
-                                              //     .resturantLatitute, // Optional
-                                              // long: dish?.restaurant
-                                              //     .resturantLongitute, // Optional
-                                            ),
-                                          );
-                                        }
-                                      } else {
-                                        // Direct save
-                                        await savedProvider
-                                            .toggleSaveRestaurant(
-                                          SavedRestaurant(
-                                            id: widget.id,
-                                            imageUrl: widget.imageUrl,
-                                            restaurantName: widget.name,
-                                            location: widget.location,
-                                            cuisineType:
-                                            widget.cuisineType,
-                                            // Add this
-                                            priceRange: widget.priceRange,
-                                            // Add this
-                                            rating:
-                                            widget.rating, // Add this
-                                            // lat: dish?.restaurant
-                                            //     .resturantLatitute, // Optional
-                                            // long: dish?.restaurant
-                                            //     .resturantLongitute, // Optional
-                                          ),
-                                        );
-                                      }
-                                    },
-                                    child: SvgPicture.asset(
-                                      isSaved
-                                          ? "assets/svg/Saved.svg"
-                                          : "assets/svg/bookmark.svg",
-                                      width: 50,
-                                      height: 50,
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-
-                            Positioned(
-                                bottom: 10,
-                                right: 10,
-                                child: Container(
-                                  height: 35,
-                                  decoration: BoxDecoration(
-                                    gradient: mapLinearGradient,
-                                    borderRadius: BorderRadius.circular(
-                                        20), // Adjust as needed
-                                  ),
-                                  child: ElevatedButton.icon(
-                                    onPressed: () =>
-                                        _openMap(
-                                            dish?.restaurant
-                                                .resturantLatitute,
-                                            dish?.restaurant
-                                                .resturantLongitute,
-                                            name: dish
-                                                ?.restaurant.restaurantName),
-                                    label: const Text("Map",
-                                        style: TextStyle(fontSize: 12)),
-                                    icon: const Icon(
-                                      IconData(0xf8ca,
-                                          fontFamily: "CupertinoIcons",
-                                          fontPackage: "cupertino_icons"),
-                                      color: Colors.white,
-                                    ),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.transparent,
-                                      foregroundColor: Colors.white,
-                                      shadowColor: Colors.transparent,
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 20),
-                                    ),
-                                  ),
-                                )),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          widget.name,
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 5),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              "${dish?.restaurant.restaurantRating}",
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF4F4F4F),
-                              ),
-                            ),
-                            Icon(
-                              Icons.star, // or Icons.star_rate
-                              color: Theme
-                                  .of(context)
-                                  .primaryColor,
-                              size: 15, // Adjust size as needed
-                            ),
-                            Text(
-                              //" | Indian • ${widget.cuisineType} | ${_getTopRatedDish()}",
-                              " | Indian • ${_getTopRatedDish()} | 2.3km ",
-                              style: const TextStyle(
-                                color: Color(0xFF4F4F4F),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const Icon(
-                              Icons.keyboard_arrow_right_outlined,
-                              size: 23,
-                              color: Color(0xFF4F4F4F),
-                            )
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const Center(
-                    child: DineInTakeawayToggle(),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 40, vertical: 10),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                            width: 1, color: const Color(0xffE5E5E5)),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          const Column(
-                            children: [
-                              Text(
-                                "₹1200-₹1500",
-                                style: TextStyle(
-                                    color: primaryColor,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              Text(
-                                "for two",
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ],
-                          ),
-                          Container(
-                            height: 55,
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                  width: 1,
-                                  color: const Color(0xffE5E5E5)),
-                            ),
-                          ),
-                          const Column(children: [
-                            Text(
-                              "20 mins",
-                              style: TextStyle(
-                                  color: primaryColor,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              "before reaching",
-                              style:
-                              TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ])
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // Search Field
-                  Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(
-                                0x0D000000), // This is #0000000D in RGBA
-                            spreadRadius: 0,
-                            blurRadius: 20,
-                            offset: Offset(
-                                0, 2), // 0px horizontal, 2px vertical
-                          ),
-                        ],
-                        borderRadius: BorderRadius.circular(
-                            20), // Optional: Rounded corners
-                      ),
-                      child: TextField(
-                        controller: _searchController,
-                        decoration: InputDecoration(
-                          icon: Padding(
-                            padding: const EdgeInsets.only(left: 10.0),
-                            child: SvgPicture.asset(
-                              'assets/svg/search.svg',
-                              width: 30,
-                            ),
-                          ),
-                          hintText: "Search for Dishes",
-                          hintStyle: const TextStyle(
-                            color: Color(0xff737373),
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(
-                                8.0), // Match with the container
-                            borderSide: BorderSide.none, // No border
-                          ),
-                          suffixIcon: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  isFilterOpen = true;
-                                });
-                                _showFilterBottomSheet();
-                              },
-                              child: SvgPicture.asset(
-                                'assets/svg/filter.svg',
-                                // replace with your actual asset path
-                                width: 40, // adjust the size as needed
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  // Filter Buttons
-                  _buildFilterButtons(),
-                  // Dishes Categories
-                  // Show recommended dishes only when a category is selected
-                  if (context
-                      .watch<SelectedCategoryProvider>()
-                      .selectedCategory
-                      .isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: _buildRecommendedDishes(),
-                    ),
-
-                  isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : (errorMessage.isNotEmpty
-                      ? Center(child: Text(errorMessage))
-                      : categorizedDishes
-                      .isEmpty // Check if there are no dishes
-                      ? const Center(
-                    child: Column(
-                      mainAxisAlignment:
-                      MainAxisAlignment.center,
-                      children: [
-                        SizedBox(height: 45),
-                        Icon(
-                          Icons
-                              .no_meals_outlined, // or Icons.search_off
-                          size: 32,
-                          color: Colors.grey,
-                        ),
-                        SizedBox(height: 5),
-                        Text(
-                          'No dishes found',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.grey,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Try adjusting your search or filters',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                      : Column(
-                    children: categorizedDishes.entries
-                        .map((entry) {
-                      String category = entry.key;
-                      List<AvailableDish> dishes =
-                          entry.value;
-
-                      // Skip this category if it's the selected one
-                      if (category.toLowerCase() ==
-                          context
-                              .watch<
-                              SelectedCategoryProvider>()
-                              .selectedCategory
-                              .toLowerCase()) {
-                        return const SizedBox.shrink();
-                      }
-
-                      return Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: Column(
-                          crossAxisAlignment:
-                          CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              category,
-                              style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight:
-                                  FontWeight.bold),
-                            ),
-                            const SizedBox(height: 10),
-                            Container(
-                                height:
-                                220, // Adjust based on your UI needs
-                                padding:
-                                const EdgeInsets.all(5),
-                                child:
-                                Consumer<CartProvider>(
-                                    builder: (ctx,
-                                        cartProvider,
-                                        child) {
-                                      return ListView.builder(
-                                        padding:
-                                        const EdgeInsets
-                                            .symmetric(
-                                            vertical: 8),
-                                        scrollDirection:
-                                        Axis.horizontal,
-                                        itemCount:
-                                        dishes.length,
-                                        itemBuilder:
-                                            (context, index) {
-                                          final dish =
-                                          dishes[index];
-                                          int stored = ctx
-                                              .watch<
-                                              OrderTypeProvider>()
-                                              .orderType;
-                                          String orderType = "";
-                                          if (stored == 0) {
-                                            orderType =
-                                            "Dine-in";
-                                          } else {
-                                            orderType =
-                                            "Take-away";
-                                          }
-                                          // final cartItem = cartProvider
-                                          //     .restaurantCarts[
-                                          //         widget.name]?[orderType]
-                                          //     ?.firstWhere(
-                                          //   (item) => item.id == dish.id,
-                                          //   orElse: () => CartItem(
-                                          //       id: dish.id,
-                                          //       restaurantName:
-                                          //           widget.name,
-                                          //       orderType: orderType,
-                                          //       dish: dish,
-                                          //       quantity: 0),
-                                          // );
-                                          return GestureDetector(
-                                            onTap: dish
-                                                .available
-                                                ? () =>
-                                                _showSlidingScreen(
-                                                    dish)
-                                                : null,
-                                            child: DishCard(
-                                              name: dish.dishId
-                                                  .dishName,
-                                              price:
-                                              "₹${dish.resturantDishPrice}",
-                                              imageUrl: imgurls[
-                                              index % 9],
-                                              calories:
-                                              "120 cal",
-                                              isAvailable: dish
-                                                  .available,
-                                              // Add this line
-
-                                              quantity: (ctx
-                                                  .watch<
-                                                  CartProvider>()
-                                                  .getQuantity(
-                                                  widget.id,
-                                                  orderType,
-                                                  dish.id)),
-                                              // Default to 0 if cartItem.quantity is null
-                                              onAddToCart: () {
-                                                final cartProvider =
-                                                Provider.of<
-                                                    CartProvider>(
-                                                    context,
-                                                    listen:
-                                                    false);
-
-                                                final cartITem = CartItem(
-                                                    id: dish.id,
-                                                    restaurantName:
-                                                    widget
-                                                        .name,
-                                                    orderType:
-                                                    orderType,
-                                                    dish: dish,
-                                                    quantity: 1,
-                                                    location: widget
-                                                        .location,
-                                                    restaurantImageUrl:
-                                                    widget
-                                                        .imageUrl);
-                                                cartProvider
-                                                    .addToCart(
-                                                    widget
-                                                        .id,
-                                                    orderType,
-                                                    cartITem);
-
-                                                _debouncedIncrement(
-                                                        () {
-                                                      cartService.addToCart(
-                                                          widget.id,
-                                                          context,
-                                                          orderType,
-                                                          widget
-                                                              .location);
-                                                    });
-                                              },
-
-                                              onIncrement: () {
-                                                ctx
-                                                    .read<
-                                                    CartProvider>()
-                                                    .incrementQuantity(
-                                                    widget
-                                                        .id,
-                                                    orderType,
-                                                    dish.id);
-
-                                                _debouncedIncrement(
-                                                        () {
-                                                      cartService.addToCart(
-                                                          widget.id,
-                                                          context,
-                                                          orderType,
-                                                          widget
-                                                              .location);
-                                                    });
-                                              },
-                                              onDecrement: () {
-                                                ctx
-                                                    .read<
-                                                    CartProvider>()
-                                                    .decrementQuantity(
-                                                    widget
-                                                        .id,
-                                                    orderType,
-                                                    dish.id);
-                                                _debouncedDecrement(
-                                                    dish.id,
-                                                    null,
-                                                    orderType);
-                                              },
+                                                if (remove == true) {
+                                                  await savedProvider
+                                                      .toggleSaveRestaurant(
+                                                    SavedRestaurant(
+                                                      id: widget.id,
+                                                      imageUrl: widget.imageUrl,
+                                                      restaurantName:
+                                                          widget.name,
+                                                      location: widget.location,
+                                                      cuisineType:
+                                                          widget.cuisineType,
+                                                      // Add this
+                                                      priceRange:
+                                                          widget.priceRange,
+                                                      // Add this
+                                                      rating: widget
+                                                          .rating, // Add this
+                                                      // lat: dish?.restaurant
+                                                      //     .resturantLatitute, // Optional
+                                                      // long: dish?.restaurant
+                                                      //     .resturantLongitute, // Optional
+                                                    ),
+                                                  );
+                                                }
+                                              } else {
+                                                // Direct save
+                                                await savedProvider
+                                                    .toggleSaveRestaurant(
+                                                  SavedRestaurant(
+                                                    id: widget.id,
+                                                    imageUrl: widget.imageUrl,
+                                                    restaurantName: widget.name,
+                                                    location: widget.location,
+                                                    cuisineType:
+                                                        widget.cuisineType,
+                                                    // Add this
+                                                    priceRange:
+                                                        widget.priceRange,
+                                                    // Add this
+                                                    rating: widget
+                                                        .rating, // Add this
+                                                    // lat: dish?.restaurant
+                                                    //     .resturantLatitute, // Optional
+                                                    // long: dish?.restaurant
+                                                    //     .resturantLongitute, // Optional
+                                                  ),
+                                                );
+                                              }
+                                            },
+                                            child: SvgPicture.asset(
+                                              isSaved
+                                                  ? "assets/svg/Saved.svg"
+                                                  : "assets/svg/bookmark.svg",
+                                              width: 50,
+                                              height: 50,
                                             ),
                                           );
                                         },
-                                      );
-                                    })),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                  )),
-                ],
-              ),
-            ),
-          ),
-          if (_isVisible)
-            GestureDetector(
-              onTap: _dismissSlidingScreen,
-              behavior: HitTestBehavior.opaque,
-              child: Stack(
-                children: [
-                  Container(
-                    color: Colors.black.withOpacity(0.3),
-                  ),
-                  AnimatedPositioned(
-                      duration: const Duration(milliseconds: 300),
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: SlideTransition(
-                        position: _offsetAnimation,
-                        child: GestureDetector(
-                            onTap: () {},
-                            child: Consumer<CartProvider>(
-                                builder: (ctx, cartProvider, child) {
-                                  int stored = ctx
-                                      .watch<OrderTypeProvider>()
-                                      .orderType;
-                                  String orderType = "";
-                                  if (stored == 0) {
-                                    orderType = "Dine-in";
-                                  } else {
-                                    orderType = "Take-away";
-                                  }
-                                  return Padding(
-                                    padding: const EdgeInsets.only(
-                                        bottom: 2), // Remove bottom padding
-                                    child: FoodItemBottomSheet(
-                                      name: selectedDish!.dishId.dishName,
-                                      imageUrl:
-                                      'https://via.placeholder.com/100',
-                                      calories: '120 Cal',
-                                      quantity: ctx
-                                          .watch<CartProvider>()
-                                          .getQuantity(widget.id, orderType,
-                                          selectedDish!.id),
-                                      categories:
-                                      selectedDish!.dishId.dishCatagory,
-                                      price: selectedDish!.resturantDishPrice
-                                          .toString(),
-                                      onAddToCart: () {
-                                        final cartProvider =
-                                        Provider.of<CartProvider>(context,
-                                            listen: false);
-
-                                        final cartITem = CartItem(
-                                            id: selectedDish!.id,
-                                            restaurantName: widget.name,
-                                            restaurantImageUrl:
-                                            widget.imageUrl,
-                                            orderType: orderType,
-                                            dish: selectedDish!,
-                                            quantity: 1,
-                                            location: widget.location);
-                                        cartProvider.addToCart(
-                                            widget.id, orderType, cartITem);
-                                        _debouncedIncrement(() {
-                                          cartService.addToCart(
-                                              widget.id,
-                                              context,
-                                              orderType,
-                                              widget.location);
-                                        });
-                                      },
-                                      onIncrement: () {
-                                        ctx
-                                            .read<CartProvider>()
-                                            .incrementQuantity(widget.id,
-                                            orderType, selectedDish!.id);
-                                        _debouncedIncrement(() {
-                                          cartService.addToCart(
-                                              widget.id,
-                                              context,
-                                              orderType,
-                                              widget.location);
-                                        });
-                                      },
-                                      onDecrement: () {
-                                        ctx
-                                            .read<CartProvider>()
-                                            .decrementQuantity(widget.id,
-                                            orderType, selectedDish!.id);
-                                        _debouncedDecrement(selectedDish!.id,
-                                            null, orderType);
-                                      },
+                                      ),
                                     ),
-                                  );
-                                })),
-                      )),
-                ],
-              ),
+
+                                    Positioned(
+                                        bottom: 10,
+                                        right: 10,
+                                        child: Container(
+                                          height: 35,
+                                          decoration: BoxDecoration(
+                                            gradient: mapLinearGradient,
+                                            borderRadius: BorderRadius.circular(
+                                                20), // Adjust as needed
+                                          ),
+                                          child: ElevatedButton.icon(
+                                            onPressed: () => _openMap(
+                                                dish?.restaurant
+                                                    .resturantLatitute,
+                                                dish?.restaurant
+                                                    .resturantLongitute,
+                                                name: dish?.restaurant
+                                                    .restaurantName),
+                                            label: const Text("Map",
+                                                style: TextStyle(fontSize: 12)),
+                                            icon: const Icon(
+                                              IconData(0xf8ca,
+                                                  fontFamily: "CupertinoIcons",
+                                                  fontPackage:
+                                                      "cupertino_icons"),
+                                              color: Colors.white,
+                                            ),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor:
+                                                  Colors.transparent,
+                                              foregroundColor: Colors.white,
+                                              shadowColor: Colors.transparent,
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 20),
+                                            ),
+                                          ),
+                                        )),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  widget.name,
+                                  style: const TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 5),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      "${dish?.restaurant.restaurantRating}",
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF4F4F4F),
+                                      ),
+                                    ),
+                                    Icon(
+                                      Icons.star, // or Icons.star_rate
+                                      color: Theme.of(context).primaryColor,
+                                      size: 15, // Adjust size as needed
+                                    ),
+                                    Text(
+                                      //" | Indian • ${widget.cuisineType} | ${_getTopRatedDish()}",
+                                      " | Indian • ${_getTopRatedDish()} | 2.3km ",
+                                      style: const TextStyle(
+                                        color: Color(0xFF4F4F4F),
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const Icon(
+                                      Icons.keyboard_arrow_right_outlined,
+                                      size: 23,
+                                      color: Color(0xFF4F4F4F),
+                                    )
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const Center(
+                            child: DineInTakeawayToggle(),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 40, vertical: 10),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                    width: 1, color: const Color(0xffE5E5E5)),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceAround,
+                                children: [
+                                  Column(
+                                    children: [
+                                      Text(
+                                        widget.priceRange.split(" for")[0],
+                                        style: const TextStyle(
+                                            color: primaryColor,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      const Text(
+                                        "for two",
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ],
+                                  ),
+                                  Container(
+                                    height: 55,
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                          width: 1,
+                                          color: const Color(0xffE5E5E5)),
+                                    ),
+                                  ),
+                                  const Column(children: [
+                                    Text(
+                                      "20 mins",
+                                      style: TextStyle(
+                                          color: primaryColor,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    Text(
+                                      "before reaching",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ])
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          // Search Field
+                          Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Color(
+                                        0x0D000000), // This is #0000000D in RGBA
+                                    spreadRadius: 0,
+                                    blurRadius: 20,
+                                    offset: Offset(
+                                        0, 2), // 0px horizontal, 2px vertical
+                                  ),
+                                ],
+                                borderRadius: BorderRadius.circular(
+                                    20), // Optional: Rounded corners
+                              ),
+                              child: TextField(
+                                controller: _searchController,
+                                decoration: InputDecoration(
+                                  icon: Padding(
+                                    padding: const EdgeInsets.only(left: 10.0),
+                                    child: SvgPicture.asset(
+                                      'assets/svg/search.svg',
+                                      width: 30,
+                                    ),
+                                  ),
+                                  hintText: "Search for Dishes",
+                                  hintStyle: const TextStyle(
+                                    color: Color(0xff737373),
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(
+                                        8.0), // Match with the container
+                                    borderSide: BorderSide.none, // No border
+                                  ),
+                                  suffixIcon: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          isFilterOpen = true;
+                                        });
+                                        _showFilterBottomSheet();
+                                      },
+                                      child: SvgPicture.asset(
+                                        'assets/svg/filter.svg',
+                                        // replace with your actual asset path
+                                        width: 40, // adjust the size as needed
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          // Filter Buttons
+                          _buildFilterButtons(),
+                          // Dishes Categories
+                          // Show recommended dishes only when a category is selected
+                          if (context
+                              .watch<SelectedCategoryProvider>()
+                              .selectedCategory
+                              .isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: _buildRecommendedDishes(),
+                            ),
+
+                          isLoading
+                              ? const Center(child: CircularProgressIndicator())
+                              : (errorMessage.isNotEmpty
+                                  ? Center(child: Text(errorMessage))
+                                  : categorizedDishes
+                                          .isEmpty // Check if there are no dishes
+                                      ? const Center(
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              SizedBox(height: 45),
+                                              Icon(
+                                                Icons
+                                                    .no_meals_outlined, // or Icons.search_off
+                                                size: 32,
+                                                color: Colors.grey,
+                                              ),
+                                              SizedBox(height: 5),
+                                              Text(
+                                                'No dishes found',
+                                                style: TextStyle(
+                                                  fontSize: 18,
+                                                  color: Colors.grey,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                              SizedBox(height: 8),
+                                              Text(
+                                                'Try adjusting your search or filters',
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        )
+                                      : Column(
+                                          children: categorizedDishes.entries
+                                              .map((entry) {
+                                            String category = entry.key;
+                                            List<AvailableDish> dishes =
+                                                entry.value;
+
+                                            // Skip this category if it's the selected one
+                                            if (category.toLowerCase() ==
+                                                context
+                                                    .watch<
+                                                        SelectedCategoryProvider>()
+                                                    .selectedCategory
+                                                    .toLowerCase()) {
+                                              return const SizedBox.shrink();
+                                            }
+
+                                            return Padding(
+                                              padding:
+                                                  const EdgeInsets.all(10.0),
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    category,
+                                                    style: const TextStyle(
+                                                        fontSize: 18,
+                                                        fontWeight:
+                                                            FontWeight.bold),
+                                                  ),
+                                                  const SizedBox(height: 10),
+                                                  Container(
+                                                      height:
+                                                          220, // Adjust based on your UI needs
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              5),
+                                                      child: Consumer<
+                                                              CartProvider>(
+                                                          builder: (ctx,
+                                                              cartProvider,
+                                                              child) {
+                                                        return ListView.builder(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .symmetric(
+                                                                  vertical: 8),
+                                                          scrollDirection:
+                                                              Axis.horizontal,
+                                                          itemCount:
+                                                              dishes.length,
+                                                          itemBuilder:
+                                                              (context, index) {
+                                                            final dish =
+                                                                dishes[index];
+                                                            int stored = ctx
+                                                                .watch<
+                                                                    OrderTypeProvider>()
+                                                                .orderType;
+                                                            String orderType =
+                                                                "";
+                                                            if (stored == 0) {
+                                                              orderType =
+                                                                  "Dine-in";
+                                                            } else {
+                                                              orderType =
+                                                                  "Take-away";
+                                                            }
+                                                            // final cartItem = cartProvider
+                                                            //     .restaurantCarts[
+                                                            //         widget.name]?[orderType]
+                                                            //     ?.firstWhere(
+                                                            //   (item) => item.id == dish.id,
+                                                            //   orElse: () => CartItem(
+                                                            //       id: dish.id,
+                                                            //       restaurantName:
+                                                            //           widget.name,
+                                                            //       orderType: orderType,
+                                                            //       dish: dish,
+                                                            //       quantity: 0),
+                                                            // );
+                                                            return GestureDetector(
+                                                              onTap: dish
+                                                                      .available
+                                                                  ? () =>
+                                                                      _showSlidingScreen(
+                                                                          dish)
+                                                                  : null,
+                                                              child: DishCard(
+                                                                name: dish
+                                                                    .dishId
+                                                                    .dishName,
+                                                                price:
+                                                                    "₹${dish.resturantDishPrice}",
+                                                                imageUrl:
+                                                                    imgurls[
+                                                                        index %
+                                                                            9],
+                                                                calories:
+                                                                    "120 cal",
+                                                                isAvailable: dish
+                                                                    .available,
+                                                                // Add this line
+
+                                                                quantity: (ctx
+                                                                    .watch<
+                                                                        CartProvider>()
+                                                                    .getQuantity(
+                                                                        widget
+                                                                            .id,
+                                                                        orderType,
+                                                                        dish.id)),
+                                                                // Default to 0 if cartItem.quantity is null
+                                                                onAddToCart:
+                                                                    () async {
+                                                                  final cartItem = CartItem(
+                                                                      id: dish
+                                                                          .id,
+                                                                      restaurantName:
+                                                                          widget
+                                                                              .name,
+                                                                      orderType:
+                                                                          orderType,
+                                                                      dish:
+                                                                          dish,
+                                                                      quantity:
+                                                                          1,
+                                                                      location:
+                                                                          widget
+                                                                              .location,
+                                                                      restaurantImageUrl:
+                                                                          widget
+                                                                              .imageUrl);
+                                                                  await _handleAddToCart(
+                                                                      dish.id,
+                                                                      orderType,
+                                                                      cartItem);
+                                                                },
+
+                                                                onIncrement:
+                                                                    () async {
+                                                                  await _handleIncrement(
+                                                                      dish.id,
+                                                                      orderType);
+                                                                },
+                                                                onDecrement:
+                                                                    () async {
+                                                                  await _handleDecrement(
+                                                                      dish.id,
+                                                                      orderType);
+                                                                },
+                                                              ),
+                                                            );
+                                                          },
+                                                        );
+                                                      })),
+                                                ],
+                                              ),
+                                            );
+                                          }).toList(),
+                                        )),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                if (_isVisible)
+                  GestureDetector(
+                    onTap: _dismissSlidingScreen,
+                    behavior: HitTestBehavior.opaque,
+                    child: Stack(
+                      children: [
+                        Container(
+                          color: Colors.black.withOpacity(0.3),
+                        ),
+                        AnimatedPositioned(
+                            duration: const Duration(milliseconds: 300),
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            child: SlideTransition(
+                              position: _offsetAnimation,
+                              child: GestureDetector(
+                                  onTap: () {},
+                                  child: Consumer<CartProvider>(
+                                      builder: (ctx, cartProvider, child) {
+                                    int stored = ctx
+                                        .watch<OrderTypeProvider>()
+                                        .orderType;
+                                    String orderType = "";
+                                    if (stored == 0) {
+                                      orderType = "Dine-in";
+                                    } else {
+                                      orderType = "Take-away";
+                                    }
+                                    return Padding(
+                                      padding: const EdgeInsets.only(
+                                          bottom: 2), // Remove bottom padding
+                                      child: FoodItemBottomSheet(
+                                        name: selectedDish!.dishId.dishName,
+                                        imageUrl:
+                                            'https://via.placeholder.com/100',
+                                        calories: '120 Cal',
+                                        quantity: ctx
+                                            .watch<CartProvider>()
+                                            .getQuantity(widget.id, orderType,
+                                                selectedDish!.id),
+                                        categories:
+                                            selectedDish!.dishId.dishCatagory,
+                                        price: selectedDish!.resturantDishPrice
+                                            .toString(),
+                                        onAddToCart: () async {
+                                          final cartItem = CartItem(
+                                              id: selectedDish!.id,
+                                              restaurantName: widget.name,
+                                              restaurantImageUrl:
+                                                  widget.imageUrl,
+                                              orderType: orderType,
+                                              dish: selectedDish!,
+                                              quantity: 1,
+                                              location: widget.location);
+                                          await _handleAddToCart(
+                                              selectedDish!.id,
+                                              orderType,
+                                              cartItem);
+                                        },
+                                        onIncrement: () async {
+                                          await _handleIncrement(
+                                              selectedDish!.id, orderType);
+                                        },
+                                        onDecrement: () async {
+                                          await _handleDecrement(
+                                              selectedDish!.id, orderType);
+                                        },
+                                      ),
+                                    );
+                                  })),
+                            )),
+                      ],
+                    ),
+                  ),
+              ],
             ),
-        ],
-      ),
     );
   }
 
@@ -1487,7 +1572,7 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                     //     : [],
                   ),
                   padding:
-                  const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                      const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -1598,11 +1683,9 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                     margin: const EdgeInsets.only(right: 5),
                     child: Consumer<CartProvider>(
                       builder: (ctx, cartProvider, child) {
-                        int stored = ctx
-                            .watch<OrderTypeProvider>()
-                            .orderType;
+                        int stored = ctx.watch<OrderTypeProvider>().orderType;
                         String orderType =
-                        stored == 0 ? "Dine-in" : "Take-away";
+                            stored == 0 ? "Dine-in" : "Take-away";
 
                         return DishCard(
                           name: dish.dishId.dishName,
@@ -1613,10 +1696,7 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                           quantity: ctx
                               .watch<CartProvider>()
                               .getQuantity(widget.id, orderType, dish.id),
-                          onAddToCart: () {
-                            final cartProvider = Provider.of<CartProvider>(
-                                context,
-                                listen: false);
+                          onAddToCart: () async {
                             final cartItem = CartItem(
                               id: dish.id,
                               restaurantName: widget.name,
@@ -1626,16 +1706,14 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
                               location: widget.location,
                               restaurantImageUrl: widget.imageUrl,
                             );
-                            cartProvider.addToCart(
-                                widget.id, orderType, cartItem);
+                            await _handleAddToCart(
+                                dish.id, orderType, cartItem);
                           },
-                          onIncrement: () {
-                            ctx.read<CartProvider>().incrementQuantity(
-                                widget.id, orderType, dish.id);
+                          onIncrement: () async {
+                            await _handleIncrement(dish.id, orderType);
                           },
-                          onDecrement: () {
-                            ctx.read<CartProvider>().decrementQuantity(
-                                widget.id, orderType, dish.id);
+                          onDecrement: () async {
+                            await _handleDecrement(dish.id, orderType);
                           },
                         );
                       },
@@ -1709,30 +1787,5 @@ class _SingleRestaurantScreen extends State<SingleRestaurantScreen>
         ),
       );
     }
-  }
-
-  Timer? _incrementDebounce;
-  Timer? _decrementDebounce;
-  Set<String> _pendingDecrementIds = {};
-
-  void _debouncedIncrement(VoidCallback action) {
-    _incrementDebounce?.cancel();
-    _incrementDebounce = Timer(const Duration(milliseconds: 800), () {
-      action();
-    });
-  }
-
-  void _debouncedDecrement(String id, VoidCallback? afterDecrement,
-      String orderType) {
-    _pendingDecrementIds.add(id);
-    _decrementDebounce?.cancel();
-    _decrementDebounce = Timer(const Duration(milliseconds: 800), () {
-      final ids = List<String>.from(_pendingDecrementIds);
-      _pendingDecrementIds.clear();
-      if (ids.isNotEmpty) {
-        cartService.decrementCartItem(ids, widget.id, context, orderType);
-        if (afterDecrement != null) afterDecrement();
-      }
-    });
   }
 }
