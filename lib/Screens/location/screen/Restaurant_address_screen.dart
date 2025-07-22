@@ -23,6 +23,7 @@ class _RestaurantAddressScreenState extends State<RestaurantAddressScreen> {
   final Completer<GoogleMapController> _controller = Completer();
 
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode(); // <-- Added
   // final TextEditingController _buildingNoController = TextEditingController();
   // final TextEditingController _floorController = TextEditingController();
   // final TextEditingController _areaController = TextEditingController();
@@ -62,7 +63,7 @@ class _RestaurantAddressScreenState extends State<RestaurantAddressScreen> {
       });
       _moveToLocation(_currentPosition);
     } catch (e) {
-      if(!mounted) return;
+      if (!mounted) return;
       setState(() {
         _error = '';
       });
@@ -202,6 +203,7 @@ class _RestaurantAddressScreenState extends State<RestaurantAddressScreen> {
           });
 
           await _moveToLocation(newPosition);
+          _searchFocusNode.unfocus(); // <-- Unfocus after autofill
         }
       }
     } catch (e) {
@@ -250,6 +252,7 @@ class _RestaurantAddressScreenState extends State<RestaurantAddressScreen> {
               children: [
                 TextFormField(
                   controller: _searchController,
+                  focusNode: _searchFocusNode, // <-- Assign focus node
                   decoration: InputDecoration(
                     hintText: 'Search location',
                     prefixIcon: Padding(
@@ -505,6 +508,7 @@ class _RestaurantAddressScreenState extends State<RestaurantAddressScreen> {
   @override
   void dispose() {
     _searchController.dispose();
+    _searchFocusNode.dispose(); // <-- Dispose focus node
     // _buildingNoController.dispose();
     // _floorController.dispose();
     // _areaController.dispose();

@@ -7,9 +7,11 @@ import 'package:eatit/models/cart_items.dart';
 
 class CartProvider extends ChangeNotifier {
   final Map<String, Map<String, List<CartItem>>> _restaurantCarts = {};
+  bool _isLoading = false;
 
   Map<String, Map<String, List<CartItem>>> get restaurantCarts =>
       _restaurantCarts;
+  bool get isLoading => _isLoading;
 
   double get totalPrice {
     double total = 0.0;
@@ -277,6 +279,7 @@ class CartProvider extends ChangeNotifier {
       print('🛑 No cart data found in storage.');
     }
   }
+
   void loadGroupedCartFromResponse(Map<String, dynamic> response) {
     _restaurantCarts.clear(); // Optional: clear existing cart data
 
@@ -298,6 +301,4 @@ class CartProvider extends ChangeNotifier {
 
     notifyListeners();
   }
-
-
 }

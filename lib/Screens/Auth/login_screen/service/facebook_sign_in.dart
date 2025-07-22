@@ -9,13 +9,15 @@ import 'package:eatit/provider/user_provider.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:eatit/Screens/splash_screen/service/SplashScreenService.dart';
+import 'package:eatit/provider/cart_dish_provider.dart';
 
 class FacebookSignInService {
   final ApiRepository _apiRepository;
   // CancelToken? _cancelToken;
   FacebookSignInService({ApiRepository? apiRepository})
       : _apiRepository =
-      apiRepository ?? ApiRepository(NetworkManager(Connectivity()));
+            apiRepository ?? ApiRepository(NetworkManager(Connectivity()));
   Future<void> signInWithFacebook(BuildContext context) async {
     try {
       // Initiate Facebook sign-in
@@ -35,7 +37,7 @@ class FacebookSignInService {
         }
 
         // Post user data to your backend API
-         TokenManager _tokenManager = TokenManager();
+        TokenManager _tokenManager = TokenManager();
 
         final responseFromBackend = await _apiRepository.facebookLogin(
           userData['email'],
@@ -50,6 +52,16 @@ class FacebookSignInService {
             await _tokenManager.storeTokens(
                 user.accessToken, user.refreshToken);
             context.read<UserModelProvider>().updateUserModel(user.user);
+
+            // Fetch cart items after successful login
+            final splashService = SplashScreenServiceInit();
+            final cartRes = await splashService.fetchCartItems(context);
+            if (cartRes != null && cartRes.statusCode == 200) {
+              final cartData = cartRes.data['cart'];
+              context
+                  .read<CartProvider>()
+                  .loadGroupedCartFromResponse(cartData);
+            }
 
             // Show success message
             ScaffoldMessenger.of(context).showSnackBar(
