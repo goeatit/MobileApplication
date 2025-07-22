@@ -75,7 +75,6 @@ class _VerifyOtpState extends State<VerifyOtp> with CodeAutoFill {
     _otpController.dispose();
     cancel();
     super.dispose();
-
   }
 
   void _onOtpChange() {

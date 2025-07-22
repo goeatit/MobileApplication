@@ -14,13 +14,15 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:eatit/Screens/splash_screen/service/SplashScreenService.dart';
+import 'package:eatit/provider/cart_dish_provider.dart';
 
 class GoogleLoginService {
   final ApiRepository _apiRepository;
   // CancelToken? _cancelToken;
   GoogleLoginService({ApiRepository? apiRepository})
       : _apiRepository =
-      apiRepository ?? ApiRepository(NetworkManager(Connectivity()));
+            apiRepository ?? ApiRepository(NetworkManager(Connectivity()));
   final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email']);
   // final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
@@ -60,7 +62,7 @@ class GoogleLoginService {
       final userInfo = json.decode(userInfoResponse.body);
 
       // Post user data to your backend API
-     TokenManager _tokenManager = TokenManager();
+      TokenManager _tokenManager = TokenManager();
 
       final responseFromBackend = await _apiRepository.googleLogin(
           userInfo["email"], userInfo["name"], userInfo["picture"]);
@@ -71,10 +73,18 @@ class GoogleLoginService {
           await _tokenManager.storeTokens(user.accessToken, user.refreshToken);
           context.read<UserModelProvider>().updateUserModel(user.user);
 
-          if(user.user.name==null||user.user.phoneNumber==null) {
+          // Fetch cart items after successful login
+          final splashService = SplashScreenServiceInit();
+          final cartRes = await splashService.fetchCartItems(context);
+          if (cartRes != null && cartRes.statusCode == 200) {
+            final cartData = cartRes.data['cart'];
+            context.read<CartProvider>().loadGroupedCartFromResponse(cartData);
+          }
+
+          if (user.user.name == null || user.user.phoneNumber == null) {
             Navigator.pushReplacementNamed(
                 context, CreateAccountScreen.routeName);
-          }else{
+          } else {
             Navigator.pushReplacementNamed(context, LocationScreen.routeName);
           }
         } else {

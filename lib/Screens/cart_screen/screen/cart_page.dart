@@ -28,16 +28,27 @@ class CartPageState extends State<CartPage> {
   String? latestOrderType;
   CartService cartService = CartService();
 
+  bool _isLoading = false;
+  String? _error;
+
   @override
   void initState() {
     super.initState();
-    if (_cartItems.isNotEmpty) {
-      final latest =
-          _cartItems.reduce((a, b) => a.createdAt.isAfter(b.createdAt) ? a : b);
-      latestTime = latest.createdAt;
-      latestId = latest.id;
-      latestOrderType = latest.orderType;
-    }
+    _isLoading = true;
+    _fetchCart();
+  }
+
+  Future<void> _fetchCart() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    final (success, errorMsg) = await cartService.fetchAndUpdateCart(context);
+    if (!mounted) return;
+    setState(() {
+      _isLoading = false;
+      _error = success ? null : (errorMsg ?? 'Failed to load cart');
+    });
   }
 
   @override
@@ -99,12 +110,12 @@ class CartPageState extends State<CartPage> {
     }
   }
 
-  void removeItem(int index) async{
+  void removeItem(int index) async {
     final removedItem = _cartItems[index];
 
     // todo delete from the backend
-    final res=await cartService.removeCartItem(removedItem);
-    if(!res){
+    final res = await cartService.removeCartItem(removedItem);
+    if (!res) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Failed to remove item from cart'),
@@ -191,28 +202,61 @@ class CartPageState extends State<CartPage> {
           )
         ],
       ),
-      body: _cartItems.isNotEmpty
-          ? Padding(
-              padding: const EdgeInsets.all(16.0),
-              child:
-                  Consumer<CartProvider>(builder: (ctx, cartProvider, child) {
-                return Column(
-                  children: [
-                    Expanded(
-                        child: AnimatedList(
-                      key: _listKey,
-                      initialItemCount: _cartItems.length,
-                      itemBuilder: (context, index, animation) {
-                        if (index >= _cartItems.length) {
-                          return const SizedBox.shrink();
-                        }
-                        return _buildCartItem(_cartItems[index], animation);
-                      },
-                    )),
-                  ],
-                );
-              }))
-          : _buildEmptyCartView(),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _error != null
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.error_outline,
+                          size: 64, color: Colors.red),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Error: \\$_error',
+                        style: const TextStyle(fontSize: 16, color: Colors.red),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _fetchCart,
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                )
+              : RefreshIndicator(
+                  onRefresh: _fetchCart,
+                  child: _cartItems.isNotEmpty
+                      ? Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Consumer<CartProvider>(
+                              builder: (ctx, cartProvider, child) {
+                            return Column(
+                              children: [
+                                Expanded(
+                                    child: AnimatedList(
+                                  key: _listKey,
+                                  initialItemCount: _cartItems.length,
+                                  itemBuilder: (context, index, animation) {
+                                    if (index >= _cartItems.length) {
+                                      return const SizedBox.shrink();
+                                    }
+                                    return _buildCartItem(
+                                        _cartItems[index], animation);
+                                  },
+                                )),
+                              ],
+                            );
+                          }))
+                      : ListView(
+                          children: [
+                            SizedBox(
+                              height: MediaQuery.of(context).size.height * 0.7,
+                              child: _buildEmptyCartView(),
+                            ),
+                          ],
+                        ),
+                ),
     );
   }
 
