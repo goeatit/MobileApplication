@@ -27,11 +27,12 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _animationController;
   final TokenManager _tokenManager = TokenManager();
   bool _isFirstTime = true;
+  bool _servicesInitialized = false;
 
   // SplashScreenServiceInit screenServiceInit = SplashScreenServiceInit();
   // MyBookingService myBookingService = MyBookingService();
-  late SplashScreenServiceInit? _screenServiceInit;
-  late MyBookingService? _myBookingService;
+  late SplashScreenServiceInit _screenServiceInit;
+  late MyBookingService _myBookingService;
 
   @override
   void initState() {
@@ -42,20 +43,26 @@ class _SplashScreenState extends State<SplashScreen>
     )..repeat();
 
     // Initialize app data and check authentication status
-    _initializeApp();
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_myBookingService == null || _screenServiceInit == null) {
-      final apiRepository = Provider.of<ApiRepository>(context, listen: false);
-      _screenServiceInit =
-          SplashScreenServiceInit(apiRepository: apiRepository);
-      _myBookingService = MyBookingService(apiRepository: apiRepository);
-    }
+    if (!_servicesInitialized) {
+      // Initialize services only once
 
-    _initializeApp(); // Call this here once dependencies are ready
+      _screenServiceInit =
+          SplashScreenServiceInit(apiRepository: context.read<ApiRepository>());
+      _myBookingService =
+          MyBookingService(apiRepository: context.read<ApiRepository>());
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _initializeApp();
+      });
+      // Call this here once dependencies are ready
+
+      _servicesInitialized = true;
+    }
   }
 
   Future<void> _initializeApp() async {
@@ -90,9 +97,13 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted) return;
 
     if (accessToken != null && refreshToken != null) {
-      final response = await _screenServiceInit!.checkInitProfile(context);
+      final response = await _screenServiceInit.checkInitProfile(context);
+      if (!mounted) return;
+
       if (response) {
-        final res = await _screenServiceInit!.fetchCartItems(context);
+        final res = await _screenServiceInit.fetchCartItems(context);
+        if (!mounted) return;
+
         if (res != null && res.statusCode == 200) {
           // Successfully fetched cart items, update the cart provider
           final data = res.data['cart'];
@@ -100,6 +111,8 @@ class _SplashScreenState extends State<SplashScreen>
           print("cart Loaded ");
         } else {
           // Failed to fetch cart items, handle accordingly
+          if (!mounted) return; // <-- Add here
+
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text("Failed to load cart items."),
@@ -110,7 +123,9 @@ class _SplashScreenState extends State<SplashScreen>
 
         // context.read<CartProvider>().loadCartFromStorage();
         // User is authenticated, navigate to location screen
-        var fetched = await _myBookingService!.fetchOrderDetails();
+        var fetched = await _myBookingService.fetchOrderDetails();
+        if (!mounted) return;
+
         if (fetched != null) {
           context.read<MyBookingProvider>().setMyBookings(fetched.user);
         }
@@ -118,15 +133,18 @@ class _SplashScreenState extends State<SplashScreen>
         var user = context.read<UserModelProvider>().userModel;
         if (user != null) {
           if (user.phoneNumber == null) {
+            if (!mounted) return; // <-- Add here!
             Navigator.pushReplacementNamed(
                 context, CreateAccountScreen.routeName);
           } else {
+            if (!mounted) return; // <-- Add here!
             Navigator.pushReplacementNamed(context, LocationScreen.routeName);
           }
         }
       }
     } else {
       // Returning user but not logged in
+      if (!mounted) return; // <-- Add here!
       Navigator.of(context).pushReplacementNamed(FirstTimeScreen.routeName);
     }
   }
@@ -134,9 +152,8 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void dispose() {
     _animationController.dispose();
-    _myBookingService?.dispose();
-    _myBookingService= null;
-    _screenServiceInit = null;
+    _myBookingService.dispose();
+    _servicesInitialized = false;
     super.dispose();
   }
 

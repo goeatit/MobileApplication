@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:eatit/api/api_repository.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/main.dart' show CustomTextTheme;
 import 'package:eatit/models/my_booking_modal.dart';
@@ -6,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:eatit/Screens/My_Booking/service/My_Booking_service.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class OrderDetailsContainer extends StatefulWidget {
@@ -25,12 +27,28 @@ class OrderDetailsContainer extends StatefulWidget {
 class _OrderDetailsContainerState extends State<OrderDetailsContainer> {
   bool isExpanded = false;
   bool _isCancelling = false;
-  late MyBookingService _bookingService;
+  late MyBookingService? _bookingService;
+  bool _servicesInitialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_servicesInitialized) {
+      _bookingService = MyBookingService(apiRepository: context.read<ApiRepository>());
+      _servicesInitialized = true;
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    _bookingService = MyBookingService();
+  }
+
+  @override
+  void dispose() {
+    _bookingService?.dispose();
+    _bookingService = null; // Clear the service reference
+    super.dispose();
   }
 
   void _openMap(dynamic latitude, dynamic longitude, dynamic address,
@@ -161,7 +179,7 @@ class _OrderDetailsContainerState extends State<OrderDetailsContainer> {
 
     try {
       final response =
-          await _bookingService.cancelOrder(widget.order.user.orderId);
+          await _bookingService!.cancelOrder(widget.order.user.orderId);
       if (response != null && response.statusCode == 200) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

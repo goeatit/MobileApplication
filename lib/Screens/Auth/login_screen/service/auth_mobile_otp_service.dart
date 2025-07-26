@@ -10,9 +10,9 @@ import 'package:provider/provider.dart';
 
 class OtpService {
   final ApiRepository _apiRepository;
-  OtpService({ApiRepository? apiRepository})
-      : _apiRepository =
-      apiRepository ?? ApiRepository(NetworkManager(Connectivity()));
+  OtpService({required ApiRepository apiRepository})
+      : _apiRepository = apiRepository;
+
   Future<bool> sendOtp(String countryCode, String phoneNumber) async {
       try {
       final response = await _apiRepository.genOtp(countryCode, phoneNumber);

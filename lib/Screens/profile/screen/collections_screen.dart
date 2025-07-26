@@ -66,11 +66,7 @@ class CollectionsScreen extends StatelessWidget {
                   const SizedBox(height: 30), // Add spacing before the button
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const HomePage()),
-                      );
+                      Navigator.pushNamed(context, HomePage.routeName);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFF8951D),

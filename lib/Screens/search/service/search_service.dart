@@ -7,21 +7,21 @@ class SearchService {
   final ApiRepository _apiRepository;
   CancelToken? _cancelToken;
 
-  SearchService({ApiRepository? apiRepository})
-      : _apiRepository =
-            apiRepository ?? ApiRepository(NetworkManager(Connectivity()));
+  SearchService({required ApiRepository apiRepository})
+      : _apiRepository = apiRepository;
 
   Future<Response?> getResultQuery(String query) async {
     try {
-  _cancelToken?.cancel();
-  _cancelToken = CancelToken(); // ✅ assign new token
-      return await _apiRepository.fetchSearch(query,cancelToken: _cancelToken);
+      _cancelToken?.cancel();
+      _cancelToken = CancelToken(); // ✅ assign new token
+      return await _apiRepository.fetchSearch(query, cancelToken: _cancelToken);
     } on DioException catch (e) {
       return null;
     } catch (e) {
       return null;
     }
   }
+
   void cancelOngoingRequest() {
     _cancelToken?.cancel();
     _cancelToken = null;

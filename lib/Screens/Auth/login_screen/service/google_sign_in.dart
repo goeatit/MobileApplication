@@ -19,11 +19,14 @@ import 'package:eatit/provider/cart_dish_provider.dart';
 
 class GoogleLoginService {
   final ApiRepository _apiRepository;
+
   // CancelToken? _cancelToken;
-  GoogleLoginService({ApiRepository? apiRepository})
-      : _apiRepository =
-            apiRepository ?? ApiRepository(NetworkManager(Connectivity()));
+  GoogleLoginService({required ApiRepository apiRepository})
+      : _apiRepository = apiRepository;
+
+  late SplashScreenServiceInit? _splashScreenServiceInit;
   final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email']);
+
   // final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
   Future<void> loginWithGoogle(BuildContext context) async {
@@ -74,11 +77,15 @@ class GoogleLoginService {
           context.read<UserModelProvider>().updateUserModel(user.user);
 
           // Fetch cart items after successful login
-          final splashService = SplashScreenServiceInit();
-          final cartRes = await splashService.fetchCartItems(context);
+          final apireop = Provider.of<ApiRepository>(context, listen: false);
+          _splashScreenServiceInit =
+              SplashScreenServiceInit(apiRepository: apireop);
+          final cartRes =
+              await _splashScreenServiceInit!.fetchCartItems(context);
           if (cartRes != null && cartRes.statusCode == 200) {
             final cartData = cartRes.data['cart'];
             context.read<CartProvider>().loadGroupedCartFromResponse(cartData);
+            _splashScreenServiceInit = null;
           }
 
           if (user.user.name == null || user.user.phoneNumber == null) {

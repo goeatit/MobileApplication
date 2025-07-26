@@ -9,10 +9,13 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 
+import '../../../api/api_repository.dart';
+
 class EditProfileScreen extends StatefulWidget {
   static const routeName = "/edit-profile";
 
   const EditProfileScreen({super.key});
+
   @override
   State<EditProfileScreen> createState() => _EditProfileScreen();
 }
@@ -23,7 +26,9 @@ class _EditProfileScreen extends State<EditProfileScreen> {
   bool _hasChanges = false;
   bool _isEditing = false;
   bool _isloading = false;
-  Map<String, String?> _changes = {"countryCode":"+91"};
+  bool _servicesInitialized = false;
+  late final EditProfileService editProfileService;
+  Map<String, String?> _changes = {"countryCode": "+91"};
 
   final List<String> genderItems = ['Male', 'Female'];
 
@@ -34,13 +39,22 @@ class _EditProfileScreen extends State<EditProfileScreen> {
     });
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_servicesInitialized) {
+      editProfileService =
+          EditProfileService(apiRepository: context.read<ApiRepository>());
+      _servicesInitialized = true;
+    }
+  }
+
   Future<void> _saveChanges() async {
     try {
       setState(() {
         _isloading = true; // Show loader when starting to save
       });
 
-      final editProfileService = EditProfileService();
       bool success =
           await editProfileService.saveProfileChanges(_changes, context);
 
@@ -486,5 +500,5 @@ class _EditProfileScreen extends State<EditProfileScreen> {
     }
   }
 
-  // Removed the _showGenderSelection method as we're now using a dropdown
+// Removed the _showGenderSelection method as we're now using a dropdown
 }

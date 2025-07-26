@@ -12,6 +12,7 @@ import 'package:eatit/Screens/order_summary/widget/Order_summary_cart.dart';
 import 'package:eatit/Screens/order_summary/widget/Select_no_people_widget.dart';
 import 'package:eatit/Screens/order_summary/widget/Time_slot_reserve_widget.dart';
 import 'package:eatit/Screens/order_summary/widget/select_table_bottom_sheet.dart';
+import 'package:eatit/api/api_repository.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/models/cart_items.dart';
 import 'package:eatit/models/dish_retaurant.dart';
@@ -60,14 +61,14 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
   bool hasChanges = false;
   List<Map<String, dynamic>> changedPrices = [];
   bool isRestaurantClosed = false;
-  RestaurantService restaurantService = RestaurantService();
+  late final RestaurantService restaurantService;
   CurrentData? currentData;
   String? currentLocation;
+  bool _servicesInitialized = false;
 
   // Add cancellation token for API requests
   // final _cancelToken = CancelToken();
-  CartService cartService = CartService();
-  SplashScreenServiceInit splashScreenServiceInit = SplashScreenServiceInit();
+  late final CartService cartService;
 
   // Add previous quantities map for optimistic update/revert
   Map<String, int> _previousQuantities = {};
@@ -84,7 +85,6 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
         type: widget.orderType,
         items: [], // Will be updated in fetchData
       );
-      fetchCurrentData();
     });
   }
 
@@ -94,6 +94,20 @@ class _BillSummaryScreen extends State<BillSummaryScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     orderProvider = Provider.of<OrderProvider>(context, listen: false);
+    if (!_servicesInitialized) {
+      cartService = CartService(apiRepository: context.read<ApiRepository>());
+      restaurantService =
+          RestaurantService(apiRepository: context.read<ApiRepository>());
+      _servicesInitialized = true;
+
+      // Schedule the data fetch to run *after* the build is complete.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          // Safety check to ensure the widget is still in the tree.
+          fetchCurrentData();
+        }
+      });
+    }
   }
 
   @override

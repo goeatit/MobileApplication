@@ -1,17 +1,14 @@
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:eatit/api/api_repository.dart';
-import 'package:eatit/api/network_manager.dart';
 
 class RestaurantService {
   final ApiRepository _apiRepository;
   CancelToken? _cancelToken;
 
-  RestaurantService({ApiRepository? apiRepository})
-      : _apiRepository =
-            apiRepository ?? ApiRepository(NetworkManager(Connectivity()));
+  RestaurantService({required ApiRepository apiRepository})
+      : _apiRepository = apiRepository;
 
   /// Cancel any ongoing request if needed
   void cancelOngoingRequest([String? reason]) {

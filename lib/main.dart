@@ -32,6 +32,9 @@ void main() async {
       Provider<Connectivity>.value(value: connectivity),
       Provider<NetworkManager>.value(value: networkManager),
       Provider<ApiRepository>.value(value: apiRepository),
+
+
+      // different providers
       ChangeNotifierProvider(create: (context) => CartProvider()),
       ChangeNotifierProvider(create: (context) => OrderTypeProvider()),
       ChangeNotifierProvider(create: (context) => UserModelProvider()),

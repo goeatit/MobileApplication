@@ -15,6 +15,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:sms_autofill/sms_autofill.dart';
 
+import '../../../../api/api_repository.dart';
+
 class VerifyOtp extends StatefulWidget {
   static const routeName = "/otp-screen";
 
@@ -30,8 +32,8 @@ class VerifyOtp extends StatefulWidget {
 
 class _VerifyOtpState extends State<VerifyOtp> with CodeAutoFill {
   final TextEditingController _otpController = TextEditingController();
-  final OtpService _otpService = OtpService();
-  final SplashScreenServiceInit screenServiceInit = SplashScreenServiceInit();
+  late OtpService? _otpService;
+  late SplashScreenServiceInit? screenServiceInit;
   bool _isButtonEnabled = false;
   int _secondsRemaining = 60;
   Timer? _timer;
@@ -40,6 +42,7 @@ class _VerifyOtpState extends State<VerifyOtp> with CodeAutoFill {
   bool _isLoading = false;
   bool? isVerificationSuccess;
   UserResponse? user;
+  bool _servicesInitialized = false;
 
   @override
   void initState() {
@@ -47,6 +50,17 @@ class _VerifyOtpState extends State<VerifyOtp> with CodeAutoFill {
     _startTimer();
     _otpController.addListener(_onOtpChange);
     listenForCode();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_servicesInitialized) {
+      final apiRepository = Provider.of<ApiRepository>(context, listen: false);
+      _otpService = OtpService(apiRepository: apiRepository);
+      screenServiceInit = SplashScreenServiceInit(apiRepository: apiRepository);
+      _servicesInitialized = true;
+    }
   }
 
   void _startTimer() {
@@ -74,6 +88,9 @@ class _VerifyOtpState extends State<VerifyOtp> with CodeAutoFill {
     _timer?.cancel();
     _otpController.dispose();
     cancel();
+    _servicesInitialized = false;
+    _otpService = null;
+    screenServiceInit = null;
     super.dispose();
   }
 
@@ -91,7 +108,7 @@ class _VerifyOtpState extends State<VerifyOtp> with CodeAutoFill {
       _isLoading = true;
     });
 
-    var isVerified = await _otpService.verifyOtp(
+    var isVerified = await _otpService!.verifyOtp(
         widget.countryCode, widget.phoneNumber, _otpController.text, context);
     if (!mounted) return; // ✅ Check before calling setState
 
@@ -103,7 +120,7 @@ class _VerifyOtpState extends State<VerifyOtp> with CodeAutoFill {
     });
 
     if (isVerified) {
-      final res = await screenServiceInit.fetchCartItems(context);
+      final res = await screenServiceInit!.fetchCartItems(context);
       if (res != null && res.statusCode == 200) {
         final data = res.data['cart'];
         Provider.of<CartProvider>(context, listen: false)
@@ -137,7 +154,7 @@ class _VerifyOtpState extends State<VerifyOtp> with CodeAutoFill {
     });
 
     // Call the OTP service to resend
-    await _otpService.sendOtp(
+    await _otpService!.sendOtp(
       widget.countryCode,
       widget.phoneNumber,
     );

@@ -7,8 +7,11 @@ import 'package:eatit/Screens/My_Booking/service/My_Booking_service.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 
+import '../../../api/api_repository.dart';
+
 class MyBookingsScreen extends StatefulWidget {
   static const routeName = "/my-bookings-screen";
+
   const MyBookingsScreen({super.key});
 
   @override
@@ -19,22 +22,32 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
   bool _isLoading = false;
   String? _error;
   List<UserElement> _orders = [];
-  late MyBookingService _bookingService;
+  late MyBookingService? _bookingService;
+  bool _servicesInitialized = false;
 
   @override
   void initState() {
     super.initState();
     // Initialize the booking service
-    _bookingService = MyBookingService();
-    // Fetch order details when screen loads
-    _fetchOrderDetails();
   }
 
   @override
   void dispose() {
     // Cancel any ongoing requests when screen is disposed
-    _bookingService.cancelRequest();
+    _bookingService!.cancelRequest();
+    _bookingService = null; // Clear the service reference
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_servicesInitialized) {
+      _bookingService =
+          MyBookingService(apiRepository: context.read<ApiRepository>());
+      _fetchOrderDetails();
+      _servicesInitialized = true;
+    }
   }
 
   Future<void> _fetchOrderDetails() async {
@@ -44,7 +57,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
     });
 
     try {
-      final response = await _bookingService.fetchOrderDetails();
+      final response = await _bookingService!.fetchOrderDetails();
       setState(() {
         if (response != null) {
           // _orders = response.user;
