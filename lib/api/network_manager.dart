@@ -72,7 +72,7 @@ class NetworkManager {
           final newAccessToken = await _tokenManager.getAccessToken();
           if (newAccessToken != null) {
             e.requestOptions.headers['Authorization'] =
-            'Bearer $newAccessToken';
+                'Bearer $newAccessToken';
             return handler.resolve(await dioManger.fetch(e.requestOptions));
           }
         }
@@ -85,12 +85,16 @@ class NetworkManager {
     // Return cached result if within 5 seconds
     final now = DateTime.now();
     if (_lastCheckTime != null &&
-        now.difference(_lastCheckTime!) < Duration(seconds: 5)) {
+        now.difference(_lastCheckTime!) < const Duration(seconds: 5)) {
       return _lastConnectionStatus;
     }
-
     final connectivityResult = await _connectivity.checkConnectivity();
-    if (connectivityResult == ConnectivityResult.none) {
+
+
+    final bool isConnected = connectivityResult.any((result) =>
+    result == ConnectivityResult.wifi || result == ConnectivityResult.mobile);
+
+    if (!isConnected) {
       _lastCheckTime = now;
       _lastConnectionStatus = false;
       return false;
@@ -98,7 +102,7 @@ class NetworkManager {
 
     try {
       final result = await InternetAddress.lookup('example.com')
-          .timeout(Duration(seconds: 3));
+          .timeout(const Duration(seconds: 3));
       _lastCheckTime = now;
       _lastConnectionStatus =
           result.isNotEmpty && result[0].rawAddress.isNotEmpty;
@@ -111,9 +115,9 @@ class NetworkManager {
   }
 
   Future<Response?> makeRequest(
-      Future<Response> Function() request, {
-        bool retryOnFailure = false,
-      }) async {
+    Future<Response> Function() request, {
+    bool retryOnFailure = false,
+  }) async {
     try {
       if (!await isConnected()) {
         Fluttertoast.showToast(

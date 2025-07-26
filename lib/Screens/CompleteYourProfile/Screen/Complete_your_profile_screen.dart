@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:eatit/Screens/CompleteYourProfile/Service/Complete_your_profile_service.dart';
 import 'package:eatit/Screens/location/screen/location_screen.dart';
+import 'package:eatit/api/api_repository.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/models/user_model.dart';
 import 'package:eatit/provider/user_provider.dart';
@@ -13,6 +14,7 @@ import 'package:provider/provider.dart';
 
 class CreateAccountScreen extends StatefulWidget {
   static const routeName = "/complete-your-profile";
+
   const CreateAccountScreen({super.key});
 
   @override
@@ -33,8 +35,8 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   final TextEditingController dobController = TextEditingController();
   final TextEditingController verifyOtpController = TextEditingController();
   final ValueNotifier<bool> isCheckedNotifier = ValueNotifier<bool>(false);
-  final CompleteYourProfileService completeYourProfileService =
-      CompleteYourProfileService();
+  late final CompleteYourProfileService completeYourProfileService;
+  bool _servicesInitialized = false;
 
   bool isNameTouched = false;
   bool isEmailTouched = false;
@@ -52,6 +54,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   bool isNamePresent = false;
   bool isEmailPresent = false;
   bool isPhonePresent = false;
+
   bool _isValidPhoneNumber() {
     final phoneNumber = phoneController.text;
     final validationRule = phoneValidationRules[selectedCountry];
@@ -85,8 +88,10 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   Future<void> _selectDate(BuildContext context) async {
     DateTime? pickedDate = await showDatePicker(
         context: context,
-        initialDate: DateTime(2000), // Default selected date
-        firstDate: DateTime(1900), // Earliest date selectable
+        initialDate: DateTime(2000),
+        // Default selected date
+        firstDate: DateTime(1900),
+        // Earliest date selectable
         lastDate: DateTime.now(),
         builder: (context, child) {
           return Theme(
@@ -222,6 +227,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   @override
   void dispose() {
     isCheckedNotifier.dispose();
+    _servicesInitialized = false;
     super.dispose();
   }
 
@@ -308,6 +314,11 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    if (!_servicesInitialized) {
+      completeYourProfileService = CompleteYourProfileService(
+          apiRepository: context.read<ApiRepository>());
+      _servicesInitialized = true;
+    }
     _userModel = context.read<UserModelProvider>().userModel;
     setState(() {
       if (_userModel?.name != null) {
@@ -411,7 +422,8 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                         child: Text(
                                           "${country["name"]} (${country["code"]})",
                                           style: GoogleFonts.outfit(
-                                            fontSize: 16, // Increased font size
+                                            fontSize: 16,
+                                            // Increased font size
                                             fontWeight: FontWeight.w800,
                                           ),
                                           overflow: TextOverflow
@@ -434,8 +446,8 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                               ),
                               dropdownStyleData: DropdownStyleData(
                                 maxHeight: 207,
-                                width:
-                                    120, // Increased width to accommodate larger text
+                                width: 120,
+                                // Increased width to accommodate larger text
                                 offset: const Offset(-70, 0),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(11),
@@ -681,13 +693,15 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                     width: 2, color: Colors.red),
                               ),
                             ),
-                            readOnly: true, // Prevent manual input
+                            readOnly: true,
+                            // Prevent manual input
                             onTap: () {
                               setState(() {
                                 isDobTouched = true;
                               });
                               _selectDate(context);
-                            }, // Open calendar picker
+                            },
+                            // Open calendar picker
                             validator: (value) {
                               if (!isDobTouched && !isFormSubmitted)
                                 return null;
@@ -1108,8 +1122,8 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                       _validateForm();
                                     });
                                   },
-                                  activeColor: const Color(
-                                      0xFFF8951D), // Set the selected radio button color
+                                  activeColor: const Color(0xFFF8951D),
+                                  // Set the selected radio button color
                                   fillColor:
                                       WidgetStateProperty.resolveWith<Color>(
                                           (Set<WidgetState> states) {

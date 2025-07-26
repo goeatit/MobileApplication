@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:eatit/Screens/profile/service/edit_profile_service.dart';
+import 'package:eatit/api/api_repository.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pinput/pinput.dart';
+import 'package:provider/provider.dart';
 
 class ProfileInputField extends StatefulWidget {
   final String label;
@@ -52,7 +54,8 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
   Timer? _timer;
   bool _canResend = true;
 
-  EditProfileService editProfileService = EditProfileService();
+  late final EditProfileService editProfileService;
+  bool _servicesInitialized = false;
 
   @override
   void initState() {
@@ -63,10 +66,22 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_servicesInitialized) {
+      // Initialize the service only once
+      editProfileService =
+          EditProfileService(apiRepository: context.read<ApiRepository>());
+      _servicesInitialized = true;
+    }
+  }
+
+  @override
   void dispose() {
     _timer?.cancel();
     _controller.dispose();
     _otpController.dispose();
+    _servicesInitialized = false;
     super.dispose();
   }
 
@@ -408,16 +423,15 @@ class _ProfileInputFieldState extends State<ProfileInputField> {
                             controller: _controller,
                             autofocus: true,
                             maxLength: widget.isPhone ? 10 : null,
-                            inputFormatters: widget.isPhone? [
-                              FilteringTextInputFormatter.digitsOnly
-                            ]:null,
+                            inputFormatters: widget.isPhone
+                                ? [FilteringTextInputFormatter.digitsOnly]
+                                : null,
                             // inputFormatters: ,
                             decoration: const InputDecoration(
-                              border: InputBorder.none,
-                              isDense: true,
-                              contentPadding: EdgeInsets.zero,
-                              counterText: ''
-                            ),
+                                border: InputBorder.none,
+                                isDense: true,
+                                contentPadding: EdgeInsets.zero,
+                                counterText: ''),
                             style: const TextStyle(
                               fontSize: 16,
                               height: 1.0,

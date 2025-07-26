@@ -58,19 +58,21 @@ class BookingBottomSheet extends StatefulWidget {
 }
 
 class _BookingBottomSheetState extends State<BookingBottomSheet> {
-  late final MyBookingService? _bookingService;
+  MyBookingService? _bookingService;
+  bool _servicesInitialized = false;
 
   @override
   void initState() {
     super.initState();
   }
 
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-
-    if (_bookingService == null) {
-      final apiRepository = Provider.of<ApiRepository>(context, listen: false);
-      _bookingService = MyBookingService(apiRepository: apiRepository);
+    if (!_servicesInitialized) {
+      _bookingService =
+          MyBookingService(apiRepository: context.read<ApiRepository>());
+      _servicesInitialized = true;
     }
   }
 
@@ -225,8 +227,8 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
         final loadingOverlay = _showLoadingOverlay(context);
 
         // Call API to update pickup time
-        final success = await _bookingService!.updatePickupTime(
-            order.user.orderId, selectedTime);
+        final success = await _bookingService!
+            .updatePickupTime(order.user.orderId, selectedTime);
 
         // Hide loading indicator
         loadingOverlay.remove();

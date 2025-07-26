@@ -11,9 +11,9 @@ import 'package:provider/provider.dart';
 class CartService {
   final ApiRepository _apiRepository;
   CancelToken? _cancelToken;
-  CartService({ApiRepository? apiRepository})
-      : _apiRepository =
-            apiRepository ?? ApiRepository(NetworkManager(Connectivity()));
+
+  CartService({required ApiRepository apiRepository})
+      : _apiRepository = apiRepository;
 
   Future<Response?> addToCart(String restaurantId, BuildContext context,
       String orderType, String location) async {

@@ -32,6 +32,7 @@ import '../widget/resturant_widget.dart';
 
 class TakeAwayScreen extends StatefulWidget {
   final bool isCartLoading;
+
   const TakeAwayScreen({super.key, this.isCartLoading = false});
 
   @override
@@ -40,9 +41,11 @@ class TakeAwayScreen extends StatefulWidget {
 
 class _TakeAwayScreen extends State<TakeAwayScreen> {
   // final List<UserElement> _orders = []; // Initialize with an empty list
-  final MyBookingService _bookingService = MyBookingService();
-  final RestaurantService restaurantService = RestaurantService();
+  RestaurantService? restaurantService;
+  MyBookingService? _bookingService;
   bool _isLoadingOrders = false;
+  bool _servicesInitialized = false;
+
   late CancelToken _cancelToken;
   List<RestaurantsData> restaurants = []; // List to store fetched restaurants
   List<RestaurantsData> filteredRestaurants = []; // Store filtered restaurants
@@ -102,7 +105,7 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
       // // city = "Bengaluru";
       // city = "Bhubaneswar";
 
-      final response = await restaurantService.fetchRestaurantsByArea();
+      final response = await restaurantService!.fetchRestaurantsByArea();
       //
       // await apiRepository.fetchRestaurantByAreaWithCancelToken(
       //     city!, country!, _cancelToken);
@@ -191,7 +194,7 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
       }
 
       final response =
-          await restaurantService.fetchRestaurantsByCategory(selectedCategory);
+          await restaurantService!.fetchRestaurantsByCategory(selectedCategory);
       // await apiRepository.fetchRestaurantByCategoryNameWithCancelToken(
       //     city!, country!, _cancelToken, selectedCategory);
 
@@ -250,7 +253,7 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
     }
 
     try {
-      final response = await _bookingService.fetchOrderDetails();
+      final response = await _bookingService!.fetchOrderDetails();
       if (response != null && mounted) {
         context.read<MyBookingProvider>().setMyBookings(response.user);
         // setState(() {
@@ -281,7 +284,6 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
     super.initState();
     _cancelToken = CancelToken();
     setCityAndCountry();
-    fetchData();
     // startBannerTimer();
     // fetchOrders();
   }
@@ -311,6 +313,15 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
     context
         .read<CartProvider>()
         .loadCartFromStorage(); // Load cart after widget initialization
+    // Initialize booking service
+    if (!_servicesInitialized) {
+      _bookingService =
+          MyBookingService(apiRepository: context.read<ApiRepository>());
+      restaurantService =
+          RestaurantService(apiRepository: context.read<ApiRepository>());
+      _servicesInitialized = true;
+    }
+    fetchData();
   }
 
   @override
@@ -323,12 +334,15 @@ class _TakeAwayScreen extends State<TakeAwayScreen> {
     // if (!_cancelToken.isCancelled) {
     //   _cancelToken.cancel("Widget disposed");
     // }
-    restaurantService.dispose();
+    restaurantService!.dispose();
 
     // Clear data structures to free memory
     restaurants.clear();
     city = null;
     country = null;
+    _bookingService!.dispose();
+    _bookingService = null;
+    restaurantService = null;
 
     super.dispose();
   }

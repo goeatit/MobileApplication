@@ -1,10 +1,7 @@
 import 'dart:convert';
-
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:dio/src/response.dart';
 import 'package:eatit/api/api_repository.dart';
-import 'package:eatit/api/network_manager.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -13,9 +10,8 @@ class CompleteYourProfileService {
   final ApiRepository _apiRepository;
   CancelToken? _cancelToken;
 
-  CompleteYourProfileService({ApiRepository? apiRepository})
-      : _apiRepository =
-            apiRepository ?? ApiRepository(NetworkManager(Connectivity()));
+  CompleteYourProfileService({required ApiRepository apiRepository})
+      : _apiRepository = apiRepository;
 
   Future<bool> sendEmailOtp(String email, BuildContext context) async {
     try {

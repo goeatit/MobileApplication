@@ -14,10 +14,13 @@ import 'package:eatit/provider/cart_dish_provider.dart';
 
 class FacebookSignInService {
   final ApiRepository _apiRepository;
+
   // CancelToken? _cancelToken;
-  FacebookSignInService({ApiRepository? apiRepository})
-      : _apiRepository =
-            apiRepository ?? ApiRepository(NetworkManager(Connectivity()));
+
+  FacebookSignInService({required ApiRepository apiRepository})
+      : _apiRepository = apiRepository;
+  late SplashScreenServiceInit? _splashScreenServiceInit;
+
   Future<void> signInWithFacebook(BuildContext context) async {
     try {
       // Initiate Facebook sign-in
@@ -54,13 +57,18 @@ class FacebookSignInService {
             context.read<UserModelProvider>().updateUserModel(user.user);
 
             // Fetch cart items after successful login
-            final splashService = SplashScreenServiceInit();
-            final cartRes = await splashService.fetchCartItems(context);
+            final apiRepository =
+                Provider.of<ApiRepository>(context, listen: false);
+            _splashScreenServiceInit =
+                SplashScreenServiceInit(apiRepository: apiRepository);
+            final cartRes =
+                await _splashScreenServiceInit!.fetchCartItems(context);
             if (cartRes != null && cartRes.statusCode == 200) {
               final cartData = cartRes.data['cart'];
               context
                   .read<CartProvider>()
                   .loadGroupedCartFromResponse(cartData);
+              _splashScreenServiceInit = null;
             }
 
             // Show success message

@@ -114,9 +114,6 @@ Route<dynamic> generateRoute(RouteSettings routeSettings) {
     case MyBookingsScreen.routeName:
       page = const MyBookingsScreen();
       break;
-    case OrderSummaryScreen.routeName:
-      page = const OrderSummaryScreen();
-      break;
     // In your route generator file (main_router.dart)
 
     case OrderConfirmationScreen.routeName:

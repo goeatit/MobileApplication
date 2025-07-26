@@ -9,11 +9,15 @@ import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:eatit/Screens/Auth/login_screen/service/facebook_sign_in.dart';
+import 'package:provider/provider.dart';
+
+import '../../../../api/api_repository.dart';
 
 class LoginScreeen extends StatefulWidget {
   static const routeName = "/login-screen";
 
   const LoginScreeen({super.key});
+
   @override
   State<StatefulWidget> createState() => _LoginScreen();
 }
@@ -25,13 +29,39 @@ class _LoginScreen extends State<LoginScreeen> {
   bool isLoading = false; // Loading state
   bool isGoogleLoading = false; // Track Google login state
   bool isFacebookLoading = false; // Track Facebook login state
+  late GoogleLoginService? _googleLoginService;
+  late FacebookSignInService? _facebookSignInService;
+  late OtpService? _otpService;
+
+  bool _servicesInitialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (!_servicesInitialized) {
+      final apiRepository = Provider.of<ApiRepository>(context, listen: false);
+      _otpService = OtpService(apiRepository: apiRepository);
+      _googleLoginService = GoogleLoginService(apiRepository: apiRepository);
+      _facebookSignInService =
+          FacebookSignInService(apiRepository: apiRepository);
+
+      _servicesInitialized = true;
+    }
+  }
+
+  @override
+  void dispose() {
+    phoneNumberController.dispose(); // Dispose the controller
+    _otpService = null; // Cancel any ongoing requests
+    _googleLoginService = null; // Cancel Google login request
+    _facebookSignInService = null; // Cancel Facebook login request
+    _servicesInitialized = false;
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final GoogleLoginService _googleLoginService = GoogleLoginService();
-    final FacebookSignInService _facebookSignInService =
-        FacebookSignInService();
-    final OtpService _otpService = OtpService();
     final List<Map<String, String>> countryCodes = [
       {
         "code": "+91",
@@ -58,7 +88,7 @@ class _LoginScreen extends State<LoginScreeen> {
       });
 
       try {
-        await _googleLoginService.loginWithGoogle(context);
+        await _googleLoginService!.loginWithGoogle(context);
       } finally {
         setState(() {
           isGoogleLoading = false; // Hide loading overlay
@@ -134,8 +164,8 @@ class _LoginScreen extends State<LoginScreeen> {
                     ),
                     child: DropdownButtonHideUnderline(
                       child: DropdownButton2<String>(
-                        isExpanded:
-                            true, // Add this to help with width management
+                        isExpanded: true,
+                        // Add this to help with width management
                         value: selectedCountryCode,
                         style: const TextStyle(
                           fontSize: 16,
@@ -160,7 +190,8 @@ class _LoginScreen extends State<LoginScreeen> {
                                       fontSize: 13,
                                     ),
                                   ),
-                                  const SizedBox(width: 5), // Minimal spacing
+                                  const SizedBox(width: 5),
+                                  // Minimal spacing
                                   Text(
                                     country["code"]!,
                                   ),
@@ -245,7 +276,7 @@ class _LoginScreen extends State<LoginScreeen> {
                           setState(() {
                             isLoading = true;
                           });
-                          bool otpSent = await _otpService.sendOtp(
+                          bool otpSent = await _otpService!.sendOtp(
                             selectedCountryCode,
                             phoneNumberController.text,
                           );
@@ -357,7 +388,7 @@ class _LoginScreen extends State<LoginScreeen> {
                           isFacebookLoading = true;
                         });
                         try {
-                          await _facebookSignInService
+                          await _facebookSignInService!
                               .signInWithFacebook(context);
                         } finally {
                           setState(() {

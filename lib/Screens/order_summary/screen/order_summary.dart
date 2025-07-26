@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:eatit/Screens/order_summary/screen/order_success_screen.dart';
 import 'package:eatit/Screens/order_summary/service/restaurant_service.dart';
+import 'package:eatit/api/api_repository.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/provider/cart_dish_provider.dart';
 import 'package:eatit/provider/order_provider.dart';
@@ -12,6 +13,7 @@ import 'package:razorpay_flutter/razorpay_flutter.dart';
 
 class OrderSummaryScreen extends StatefulWidget {
   static const routeName = '/order-summary-screen';
+
   const OrderSummaryScreen({super.key});
 
   @override
@@ -44,7 +46,8 @@ class DashedLinePainter extends CustomPainter {
 
 class _OrderSummaryScreenState extends State<OrderSummaryScreen> {
   late Razorpay _razorpay;
-  final restaurantService = RestaurantService();
+  late final RestaurantService restaurantService;
+  bool _servicesInitialized = false;
   bool _isLoading = false;
   bool _isVerifyingPayment = false;
   String? _orderId;
@@ -53,6 +56,11 @@ class _OrderSummaryScreenState extends State<OrderSummaryScreen> {
   void initState() {
     super.initState();
     _razorpay = Razorpay();
+    if (!_servicesInitialized) {
+      restaurantService =
+          RestaurantService(apiRepository: context.read<ApiRepository>());
+      _servicesInitialized = true;
+    }
 
     // Set up event listeners
     _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
@@ -206,6 +214,8 @@ class _OrderSummaryScreenState extends State<OrderSummaryScreen> {
   @override
   void dispose() {
     _razorpay.clear();
+    _servicesInitialized=false;
+    restaurantService.cancelOngoingRequest();
     super.dispose();
   }
 

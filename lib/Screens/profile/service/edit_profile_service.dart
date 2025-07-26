@@ -10,9 +10,8 @@ class EditProfileService {
   final ApiRepository _apiRepository;
   CancelToken? _cancelToken;
 
-  EditProfileService({ApiRepository? apiRepository})
-      : _apiRepository =
-            apiRepository ?? ApiRepository(NetworkManager(Connectivity()));
+  EditProfileService({required ApiRepository apiRepository})
+      : _apiRepository = apiRepository;
 
   Future<bool> sendEmailOtp(String email, BuildContext context) async {
     try {

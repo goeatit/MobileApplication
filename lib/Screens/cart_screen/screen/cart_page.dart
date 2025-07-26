@@ -4,6 +4,7 @@ import 'package:eatit/Screens/My_Booking/screen/my_bookings_screen.dart';
 import 'package:eatit/Screens/cart_screen/services/cart_service.dart';
 import 'package:eatit/Screens/cart_screen/widget/cart_item.dart';
 import 'package:eatit/Screens/order_summary/screen/bill_summary.dart';
+import 'package:eatit/api/api_repository.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/main.dart';
 import 'package:eatit/models/cart_items.dart';
@@ -14,6 +15,7 @@ import 'package:provider/provider.dart';
 
 class CartPage extends StatefulWidget {
   static const routeName = "/cart-page";
+
   const CartPage({super.key});
 
   @override
@@ -26,8 +28,8 @@ class CartPageState extends State<CartPage> {
   DateTime? latestTime;
   String? latestId;
   String? latestOrderType;
-  CartService cartService = CartService();
-
+  late final CartService cartService;
+  bool _servicesInitialized = false;
   bool _isLoading = false;
   String? _error;
 
@@ -35,7 +37,6 @@ class CartPageState extends State<CartPage> {
   void initState() {
     super.initState();
     _isLoading = true;
-    _fetchCart();
   }
 
   Future<void> _fetchCart() async {
@@ -52,9 +53,20 @@ class CartPageState extends State<CartPage> {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+    _servicesInitialized = false;
+  }
+
+  @override
   void didChangeDependencies() {
     final restaurantCarts = context.watch<CartProvider>().restaurantCarts;
     _updateCartItems(restaurantCarts);
+    if (!_servicesInitialized) {
+      cartService = CartService(apiRepository: context.read<ApiRepository>());
+      _servicesInitialized = true;
+      _fetchCart();
+    }
     super.didChangeDependencies();
   }
 
@@ -164,8 +176,8 @@ class CartPageState extends State<CartPage> {
         context.watch<CartProvider>(); // Ensures UI rebuilds when cart updates
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading:
-            false, // Add this line to remove the back arrow
+        automaticallyImplyLeading: false,
+        // Add this line to remove the back arrow
         backgroundColor: Colors.white,
         elevation: 0,
         title: const Text(

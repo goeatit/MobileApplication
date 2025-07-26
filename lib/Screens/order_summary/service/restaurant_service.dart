@@ -9,9 +9,8 @@ class RestaurantService {
   final ApiRepository _apiRepository;
   CancelToken? _cancelToken;
 
-  RestaurantService({ApiRepository? apiRepository})
-      : _apiRepository =
-            apiRepository ?? ApiRepository(NetworkManager(Connectivity()));
+  RestaurantService({required ApiRepository apiRepository})
+      : _apiRepository = apiRepository;
 
   // Future<Response?> getCurrentData(
   //     String id, String name, List<CartItem> cartItems) async {

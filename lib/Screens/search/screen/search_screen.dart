@@ -7,8 +7,10 @@ import 'package:eatit/Screens/location/screen/Restaurant_address_screen.dart';
 import 'package:eatit/Screens/search/service/search_service.dart';
 import 'package:eatit/api/api_repository.dart';
 import 'package:eatit/common/constants/colors.dart';
+import 'package:eatit/main.dart';
 import 'package:eatit/models/search_model.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../api/network_manager.dart';
@@ -25,13 +27,14 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
-  final SearchService searchService = SearchService();
+  SearchService? searchService;
   String selectedSection = 'Sort By';
   String selectedSortOption = '';
   String selectedRatingOption = '';
   String selectedOfferOption = '';
   String selectedPriceOption = '';
   bool isFilterOpen = false;
+  bool _servicesInitialized = false;
   Map<String, bool> selectedFilters = {
     'Sort By': false,
     'Rating': false,
@@ -101,7 +104,7 @@ class _SearchScreenState extends State<SearchScreen> {
     try {
       // Cancel any existing debounce timer
       if (_debounce?.isActive ?? false) _debounce!.cancel();
-      searchService.cancelOngoingRequest();
+      searchService!.cancelOngoingRequest();
 
       _debounce = Timer(const Duration(milliseconds: 500), () async {
         if (query.isNotEmpty) {
@@ -111,7 +114,7 @@ class _SearchScreenState extends State<SearchScreen> {
           });
 
           try {
-            final response = await searchService.getResultQuery(query);
+            final response = await searchService!.getResultQuery(query);
             // print(response);
             if (!mounted) return;
 
@@ -197,12 +200,23 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_servicesInitialized) {
+      searchService =
+          SearchService(apiRepository: context.read<ApiRepository>());
+      _servicesInitialized = true;
+    }
+  }
+
+  @override
   void dispose() {
     _searchController.dispose(); // Add this line
     _debounce?.cancel();
     searchResultsRestaurant.clear();
     topDishes.clear();
-    searchService.cancelOngoingRequest(); // Cancel any ongoing requests
+    searchService!.cancelOngoingRequest(); // Cancel any ongoing requests
+    searchService = null;
     super.dispose();
   }
 

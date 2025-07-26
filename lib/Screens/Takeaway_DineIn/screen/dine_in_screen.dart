@@ -3,11 +3,8 @@ import 'package:dio/dio.dart';
 import 'package:eatit/Screens/Filter/filter_widget.dart';
 import 'package:eatit/Screens/My_Booking/service/My_Booking_service.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/screen/banner_section.dart';
-import 'package:eatit/Screens/Takeaway_DineIn/screen/booking_bottom_sheet.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/screen/expansion_floating_button.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/screen/shimmer_loading_effect.dart';
-import 'package:eatit/Screens/Takeaway_DineIn/screen/singe_restaurant_screen.dart';
-import 'package:eatit/Screens/Takeaway_DineIn/widget/bottom_rating.dart';
 import 'package:eatit/Screens/Takeaway_DineIn/service/restaurant_service.dart';
 import 'package:eatit/api/api_client.dart';
 import 'package:eatit/api/api_repository.dart';
@@ -34,6 +31,7 @@ import '../widget/resturant_widget.dart';
 
 class DineInScreen extends StatefulWidget {
   final bool isCartLoading;
+
   const DineInScreen({super.key, this.isCartLoading = false});
 
   @override
@@ -42,14 +40,15 @@ class DineInScreen extends StatefulWidget {
 
 class _DineInScreen extends State<DineInScreen> {
   // final List<UserElement> _orders = []; // Initialize with an empty list
-  final RestaurantService restaurantService = RestaurantService();
+  late RestaurantService? restaurantService;
   bool _isLoadingOrders = false;
-  final MyBookingService _bookingService = MyBookingService();
+  late MyBookingService? _bookingService;
   late CancelToken _cancelToken;
   List<RestaurantsData> restaurants = [];
   List<RestaurantsData> filteredRestaurants = []; // Store filtered restaurants
   bool isLoading = true;
   String errorMessage = '';
+  bool _servicesInitialized = false;
 
   // All Categories
   final List<Map<String, String>> _allCategories = [
@@ -78,6 +77,7 @@ class _DineInScreen extends State<DineInScreen> {
   String selectedCategory = '';
   String? city;
   String? country;
+
   // Helper method to format price range from topratedCusinePrice
   String getPriceRangeText(dynamic price) {
     if (price == null) {
@@ -129,7 +129,7 @@ class _DineInScreen extends State<DineInScreen> {
       // country = sharedPreferences.getString("country");
       // // city = "Bhubaneswar";
 
-      final response = await restaurantService.fetchRestaurantsByArea();
+      final response = await restaurantService!.fetchRestaurantsByArea();
       //
       // await apiRepository.fetchRestaurantByAreaWithCancelToken(
       //     city!, country!, _cancelToken);
@@ -214,7 +214,7 @@ class _DineInScreen extends State<DineInScreen> {
       }
 
       final response =
-          await restaurantService.fetchRestaurantsByCategory(selectedCategory);
+          await restaurantService!.fetchRestaurantsByCategory(selectedCategory);
       // await apiRepository.fetchRestaurantByCategoryNameWithCancelToken(
       //     city!, country!, _cancelToken, selectedCategory);
 
@@ -274,7 +274,7 @@ class _DineInScreen extends State<DineInScreen> {
     }
 
     try {
-      final response = await _bookingService.fetchOrderDetails();
+      final response = await _bookingService!.fetchOrderDetails();
       if (response != null && mounted) {
         context.read<MyBookingProvider>().setMyBookings(response.user);
         // setState(() {
@@ -305,7 +305,6 @@ class _DineInScreen extends State<DineInScreen> {
     super.initState();
     _cancelToken = CancelToken();
     setCityAndCountry();
-    fetchData();
     // startBannerTimer();
     // fetchOrders();
   }
@@ -335,6 +334,14 @@ class _DineInScreen extends State<DineInScreen> {
     context
         .read<CartProvider>()
         .loadCartFromStorage(); // Load cart after widget initialization
+    if (!_servicesInitialized) {
+      _bookingService =
+          MyBookingService(apiRepository: context.read<ApiRepository>());
+      restaurantService =
+          RestaurantService(apiRepository: context.read<ApiRepository>());
+      _servicesInitialized = true;
+    }
+    fetchData();
   }
 
   @override
@@ -347,12 +354,14 @@ class _DineInScreen extends State<DineInScreen> {
     // if (!_cancelToken.isCancelled) {
     //   _cancelToken.cancel("Widget disposed");
     // }
-    restaurantService.dispose();
+    restaurantService!.dispose();
     // Clear data structures to free memory
     restaurants.clear();
     city = null;
     country = null;
-
+    _bookingService?.dispose();
+    _bookingService = null;
+    restaurantService = null;
     super.dispose();
   }
 
