@@ -2,15 +2,19 @@ import 'package:dio/dio.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:eatit/Screens/CompleteYourProfile/Service/Complete_your_profile_service.dart';
 import 'package:eatit/Screens/location/screen/location_screen.dart';
+import 'package:eatit/Screens/first_time_screen/screen/first_time_screen.dart';
 import 'package:eatit/api/api_repository.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/models/user_model.dart';
 import 'package:eatit/provider/user_provider.dart';
+import 'package:eatit/Screens/Auth/login_screen/service/token_Storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 
 class CreateAccountScreen extends StatefulWidget {
   static const routeName = "/complete-your-profile";
@@ -224,6 +228,122 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
     }
   }
 
+  void _logout(BuildContext context) async {
+    showDialog(
+      context: context,
+      builder: (BuildContext ctx) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          titlePadding: const EdgeInsets.only(top: 20, bottom: 5),
+          title: Column(
+            children: [
+              const Icon(
+                Icons.warning_rounded,
+                color: Color(0xFFF8951D),
+                size: 40,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Confirm Logout',
+                style: Theme.of(ctx).textTheme.titleLarge,
+              ),
+            ],
+          ),
+          contentPadding: const EdgeInsets.only(
+            top: 5,
+            left: 24,
+            right: 24,
+            bottom: 20,
+          ),
+          content: Text(
+            'Are you sure you want to logout?',
+            textAlign: TextAlign.center,
+            style: Theme.of(ctx).textTheme.labelLarge?.copyWith(
+                  color: const Color(0xFF666666),
+                ),
+          ),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        side: const BorderSide(
+                          color: Color(0xFFF8951D),
+                          width: 1,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Text(
+                        'Cancel',
+                        style: Theme.of(ctx).textTheme.labelMedium?.copyWith(
+                              color: const Color(0xFFF8951D),
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () async {
+                        Navigator.of(ctx).pop(); // Close the dialog
+
+                        // Clear all tokens
+                        final tokenManager = TokenManager();
+                        await tokenManager.clearTokens();
+
+                        // Clear user data from provider
+                        await context
+                            .read<UserModelProvider>()
+                            .clearUserModel();
+
+                        // Sign out from social providers if needed
+                        try {
+                          await GoogleSignIn().signOut();
+                          await FacebookAuth.instance.logOut();
+                        } catch (e) {
+                          print('Error signing out from social providers: $e');
+                        }
+
+                        // Navigate to first time screen and clear all routes
+                        Navigator.of(context).pushNamedAndRemoveUntil(
+                          FirstTimeScreen.routeName,
+                          (Route<dynamic> route) => false,
+                        );
+                      },
+                      style: TextButton.styleFrom(
+                        backgroundColor: const Color(0xFFF8951D),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Text(
+                        'Logout',
+                        style: Theme.of(ctx).textTheme.labelMedium?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   void dispose() {
     isCheckedNotifier.dispose();
@@ -371,121 +491,126 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        SizedBox(
-                          width: 80,
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton2<String>(
-                              value: selectedCountry,
-                              onChanged: isPhonePresent
-                                  ? null
-                                  : (value) {
-                                      // Add this condition
-                                      setState(() {
-                                        selectedCountry = value as String;
-                                        // Clear phone number when country changes
-                                        phoneController.clear();
-                                        _validateForm();
-                                      });
-                                    },
-                              selectedItemBuilder: (context) {
-                                return countryList.map((country) {
-                                  return ClipOval(
-                                    child: Text(
-                                      country["flag"]!,
-                                      style: GoogleFonts.outfit(
-                                        fontSize: 32,
-                                        fontWeight: FontWeight.w700,
-                                        color: Colors.black.withOpacity(
-                                            isPhonePresent ? 1.0 : 1.0),
-                                      ),
-                                    ),
-                                  );
-                                }).toList();
-                              },
-                              items: countryList.map((country) {
-                                return DropdownMenuItem<String>(
-                                  value: country["code"],
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        country["flag"]!,
-                                        style: GoogleFonts.outfit(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 5),
-                                      Flexible(
-                                        // Wrap with Flexible
+                        Row(
+                          children: [
+                            SizedBox(
+                              width: 80,
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton2<String>(
+                                  value: selectedCountry,
+                                  onChanged: isPhonePresent
+                                      ? null
+                                      : (value) {
+                                          // Add this condition
+                                          setState(() {
+                                            selectedCountry = value as String;
+                                            // Clear phone number when country changes
+                                            phoneController.clear();
+                                            _validateForm();
+                                          });
+                                        },
+                                  selectedItemBuilder: (context) {
+                                    return countryList.map((country) {
+                                      return ClipOval(
                                         child: Text(
-                                          "${country["name"]} (${country["code"]})",
+                                          country["flag"]!,
                                           style: GoogleFonts.outfit(
-                                            fontSize: 16,
-                                            // Increased font size
-                                            fontWeight: FontWeight.w800,
+                                            fontSize: 32,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.black.withOpacity(
+                                                isPhonePresent ? 1.0 : 1.0),
                                           ),
-                                          overflow: TextOverflow
-                                              .ellipsis, // Add ellipsis for overflow
                                         ),
-                                      )
-                                    ],
-                                  ),
-                                );
-                              }).toList(),
-                              buttonStyleData: ButtonStyleData(
-                                height: 50,
-                                width: 90,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(11),
-                                  color: Colors.white,
-                                ),
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 5),
-                              ),
-                              dropdownStyleData: DropdownStyleData(
-                                maxHeight: 207,
-                                width: 120,
-                                // Increased width to accommodate larger text
-                                offset: const Offset(-70, 0),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(11),
-                                  color: const Color(0xFFF6F6F6),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      color: Color(0x24000000),
-                                      blurRadius: 18,
-                                      offset: Offset(7, 7),
+                                      );
+                                    }).toList();
+                                  },
+                                  items: countryList.map((country) {
+                                    return DropdownMenuItem<String>(
+                                      value: country["code"],
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            country["flag"]!,
+                                            style: GoogleFonts.outfit(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 5),
+                                          Flexible(
+                                            // Wrap with Flexible
+                                            child: Text(
+                                              "${country["name"]} (${country["code"]})",
+                                              style: GoogleFonts.outfit(
+                                                fontSize: 16,
+                                                // Increased font size
+                                                fontWeight: FontWeight.w800,
+                                              ),
+                                              overflow: TextOverflow
+                                                  .ellipsis, // Add ellipsis for overflow
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    );
+                                  }).toList(),
+                                  buttonStyleData: ButtonStyleData(
+                                    height: 50,
+                                    width: 90,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(11),
+                                      color: Colors.white,
                                     ),
-                                  ],
-                                ),
-                                elevation: 0,
-                                scrollbarTheme: ScrollbarThemeData(
-                                  thickness: WidgetStateProperty.all(0),
-                                  thumbVisibility:
-                                      WidgetStateProperty.all(false),
-                                ),
-                              ),
-                              iconStyleData: const IconStyleData(
-                                icon: Icon(Icons.arrow_drop_down,
-                                    color: Colors.black),
-                                iconSize: 24,
-                                iconEnabledColor: Colors.black,
-                              ),
-                              menuItemStyleData: MenuItemStyleData(
-                                height: 40,
-                                selectedMenuItemBuilder: (context, child) =>
-                                    Container(
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFFFEEDD9),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 5),
                                   ),
-                                  child: child,
+                                  dropdownStyleData: DropdownStyleData(
+                                    maxHeight: 207,
+                                    width: 120,
+                                    // Increased width to accommodate larger text
+                                    offset: const Offset(-70, 0),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(11),
+                                      color: const Color(0xFFF6F6F6),
+                                      boxShadow: const [
+                                        BoxShadow(
+                                          color: Color(0x24000000),
+                                          blurRadius: 18,
+                                          offset: Offset(7, 7),
+                                        ),
+                                      ],
+                                    ),
+                                    elevation: 0,
+                                    scrollbarTheme: ScrollbarThemeData(
+                                      thickness: WidgetStateProperty.all(0),
+                                      thumbVisibility:
+                                          WidgetStateProperty.all(false),
+                                    ),
+                                  ),
+                                  iconStyleData: const IconStyleData(
+                                    icon: Icon(Icons.arrow_drop_down,
+                                        color: Colors.black),
+                                    iconSize: 24,
+                                    iconEnabledColor: Colors.black,
+                                  ),
+                                  menuItemStyleData: MenuItemStyleData(
+                                    height: 40,
+                                    selectedMenuItemBuilder: (context, child) =>
+                                        Container(
+                                      decoration: const BoxDecoration(
+                                        color: Color(0xFFFEEDD9),
+                                      ),
+                                      child: child,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        )
+                          ],
+                        ),
                       ],
                     ),
                     const SizedBox(height: 20),
@@ -1189,6 +1314,36 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
               ),
             ),
           ),
+        // Logout button positioned at bottom right
+        Positioned(
+          bottom: 20,
+          right: 20,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.grey.shade200,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: IconButton(
+              constraints: const BoxConstraints(
+                minWidth: 50,
+                minHeight: 50,
+              ),
+              icon: const Icon(
+                Icons.logout,
+                size: 24,
+                color: Colors.black87,
+              ),
+              onPressed: () => _logout(context),
+            ),
+          ),
+        ),
       ],
     );
   }
