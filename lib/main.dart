@@ -235,7 +235,7 @@ class MyApp extends StatelessWidget {
           color: white,
           surfaceTintColor: white,
         ),
-        cardTheme: const CardThemeData(
+        cardTheme: const CardTheme(
           color: white,
           surfaceTintColor: white,
         ),
