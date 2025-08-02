@@ -23,17 +23,49 @@ class _NotificationScreenState extends State<NotificationScreen> {
     _initializeNotifications();
   }
 
+  Future<bool> _requestIOSNotificationPermission() async {
+    final iosPlugin = _flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>();
+
+    if (iosPlugin != null) {
+      final result = await iosPlugin.requestPermissions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+      return result ?? false;
+    }
+    return false;
+  }
+
   Future<void> _checkPermissionAndNavigate(BuildContext context) async {
-    PermissionStatus status = await Permission.notification.status;
-    if (status.isGranted) {
+    bool granted = false;
+
+    if (Theme.of(context).platform == TargetPlatform.iOS) {
+      // On iOS, assume granted if user accepted earlier (no reliable way to check directly)
+      granted = true;
+    } else {
+      final status = await Permission.notification.status;
+      granted = status.isGranted;
+    }
+
+    if (granted) {
       Navigator.pushReplacementNamed(context, HomePage.routeName);
     }
   }
 
-  Future<void> _requestNotificationPermission(BuildContext context) async {
-    PermissionStatus status = await Permission.notification.request();
 
-    if (status.isGranted) {
+  Future<void> _requestNotificationPermission(BuildContext context) async {
+    bool granted = false;
+
+    if (Theme.of(context).platform == TargetPlatform.iOS) {
+      granted = await _requestIOSNotificationPermission();
+    } else {
+      final status = await Permission.notification.request();
+      granted = status.isGranted;
+    }
+
+    if (granted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Notifications enabled!")),
       );
@@ -46,23 +78,31 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   Future<void> _initializeNotifications() async {
-    PermissionStatus status = await Permission.notification.status;
-    if (status.isGranted) {
-      Navigator.pushReplacementNamed(context, HomePage.routeName);
-    }
     const AndroidInitializationSettings androidInitSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
-    const DarwinInitializationSettings iOSInitSettings =
-    DarwinInitializationSettings(
+    AndroidInitializationSettings('@mipmap/ic_launcher');
+
+    const DarwinInitializationSettings iOSInitSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
     );
 
-    const InitializationSettings initSettings =
-        InitializationSettings(android: androidInitSettings,iOS: iOSInitSettings,);
+    const InitializationSettings initSettings = InitializationSettings(
+      android: androidInitSettings,
+      iOS: iOSInitSettings,
+    );
 
     await _flutterLocalNotificationsPlugin.initialize(initSettings);
+
+    if (Theme.of(context).platform == TargetPlatform.android) {
+      final status = await Permission.notification.status;
+      if (status.isGranted) {
+        Navigator.pushReplacementNamed(context, HomePage.routeName);
+      }
+    } else {
+      // On iOS, assume granted once initialized
+      Navigator.pushReplacementNamed(context, HomePage.routeName);
+    }
   }
 
   Future<void> _showLocalNotification() async {
@@ -86,18 +126,32 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   Future<void> _resendNotification(BuildContext context) async {
-    PermissionStatus status = await Permission.notification.status;
+    bool granted = false;
 
-    if (status.isDenied || status.isPermanentlyDenied) {
-      openAppSettings();
+    if (Theme.of(context).platform == TargetPlatform.iOS) {
+      granted = true; // Assume granted
     } else {
+      final status = await Permission.notification.status;
+      if (status.isDenied || status.isPermanentlyDenied) {
+        openAppSettings();
+        return;
+      }
+      granted = status.isGranted;
+    }
+
+    if (granted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Resending local notification...")),
       );
       await _showLocalNotification();
       await _checkPermissionAndNavigate(context);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Notification permission not granted.")),
+      );
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
