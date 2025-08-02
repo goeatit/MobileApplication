@@ -33,7 +33,6 @@ void main() async {
       Provider<NetworkManager>.value(value: networkManager),
       Provider<ApiRepository>.value(value: apiRepository),
 
-
       // different providers
       ChangeNotifierProvider(create: (context) => CartProvider()),
       ChangeNotifierProvider(create: (context) => OrderTypeProvider()),
@@ -236,7 +235,7 @@ class MyApp extends StatelessWidget {
           color: white,
           surfaceTintColor: white,
         ),
-        cardTheme: const CardTheme(
+        cardTheme: const CardThemeData(
           color: white,
           surfaceTintColor: white,
         ),
