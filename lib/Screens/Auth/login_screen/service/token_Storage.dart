@@ -1,6 +1,7 @@
 // token_manager.dart
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:eatit/Screens/noftification/services/fcm_token_service.dart';
 
 class TokenManager {
   // Singleton instance
@@ -25,6 +26,13 @@ class TokenManager {
   Future<void> storeTokens(String accessToken, String refreshToken) async {
     await _secureStorage.write(key: _accessTokenKey, value: accessToken);
     await _secureStorage.write(key: _refreshTokenKey, value: refreshToken);
+    
+    // Save FCM token to backend after successful login
+    try {
+      await FcmTokenService.saveFcmTokenToBackend(accessToken);
+    } catch (e) {
+      print('Failed to save FCM token after login: $e');
+    }
   }
 
   /// Retrieve the access token

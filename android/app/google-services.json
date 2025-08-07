@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "677350989221",
+    "project_id": "eatit-d4153",
+    "storage_bucket": "eatit-d4153.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:677350989221:android:8622c71f749e3fecae5c4c",
+        "android_client_info": {
+          "package_name": "com.example.eatit"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD1x93AWgLIRBiS8ldfgQugldeEKGd1CGY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
