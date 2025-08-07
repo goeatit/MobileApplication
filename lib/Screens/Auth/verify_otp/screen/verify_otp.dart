@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:eatit/Screens/Auth/login_screen/service/auth_mobile_otp_service.dart';
 import 'package:eatit/Screens/CompleteYourProfile/Screen/Complete_your_profile_screen.dart';
 import 'package:eatit/Screens/location/screen/location_screen.dart';
+import 'package:eatit/Screens/noftification/services/fcm_token_service.dart';
 import 'package:eatit/Screens/splash_screen/service/SplashScreenService.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/models/user_model.dart';
@@ -126,8 +127,15 @@ class _VerifyOtpState extends State<VerifyOtp> with CodeAutoFill {
         Provider.of<CartProvider>(context, listen: false)
             .loadGroupedCartFromResponse(data);
       }
-      // Add delay to show success state before navigation
-      // await Future.delayed(const Duration(milliseconds: 1500));
+
+      // Retry FCM token saving after successful authentication
+      try {
+        if (await FcmTokenService.shouldSaveFcmToken()) {
+          await FcmTokenService.saveFcmTokenToBackend();
+        }
+      } catch (e) {
+        print('Failed to save FCM token after OTP verification: $e');
+      }
 
       user = Provider.of<UserModelProvider>(context, listen: false).userModel;
       if (!mounted) return; // Check if widget is still mounted

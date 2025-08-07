@@ -349,4 +349,25 @@ class ApiRepository {
       return networkManager.dioManger.get(endpoint);
     });
   }
+
+  Future<Response?> saveFcmToken(String fcmToken) async {
+    final endpoint = ApiEndpoints.saveFcmToken;
+    return await networkManager.makeRequest(() {
+      return networkManager.dioManger.post(endpoint, data: {
+        'fcmToken': fcmToken,
+      });
+    });
+  }
+
+  Future<Response?> testNotification(String fcmToken, String title, String body, Map<String, dynamic> data) async {
+    final endpoint = ApiEndpoints.testNotification;
+    return await networkManager.makeRequest(() {
+      return networkManager.dioManger.post(endpoint, data: {
+        'fcmToken': fcmToken,
+        'title': title,
+        'body': body,
+        'data': data,
+      });
+    });
+  }
 }
