@@ -13,7 +13,7 @@ class NotificationService {
 
   static Future<void> initializeWithoutPermission() async {
     print('🔔 Initializing notification service without permission...');
-    
+
     // Set background message handler
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
     print('✅ Background message handler set');
@@ -21,7 +21,7 @@ class NotificationService {
 
   static Future<void> initialize(BuildContext context) async {
     print('🔔 Initializing notification service...');
-    
+
     // Request permission for iOS
     FirebaseMessaging messaging = FirebaseMessaging.instance;
     NotificationSettings settings = await messaging.requestPermission(
@@ -35,7 +35,7 @@ class NotificationService {
     );
 
     print('📱 User granted permission: ${settings.authorizationStatus}');
-    
+
     if (settings.authorizationStatus == AuthorizationStatus.denied) {
       print('❌ User denied notification permissions');
       return;
@@ -92,8 +92,9 @@ class NotificationService {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       print('🔔 Received FCM message in foreground!');
       print('📱 Message data: ${message.data}');
-      print('📬 Notification: ${message.notification?.title} - ${message.notification?.body}');
-      
+      print(
+          '📬 Notification: ${message.notification?.title} - ${message.notification?.body}');
+
       if (message.notification != null || message.data.isNotEmpty) {
         showNotification(message);
       } else {
@@ -146,8 +147,13 @@ class NotificationService {
 
   static Future<void> showNotification(RemoteMessage message) async {
     print('🔔 Showing local notification for: ${message.notification?.title}');
-    
-    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+
+    // Get system theme brightness
+    final brightness =
+        WidgetsBinding.instance.platformDispatcher.platformBrightness;
+    final isDarkMode = brightness == Brightness.dark;
+
+    final AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
       'order_status_channel',
       'Order Status',
@@ -159,9 +165,11 @@ class NotificationService {
       enableVibration: true,
       showWhen: true,
       ticker: 'Order Update',
+      largeIcon: DrawableResourceAndroidBitmap(
+          isDarkMode ? 'logo_white' : 'first_default'),
     );
 
-    const NotificationDetails platformChannelSpecifics =
+    final NotificationDetails platformChannelSpecifics =
         NotificationDetails(android: androidPlatformChannelSpecifics);
 
     // Create payload with order data
@@ -224,7 +232,7 @@ class NotificationService {
     try {
       final token = await FirebaseMessaging.instance.getToken();
       final authToken = await TokenManager().getAccessToken();
-      
+
       print('🔍 FCM Debug Info:');
       print('  - FCM Token: ${token?.substring(0, 20) ?? 'null'}...');
       print('  - Auth Token: ${authToken?.substring(0, 20) ?? 'null'}...');
