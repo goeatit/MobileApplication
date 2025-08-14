@@ -19,6 +19,20 @@ class NotificationService {
     print('✅ Background message handler set');
   }
 
+  // Check if notification permissions are already granted
+  static Future<bool> areNotificationsEnabled() async {
+    try {
+      final messaging = FirebaseMessaging.instance;
+      final settings = await messaging.getNotificationSettings();
+
+      return settings.authorizationStatus == AuthorizationStatus.authorized ||
+          settings.authorizationStatus == AuthorizationStatus.provisional;
+    } catch (e) {
+      print(' Error checking notification permissions: $e');
+      return false;
+    }
+  }
+
   static Future<void> initialize(BuildContext context) async {
     print('🔔 Initializing notification service...');
 
@@ -135,13 +149,28 @@ class NotificationService {
     final authToken = await TokenManager().getAccessToken();
     if (authToken != null) {
       print('💾 Saving FCM token to backend...');
-      await FcmTokenService.saveFcmTokenToBackend(authToken);
+      // Get user ID from token or user model
+      final userModel = await _getUserModelFromToken(authToken);
+      final userId = userModel?._id?.toString();
+
+      // Note: FcmTokenService needs ApiRepository to be set before calling this
+      // This should be set in SplashScreen or main app initialization
+      if (FcmTokenService.getApiRepository != null) {
+        await FcmTokenService.saveFcmTokenToBackend(authToken, userId);
+      } else {
+        print(
+            '⚠️ ApiRepository not set in FcmTokenService, skipping FCM token save');
+      }
     } else {
       print('❌ No auth token available for FCM token save');
     }
 
     // Setup token refresh listener
-    await FcmTokenService.setupFcmTokenListener(authToken);
+    final userModel = await _getUserModelFromToken(authToken);
+    final userId = userModel?._id?.toString();
+    if (FcmTokenService.getApiRepository != null) {
+      await FcmTokenService.setupFcmTokenListener(authToken, userId);
+    }
     print('✅ Notification service initialization complete');
   }
 
@@ -239,6 +268,18 @@ class NotificationService {
       print('  - Should Save: ${await FcmTokenService.shouldSaveFcmToken()}');
     } catch (e) {
       print('❌ Error in FCM debug: $e');
+    }
+  }
+
+  /// Extract user model from auth token (you may need to implement this based on your token structure)
+  static Future<dynamic> _getUserModelFromToken(String? authToken) async {
+    try {
+      // This is a placeholder - implement based on your token structure
+      // You might need to decode the JWT token or make an API call to get user info
+      return null;
+    } catch (e) {
+      print('❌ Error getting user model from token: $e');
+      return null;
     }
   }
 }

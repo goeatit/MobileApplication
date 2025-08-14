@@ -4,139 +4,224 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart';
 import '../../Auth/login_screen/service/token_Storage.dart';
-import '../../../api/api_client.dart';
+import '../../../api/api_repository.dart';
 import '../../../api/api_endpoint.dart';
+import 'package:crypto/crypto.dart';
 
 class FcmTokenService {
-  static final ApiClient _apiClient = ApiClient();
+  static ApiRepository? _apiRepository;
 
-  static Future<void> saveFcmTokenToBackend([String? authToken]) async {
+  /// Set the ApiRepository instance for FCM token operations
+  static void setApiRepository(ApiRepository apiRepository) {
+    _apiRepository = apiRepository;
+  }
+
+  /// Get the current ApiRepository instance
+  static ApiRepository? get getApiRepository => _apiRepository;
+
+  /// Generate a unique FCM token for the current user
+  /// This combines the device FCM token with user-specific information
+  static Future<String?> generateUniqueFcmToken([String? userId]) async {
     try {
-      // Get auth token from TokenManager if not provided
-      if (authToken == null) {
-        authToken = await TokenManager().getAccessToken();
+      // Get the base FCM token from Firebase
+      String? baseFcmToken = await FirebaseMessaging.instance.getToken();
+      if (baseFcmToken == null) {
+        print('Base FCM token is null');
+        return null;
       }
 
-      if (authToken == null) {
-        print('❌ No auth token available, cannot save FCM token');
-        return;
+      // If userId is provided, create a unique token
+      if (userId != null && userId.isNotEmpty) {
+        // Create a unique hash combining base token and user ID
+        final uniqueToken = _createUniqueToken(baseFcmToken, userId);
+        return uniqueToken;
       }
 
-      String? fcmToken = await FirebaseMessaging.instance.getToken();
-
-      if (fcmToken != null) {
-        print('🔑 Saving FCM token: ${fcmToken.substring(0, 20)}...');
-
-        // Use the API client instead of direct HTTP
-        final response = await _apiClient.dio.post(
-          ApiEndpoints.saveFcmToken,
-          data: {'fcmToken': fcmToken},
-          options: Options(
-            headers: {
-              'Authorization': 'Bearer $authToken',
-            },
-          ),
-        );
-
-        if (response.statusCode == 200) {
-          print('✅ FCM token saved successfully');
-          // Save token locally to avoid repeated saves
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('saved_fcm_token', fcmToken);
-          await prefs.setBool('fcm_token_saved', true);
-        } else {
-          print('❌ Failed to save FCM token: ${response.statusCode}');
-          print('Response: ${response.data}');
-        }
-      } else {
-        print('❌ FCM token is null');
-      }
+      // Fallback to base token if no user ID
+      return baseFcmToken;
     } catch (e) {
-      print('❌ Error saving FCM token: $e');
-      // Try alternative method with direct HTTP if API client fails
-      try {
-        await _saveFcmTokenDirectHttp(authToken);
-      } catch (directError) {
-        print('❌ Direct HTTP method also failed: $directError');
-      }
+      print('Error generating unique FCM token: $e');
+      return null;
     }
   }
 
-  static Future<void> _saveFcmTokenDirectHttp(String? authToken) async {
-    try {
-      String? fcmToken = await FirebaseMessaging.instance.getToken();
+  /// Create a unique token by combining base FCM token with user ID
+  static String _createUniqueToken(String baseToken, String userId) {
+    // Create a hash of the combination
+    final combined = baseToken + userId;
+    final bytes = utf8.encode(combined);
+    final digest = sha256.convert(bytes);
 
-      if (fcmToken == null) {
-        print('❌ FCM token is null in direct HTTP method');
-        return;
-      }
-
-      print('🔄 Trying direct HTTP method for FCM token save...');
-
-      final response = await http.post(
-        Uri.parse(
-            '${_apiClient.dio.options.baseUrl}${ApiEndpoints.saveFcmToken}'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $authToken',
-        },
-        body: json.encode({'fcmToken': fcmToken}),
-      );
-
-      if (response.statusCode == 200) {
-        print('✅ FCM token saved successfully via direct HTTP');
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('saved_fcm_token', fcmToken);
-        await prefs.setBool('fcm_token_saved', true);
-      } else {
-        print('❌ Direct HTTP failed: ${response.statusCode}');
-        print('Response: ${response.body}');
-      }
-    } catch (e) {
-      print('❌ Direct HTTP error: $e');
-    }
+    // Take first 32 characters of hash and combine with base token
+    final hashPart = digest.toString().substring(0, 32);
+    return baseToken + '_' + hashPart;
   }
 
-  static Future<void> setupFcmTokenListener([String? authToken]) async {
-    // Listen for token refresh
-    FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
-      print('🔄 FCM Token refreshed: ${newToken.substring(0, 20)}...');
-      saveFcmTokenToBackend(authToken);
-    });
-  }
-
-  static Future<bool> shouldSaveFcmToken() async {
+  /// Save FCM token to backend using ApiRepository
+  static Future<bool> saveFcmTokenToBackend(
+      [String? authToken, String? userId]) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final currentToken = await FirebaseMessaging.instance.getToken();
-      final savedToken = prefs.getString('saved_fcm_token');
-      final isTokenSaved = prefs.getBool('fcm_token_saved') ?? false;
-
-      if (currentToken == null) {
-        print('❌ Current FCM token is null');
+      if (_apiRepository == null) {
+        print('ApiRepository not set, cannot save FCM token');
         return false;
       }
 
-      if (savedToken == null || currentToken != savedToken || !isTokenSaved) {
-        print(
-            '✅ Should save FCM token: current=${currentToken.substring(0, 20)}..., saved=${savedToken?.substring(0, 20) ?? 'null'}');
+      // Generate unique FCM token
+      String? fcmToken = await generateUniqueFcmToken(userId);
+      if (fcmToken == null) {
+        print('Failed to generate unique FCM token');
+        return false;
+      }
+
+      // Check if user already has an FCM token
+      final existingTokenResponse = await _apiRepository!.getFcmToken();
+      if (existingTokenResponse != null &&
+          existingTokenResponse.statusCode == 200) {
+        final existingData = existingTokenResponse.data;
+        if (existingData['data'] != null &&
+            existingData['data']['hasToken'] == true) {
+          final existingToken = existingData['data']['fcmToken'];
+          if (existingToken == fcmToken) {
+            // Save token locally to avoid repeated saves
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString('saved_fcm_token', fcmToken);
+            await prefs.setBool('fcm_token_saved', true);
+            await prefs.setString('fcm_token_user_id', userId ?? '');
+            return true;
+          }
+        }
+      }
+
+      // Save the new FCM token using ApiRepository
+      final response = await _apiRepository!.saveFcmToken(fcmToken);
+
+      if (response != null && response.statusCode == 200) {
+        // Save token locally to avoid repeated saves
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('saved_fcm_token', fcmToken);
+        await prefs.setBool('fcm_token_saved', true);
+        await prefs.setString('fcm_token_user_id', userId ?? '');
+        return true;
+      } else {
+        print('Failed to save FCM token: ${response?.statusCode}');
+        print('Response: ${response?.data}');
+        return false;
+      }
+    } catch (e) {
+      print('Error saving FCM token: $e');
+      return false;
+    }
+  }
+
+  /// Setup FCM token refresh listener
+  static Future<void> setupFcmTokenListener(
+      [String? authToken, String? userId]) async {
+    // Listen for token refresh
+    FirebaseMessaging.instance.onTokenRefresh.listen((newBaseToken) async {
+      // Generate new unique token
+      String? newUniqueToken = await generateUniqueFcmToken(userId);
+      if (newUniqueToken != null) {
+        await saveFcmTokenToBackend(authToken, userId);
+      }
+    });
+  }
+
+  /// Check if FCM token needs to be saved
+  static Future<bool> shouldSaveFcmToken([String? userId]) async {
+    try {
+      // Check if force save is required
+      if (await shouldForceFcmTokenSave()) {
         return true;
       }
 
-      print('ℹ️ FCM token already saved and up to date');
+      final prefs = await SharedPreferences.getInstance();
+      final currentToken = await generateUniqueFcmToken(userId);
+      final savedToken = prefs.getString('saved_fcm_token');
+      final savedUserId = prefs.getString('fcm_token_user_id');
+      final isTokenSaved = prefs.getBool('fcm_token_saved') ?? false;
+
+      if (currentToken == null) {
+        print('Current FCM token is null');
+        return false;
+      }
+
+      // Check if user ID changed (different user logged in)
+      if (userId != null && savedUserId != null && userId != savedUserId) {
+        return true;
+      }
+
+      if (savedToken == null || currentToken != savedToken || !isTokenSaved) {
+        return true;
+      }
+
       return false;
     } catch (e) {
-      print('❌ Error checking FCM token: $e');
+      print('Error checking FCM token: $e');
       return true; // Save on error to be safe
     }
   }
 
-  static Future<String?> getCurrentFcmToken() async {
+  /// Get current FCM token
+  static Future<String?> getCurrentFcmToken([String? userId]) async {
     try {
-      return await FirebaseMessaging.instance.getToken();
+      return await generateUniqueFcmToken(userId);
     } catch (e) {
-      print('❌ Error getting FCM token: $e');
+      print('Error getting FCM token: $e');
       return null;
+    }
+  }
+
+  /// Clear saved FCM token using ApiRepository
+  static Future<void> clearSavedFcmToken() async {
+    try {
+      if (_apiRepository != null) {
+        // Clear token from backend
+        await _apiRepository!.clearFcmToken();
+      }
+
+      // Clear local storage
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('saved_fcm_token');
+      await prefs.remove('fcm_token_saved');
+      await prefs.remove('fcm_token_user_id');
+    } catch (e) {
+      print('Error clearing FCM token: $e');
+    }
+  }
+
+  /// Handle user account switch - clear old tokens and prepare for new user
+  static Future<void> handleUserSwitch(String newUserId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedUserId = prefs.getString('fcm_token_user_id');
+
+      if (savedUserId != null && savedUserId != newUserId) {
+        // Clear old FCM token data
+        await clearSavedFcmToken();
+
+        // Force new FCM token generation for new user
+        await prefs.setBool('force_fcm_token_save', true);
+      }
+    } catch (e) {
+      print('Error handling user switch: $e');
+    }
+  }
+
+  /// Check if FCM token save should be forced (e.g., after user switch)
+  static Future<bool> shouldForceFcmTokenSave() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final shouldForce = prefs.getBool('force_fcm_token_save') ?? false;
+
+      if (shouldForce) {
+        await prefs.remove('force_fcm_token_save');
+        return true;
+      }
+
+      return false;
+    } catch (e) {
+      print('Error checking force FCM token save: $e');
+      return false;
     }
   }
 }

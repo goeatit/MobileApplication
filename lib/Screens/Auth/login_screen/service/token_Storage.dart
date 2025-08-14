@@ -1,7 +1,6 @@
 // token_manager.dart
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:eatit/Screens/noftification/services/fcm_token_service.dart';
 
 class TokenManager {
   // Singleton instance
@@ -27,12 +26,8 @@ class TokenManager {
     await _secureStorage.write(key: _accessTokenKey, value: accessToken);
     await _secureStorage.write(key: _refreshTokenKey, value: refreshToken);
     
-    // Save FCM token to backend after successful login
-    try {
-      await FcmTokenService.saveFcmTokenToBackend(accessToken);
-    } catch (e) {
-      print('Failed to save FCM token after login: $e');
-    }
+    // Note: FCM token operations are now handled by individual services
+    // that have access to ApiRepository (e.g., FcmTokenService)
   }
 
   /// Retrieve the access token
@@ -49,6 +44,21 @@ class TokenManager {
   Future<void> clearTokens() async {
     await _secureStorage.delete(key: _accessTokenKey);
     await _secureStorage.delete(key: _refreshTokenKey);
+    
+    // Note: FCM token clearing is now handled by individual services
+    // that have access to ApiRepository (e.g., FcmTokenService)
+  }
+
+  /// Logout method that clears all tokens
+  Future<void> logout() async {
+    try {
+      // Clear all stored tokens
+      await clearTokens();
+      
+      print('✅ [TOKEN] Logout completed - all tokens cleared');
+    } catch (e) {
+      print('❌ [TOKEN] Error during logout: $e');
+    }
   }
 
   /// Refresh the access token using the refresh token

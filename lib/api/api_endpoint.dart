@@ -36,6 +36,6 @@ class ApiEndpoints {
       "/mobile/cart/removeItem/$cartId";
   static String fetchCartItems = "/mobile/cart/getCart";
   static String saveFcmToken = "/mobile/user/saveFcmToken";
-  static String testNotification = "/mobile/test/notification";
-// Add more dynamically constructed endpoints
+  static String getFcmToken = "/mobile/user/getFcmToken";
+  static String clearFcmToken = "/mobile/user/clearFcmToken";
 }

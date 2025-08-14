@@ -2,6 +2,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:eatit/Screens/Auth/login_screen/service/token_Storage.dart';
 import 'package:eatit/Screens/CompleteYourProfile/Screen/Complete_your_profile_screen.dart';
 import 'package:eatit/Screens/location/screen/location_screen.dart';
+import 'package:eatit/Screens/noftification/services/fcm_token_service.dart';
 import 'package:eatit/api/api_repository.dart';
 import 'package:eatit/api/network_manager.dart';
 import 'package:eatit/models/user_model.dart';
@@ -11,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:eatit/Screens/splash_screen/service/SplashScreenService.dart';
 import 'package:eatit/provider/cart_dish_provider.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class FacebookSignInService {
   final ApiRepository _apiRepository;
@@ -20,6 +22,23 @@ class FacebookSignInService {
   FacebookSignInService({required ApiRepository apiRepository})
       : _apiRepository = apiRepository;
   late SplashScreenServiceInit? _splashScreenServiceInit;
+
+  Future<void> _saveFcmToken() async {
+    try {
+      // Get user ID from the user data
+      final userData =
+          await FacebookAuth.instance.getUserData(fields: "email,name");
+      String? userId = userData['email']; // Use email as user ID
+
+      // Set ApiRepository in FcmTokenService
+      FcmTokenService.setApiRepository(_apiRepository);
+
+      // Save FCM token to backend using the service
+      await FcmTokenService.saveFcmTokenToBackend(null, userId);
+    } catch (e) {
+      // Handle error silently
+    }
+  }
 
   Future<void> signInWithFacebook(BuildContext context) async {
     try {
@@ -70,6 +89,9 @@ class FacebookSignInService {
                   .loadGroupedCartFromResponse(cartData);
               _splashScreenServiceInit = null;
             }
+
+            // Save FCM token after successful authentication
+            await _saveFcmToken();
 
             // Show success message
             ScaffoldMessenger.of(context).showSnackBar(
