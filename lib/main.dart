@@ -10,12 +10,6 @@ import 'package:eatit/provider/saved_restaurants_provider.dart';
 import 'package:eatit/provider/selected_category_provider.dart';
 import 'package:eatit/provider/user_provider.dart';
 import 'package:eatit/routes/main_router.dart';
-import 'package:eatit/Screens/noftification/services/notification_service.dart';
-import 'package:eatit/Screens/noftification/services/fcm_token_service.dart';
-import 'package:eatit/Screens/noftification/services/background_message_handler.dart';
-import 'package:eatit/Screens/noftification/services/notification_debug.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -27,33 +21,19 @@ import 'api/network_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-
-  // Set up background message handler
-  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-
-  // Initialize notification service without requesting permissions
-  await NotificationService.initializeWithoutPermission();
-
-  // Setup FCM token refresh listener
-  await FcmTokenService.setupFcmTokenListener();
-
-  // Setup debug listeners
-  NotificationDebug.setupForegroundListener();
-  NotificationDebug.setupBackgroundListener();
-
-  print('🚀 [MAIN] FCM initialization complete');
+  
+  // Firebase will be initialized in SplashScreen
+  // await Firebase.initializeApp();
 
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.dark,
   ));
 
-  // Debug notification setup
-  await NotificationDebug.logAllDebugInfo();
   final connectivity = Connectivity();
   final networkManager = NetworkManager(connectivity);
   final apiRepository = ApiRepository(networkManager);
+  
   runApp(MultiProvider(
     providers: [
       Provider<Connectivity>.value(value: connectivity),

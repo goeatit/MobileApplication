@@ -1,10 +1,13 @@
 import 'package:eatit/Screens/homes/screen/home_screen.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/Screens/noftification/services/notification_service.dart';
+import 'package:eatit/Screens/noftification/services/fcm_token_service.dart';
+import 'package:eatit/api/api_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/provider.dart';
 
 class NotificationScreen extends StatefulWidget {
   static const routeName = "/notification-screen";
@@ -19,15 +22,51 @@ class _NotificationScreenState extends State<NotificationScreen> {
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
   final List<RemoteMessage> _notifications = [];
+  bool _isCheckingPermissions = true;
+  bool _notificationsAlreadyEnabled = false;
 
   @override
   void initState() {
     super.initState();
-    _initializeNotifications();
-    _setupFcmListeners();
+    _checkNotificationStatus();
+  }
+
+  Future<void> _checkNotificationStatus() async {
+    try {
+      // Check if notifications are already enabled
+      final areEnabled = await NotificationService.areNotificationsEnabled();
+      
+      if (areEnabled) {
+        _notificationsAlreadyEnabled = true;
+        // Navigate to home screen if notifications are already enabled
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            Navigator.pushReplacementNamed(context, HomePage.routeName);
+          }
+        });
+        return;
+      }
+      
+      _initializeNotifications();
+      _setupFcmListeners();
+    } catch (e) {
+      print('Error checking notification status: $e');
+    } finally {
+      setState(() {
+        _isCheckingPermissions = false;
+      });
+    }
   }
 
   Future<void> _setupFcmListeners() async {
+    // Set ApiRepository in FcmTokenService if available
+    try {
+      final apiRepository = Provider.of<ApiRepository>(context, listen: false);
+      FcmTokenService.setApiRepository(apiRepository);
+    } catch (e) {
+      print('⚠️ ApiRepository not available in context: $e');
+    }
+
     // Foreground message handler
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       setState(() {
@@ -36,6 +75,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       NotificationService.flutterLocalNotificationsPlugin;
       NotificationService.showNotification(message);
     });
+    
     // Notification tap handler
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       NotificationService.fetchOrderDetails(
@@ -43,6 +83,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
         context,
       );
     });
+    
     // Initial message (app opened from terminated state)
     FirebaseMessaging.instance.getInitialMessage().then((message) {
       if (message != null) {
@@ -165,6 +206,24 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Show loading while checking permissions
+    if (_isCheckingPermissions) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    // If notifications are already enabled, show loading (will navigate automatically)
+    if (_notificationsAlreadyEnabled) {
+      return const Scaffold(
+        body: Center(
+          child: Text('Notifications already enabled, redirecting...'),
+        ),
+      );
+    }
+
     return Scaffold(
       body: Center(
         child: Padding(
