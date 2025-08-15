@@ -2,6 +2,7 @@ import 'package:eatit/Screens/homes/screen/home_screen.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/Screens/noftification/services/notification_service.dart';
 import 'package:eatit/Screens/noftification/services/fcm_token_service.dart';
+import 'package:eatit/Screens/noftification/services/notification_helper.dart';
 import 'package:eatit/api/api_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -35,7 +36,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     try {
       // Check if notifications are already enabled
       final areEnabled = await NotificationService.areNotificationsEnabled();
-      
+
       if (areEnabled) {
         _notificationsAlreadyEnabled = true;
         // Navigate to home screen if notifications are already enabled
@@ -46,11 +47,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
         });
         return;
       }
-      
+
       _initializeNotifications();
       _setupFcmListeners();
     } catch (e) {
-      print('Error checking notification status: $e');
+      print("Error checking notification status: $e");
     } finally {
       setState(() {
         _isCheckingPermissions = false;
@@ -64,7 +65,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       final apiRepository = Provider.of<ApiRepository>(context, listen: false);
       FcmTokenService.setApiRepository(apiRepository);
     } catch (e) {
-      print('⚠️ ApiRepository not available in context: $e');
+      print("Error setting ApiRepository in FcmTokenService: $e");
     }
 
     // Foreground message handler
@@ -72,26 +73,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
       setState(() {
         _notifications.insert(0, message);
       });
-      NotificationService.flutterLocalNotificationsPlugin;
-      NotificationService.showNotification(message);
-    });
-    
-    // Notification tap handler
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      NotificationService.fetchOrderDetails(
-        message.data['orderId'] ?? '',
-        context,
-      );
-    });
-    
-    // Initial message (app opened from terminated state)
-    FirebaseMessaging.instance.getInitialMessage().then((message) {
-      if (message != null) {
-        NotificationService.fetchOrderDetails(
-          message.data['orderId'] ?? '',
-          context,
-        );
-      }
     });
   }
 
@@ -149,6 +130,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Notifications enabled!")),
       );
+      await NotificationHelper.ensureFcmTokenSaved();
       await _checkPermissionAndNavigate(context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

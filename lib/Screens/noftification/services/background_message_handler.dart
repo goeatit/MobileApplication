@@ -5,16 +5,7 @@ import 'dart:convert';
 // This needs to be a top-level function
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // Ensure Firebase is initialized
-  // await Firebase.initializeApp();
-  
-  print("🔔 [BACKGROUND] Handling a background message: ${message.messageId}");
-  print("🔔 [BACKGROUND] Message data: ${message.data}");
-  print("🔔 [BACKGROUND] Message notification: ${message.notification?.title} - ${message.notification?.body}");
-  
   if (message.notification != null) {
-    print("🔔 [BACKGROUND] Processing notification in background...");
-    
     // Show local notification
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
@@ -28,7 +19,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       enableVibration: true,
       showWhen: true,
     );
-    
+
     const NotificationDetails platformChannelSpecifics =
         NotificationDetails(android: androidPlatformChannelSpecifics);
 
@@ -48,13 +39,8 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
         platformChannelSpecifics,
         payload: payload,
       );
-      print("✅ [BACKGROUND] Local notification shown successfully");
     } catch (e) {
-      print("❌ [BACKGROUND] Error showing local notification: $e");
+      print('Error showing notification: $e');
     }
-  } else {
-    print("❌ [BACKGROUND] No notification payload in background message");
   }
-  
-  print("✅ [BACKGROUND] Background message handler completed");
-} 
+}

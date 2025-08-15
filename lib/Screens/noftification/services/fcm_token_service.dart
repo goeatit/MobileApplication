@@ -1,11 +1,7 @@
-import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:dio/dio.dart';
-import '../../Auth/login_screen/service/token_Storage.dart';
 import '../../../api/api_repository.dart';
-import '../../../api/api_endpoint.dart';
 import 'package:crypto/crypto.dart';
 
 class FcmTokenService {
@@ -26,7 +22,6 @@ class FcmTokenService {
       // Get the base FCM token from Firebase
       String? baseFcmToken = await FirebaseMessaging.instance.getToken();
       if (baseFcmToken == null) {
-        print('Base FCM token is null');
         return null;
       }
 
@@ -62,14 +57,12 @@ class FcmTokenService {
       [String? authToken, String? userId]) async {
     try {
       if (_apiRepository == null) {
-        print('ApiRepository not set, cannot save FCM token');
         return false;
       }
 
       // Generate unique FCM token
       String? fcmToken = await generateUniqueFcmToken(userId);
       if (fcmToken == null) {
-        print('Failed to generate unique FCM token');
         return false;
       }
 
@@ -103,8 +96,7 @@ class FcmTokenService {
         await prefs.setString('fcm_token_user_id', userId ?? '');
         return true;
       } else {
-        print('Failed to save FCM token: ${response?.statusCode}');
-        print('Response: ${response?.data}');
+        print('Failed to save FCM token: ${response?.statusMessage}');
         return false;
       }
     } catch (e) {
@@ -141,7 +133,6 @@ class FcmTokenService {
       final isTokenSaved = prefs.getBool('fcm_token_saved') ?? false;
 
       if (currentToken == null) {
-        print('Current FCM token is null');
         return false;
       }
 
@@ -156,7 +147,7 @@ class FcmTokenService {
 
       return false;
     } catch (e) {
-      print('Error checking FCM token: $e');
+      print('Error checking if FCM token should be saved: $e');
       return true; // Save on error to be safe
     }
   }
@@ -166,7 +157,6 @@ class FcmTokenService {
     try {
       return await generateUniqueFcmToken(userId);
     } catch (e) {
-      print('Error getting FCM token: $e');
       return null;
     }
   }
@@ -220,7 +210,6 @@ class FcmTokenService {
 
       return false;
     } catch (e) {
-      print('Error checking force FCM token save: $e');
       return false;
     }
   }
