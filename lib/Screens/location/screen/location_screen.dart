@@ -214,7 +214,11 @@ class _LocationScreenState extends State<LocationScreen> {
                       onPressed: () async {
                         if (!isLoading) {
                           // Check notification permissions before navigating
-                          await _checkNotificationPermissionsAndNavigate();
+                          await NotificationService.checkNotificationPermissionsAndNavigate(
+                            context,
+                            enabledRouteName: HomePage.routeName,
+                            disabledRouteName: NotificationScreen.routeName,
+                          );
                         } else {
                           requestLocationPermission();
                         }
@@ -248,25 +252,5 @@ class _LocationScreenState extends State<LocationScreen> {
     );
   }
 
-  Future<void> _checkNotificationPermissionsAndNavigate() async {
-    try {
-      // Check if notifications are already enabled
-      final areEnabled = await NotificationService.areNotificationsEnabled();
-      
-      if (areEnabled) {
-        // Notifications already enabled, go directly to home screen
-        if (!mounted) return;
-        Navigator.pushReplacementNamed(context, HomePage.routeName);
-      } else {
-        // Notifications not enabled, go to notification screen
-        if (!mounted) return;
-        Navigator.pushReplacementNamed(context, NotificationScreen.routeName);
-      }
-    } catch (e) {
-      print('❌ [LOCATION] Error checking notification permissions: $e');
-      // Fallback to notification screen if there's an error
-      if (!mounted) return;
-      Navigator.pushReplacementNamed(context, NotificationScreen.routeName);
-    }
-  }
+  
 }

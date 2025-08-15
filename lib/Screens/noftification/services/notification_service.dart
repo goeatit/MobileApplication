@@ -139,6 +139,28 @@ class NotificationService {
     }
   }
 
+  /// Shared navigation helper to decide next screen based on notification permission status
+  static Future<void> checkNotificationPermissionsAndNavigate(
+      BuildContext context,
+      {required String enabledRouteName,
+      required String disabledRouteName}) async {
+    try {
+      final areEnabled = await areNotificationsEnabled();
+
+      if (areEnabled) {
+        if (!(context.mounted)) return;
+        Navigator.pushReplacementNamed(context, enabledRouteName);
+      } else {
+        if (!(context.mounted)) return;
+        Navigator.pushReplacementNamed(context, disabledRouteName);
+      }
+    } catch (e) {
+      print('Error in checkNotificationPermissionsAndNavigate: $e');
+      if (!(context.mounted)) return;
+      Navigator.pushReplacementNamed(context, disabledRouteName);
+    }
+  }
+
   static Future<void> showNotification(RemoteMessage message) async {
     // Get system theme brightness
     final brightness =
