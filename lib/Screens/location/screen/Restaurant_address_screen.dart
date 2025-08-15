@@ -471,8 +471,13 @@ class _RestaurantAddressScreenState extends State<RestaurantAddressScreen> {
                                   Navigator.of(context).pop();
 
                                   // Navigate to notification screen or home screen based on permissions
-                                  await _checkNotificationPermissionsAndNavigate(
-                                      context);
+                                  await NotificationService
+                                      .checkNotificationPermissionsAndNavigate(
+                                    context,
+                                    enabledRouteName: HomePage.routeName,
+                                    disabledRouteName:
+                                        NotificationScreen.routeName,
+                                  );
                                 }
                               } catch (e) {
                                 if (context.mounted) {
@@ -520,26 +525,5 @@ class _RestaurantAddressScreenState extends State<RestaurantAddressScreen> {
     super.dispose();
   }
 
-  Future<void> _checkNotificationPermissionsAndNavigate(
-      BuildContext context) async {
-    try {
-      // Check if notifications are already enabled
-      final areEnabled = await NotificationService.areNotificationsEnabled();
-
-      if (areEnabled) {
-        // Notifications already enabled, go directly to home screen
-        if (!context.mounted) return;
-        Navigator.pushReplacementNamed(context, HomePage.routeName);
-      } else {
-        // Notifications not enabled, go to notification screen
-        if (!context.mounted) return;
-        Navigator.pushReplacementNamed(context, NotificationScreen.routeName);
-      }
-    } catch (e) {
-      print(' Error checking notification permissions: $e');
-      // Fallback to notification screen if there's an error
-      if (!context.mounted) return;
-      Navigator.pushReplacementNamed(context, NotificationScreen.routeName);
-    }
-  }
+  
 }

@@ -177,7 +177,11 @@ class _SplashScreenState extends State<SplashScreen>
             }
 
             // Check notification permissions before navigating
-            await _checkNotificationPermissionsAndNavigate();
+            await NotificationService.checkNotificationPermissionsAndNavigate(
+              context,
+              enabledRouteName: LocationScreen.routeName,
+              disabledRouteName: NotificationScreen.routeName,
+            );
           }
         }
       }
@@ -185,28 +189,6 @@ class _SplashScreenState extends State<SplashScreen>
       // Returning user but not logged in
       if (!mounted) return;
       Navigator.of(context).pushReplacementNamed(FirstTimeScreen.routeName);
-    }
-  }
-
-  Future<void> _checkNotificationPermissionsAndNavigate() async {
-    try {
-      // Check if notifications are already enabled
-      final areEnabled = await NotificationService.areNotificationsEnabled();
-
-      if (areEnabled) {
-        // Notifications already enabled, go directly to location screen
-        if (!mounted) return;
-        Navigator.pushReplacementNamed(context, LocationScreen.routeName);
-      } else {
-        // Notifications not enabled, go to notification screen
-        if (!mounted) return;
-        Navigator.pushReplacementNamed(context, NotificationScreen.routeName);
-      }
-    } catch (e) {
-      print('❌ [SPLASH] Error checking notification permissions: $e');
-      // Fallback to notification screen if there's an error
-      if (!mounted) return;
-      Navigator.pushReplacementNamed(context, NotificationScreen.routeName);
     }
   }
 
