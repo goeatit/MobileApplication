@@ -8,6 +8,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:eatit/Screens/noftification/screen/notification_screen.dart';
+import 'package:eatit/Screens/homes/screen/home_screen.dart';
+import 'package:eatit/Screens/noftification/services/notification_service.dart';
 
 class RestaurantAddressScreen extends StatefulWidget {
   static const routeName = '/restaurant-address';
@@ -468,11 +470,9 @@ class _RestaurantAddressScreenState extends State<RestaurantAddressScreen> {
                                   );
                                   Navigator.of(context).pop();
 
-                                  // Navigate to notification screen
-                                  Navigator.pushReplacementNamed(
-                                    context,
-                                    NotificationScreen.routeName,
-                                  );
+                                  // Navigate to notification screen or home screen based on permissions
+                                  await _checkNotificationPermissionsAndNavigate(
+                                      context);
                                 }
                               } catch (e) {
                                 if (context.mounted) {
@@ -518,5 +518,28 @@ class _RestaurantAddressScreenState extends State<RestaurantAddressScreen> {
     _countryController.dispose();
 
     super.dispose();
+  }
+
+  Future<void> _checkNotificationPermissionsAndNavigate(
+      BuildContext context) async {
+    try {
+      // Check if notifications are already enabled
+      final areEnabled = await NotificationService.areNotificationsEnabled();
+
+      if (areEnabled) {
+        // Notifications already enabled, go directly to home screen
+        if (!context.mounted) return;
+        Navigator.pushReplacementNamed(context, HomePage.routeName);
+      } else {
+        // Notifications not enabled, go to notification screen
+        if (!context.mounted) return;
+        Navigator.pushReplacementNamed(context, NotificationScreen.routeName);
+      }
+    } catch (e) {
+      print(' Error checking notification permissions: $e');
+      // Fallback to notification screen if there's an error
+      if (!context.mounted) return;
+      Navigator.pushReplacementNamed(context, NotificationScreen.routeName);
+    }
   }
 }

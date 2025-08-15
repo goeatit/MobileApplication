@@ -25,6 +25,9 @@ class TokenManager {
   Future<void> storeTokens(String accessToken, String refreshToken) async {
     await _secureStorage.write(key: _accessTokenKey, value: accessToken);
     await _secureStorage.write(key: _refreshTokenKey, value: refreshToken);
+    
+    // Note: FCM token operations are now handled by individual services
+    // that have access to ApiRepository (e.g., FcmTokenService)
   }
 
   /// Retrieve the access token
@@ -41,6 +44,21 @@ class TokenManager {
   Future<void> clearTokens() async {
     await _secureStorage.delete(key: _accessTokenKey);
     await _secureStorage.delete(key: _refreshTokenKey);
+    
+    // Note: FCM token clearing is now handled by individual services
+    // that have access to ApiRepository (e.g., FcmTokenService)
+  }
+
+  /// Logout method that clears all tokens
+  Future<void> logout() async {
+    try {
+      // Clear all stored tokens
+      await clearTokens();
+      
+      print('✅ [TOKEN] Logout completed - all tokens cleared');
+    } catch (e) {
+      print('❌ [TOKEN] Error during logout: $e');
+    }
   }
 
   /// Refresh the access token using the refresh token

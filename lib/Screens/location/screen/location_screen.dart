@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:eatit/Screens/homes/screen/home_screen.dart';
 import 'package:eatit/Screens/noftification/screen/notification_screen.dart';
+import 'package:eatit/Screens/noftification/services/notification_service.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/utils/reverse_location.dart';
 import 'package:flutter/foundation.dart';
@@ -210,10 +211,10 @@ class _LocationScreenState extends State<LocationScreen> {
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                           backgroundColor: primaryColor),
-                      onPressed: () {
+                      onPressed: () async {
                         if (!isLoading) {
-                          Navigator.pushReplacementNamed(
-                              context, NotificationScreen.routeName);
+                          // Check notification permissions before navigating
+                          await _checkNotificationPermissionsAndNavigate();
                         } else {
                           requestLocationPermission();
                         }
@@ -245,5 +246,27 @@ class _LocationScreenState extends State<LocationScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _checkNotificationPermissionsAndNavigate() async {
+    try {
+      // Check if notifications are already enabled
+      final areEnabled = await NotificationService.areNotificationsEnabled();
+      
+      if (areEnabled) {
+        // Notifications already enabled, go directly to home screen
+        if (!mounted) return;
+        Navigator.pushReplacementNamed(context, HomePage.routeName);
+      } else {
+        // Notifications not enabled, go to notification screen
+        if (!mounted) return;
+        Navigator.pushReplacementNamed(context, NotificationScreen.routeName);
+      }
+    } catch (e) {
+      print('❌ [LOCATION] Error checking notification permissions: $e');
+      // Fallback to notification screen if there's an error
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, NotificationScreen.routeName);
+    }
   }
 }
