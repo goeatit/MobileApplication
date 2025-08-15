@@ -1,6 +1,7 @@
 import 'package:eatit/Screens/noftification/services/fcm_token_service.dart';
 import 'package:eatit/Screens/noftification/services/notification_service.dart';
 import 'package:flutter/material.dart';
+import 'package:eatit/Screens/My_Booking/screen/my_bookings_screen.dart';
 
 class NotificationHelper {
   /// Initialize notifications and save FCM token after user login
@@ -13,10 +14,8 @@ class NotificationHelper {
       // Note: FCM token operations are now handled by individual services
       // that have access to ApiRepository (e.g., FcmTokenService)
       // The ApiRepository should be set in FcmTokenService before calling this
-
-      print('Notifications initialized successfully after login');
     } catch (e) {
-      print('Error initializing notifications after login: $e');
+      print('Error initializing notifications: $e');
     }
   }
 
@@ -28,7 +27,7 @@ class NotificationHelper {
         await FcmTokenService.saveFcmTokenToBackend(authToken);
       }
     } catch (e) {
-      print('Error ensuring FCM token is saved: $e');
+      print('Error ensuring FCM token saved: $e');
     }
   }
 
@@ -38,13 +37,12 @@ class NotificationHelper {
     try {
       final orderId = data['orderId'];
       final status = data['status'];
-      final restaurantName = data['restaurantName'];
 
       if (orderId != null) {
         // Navigate to order details or orders list
         Navigator.pushNamedAndRemoveUntil(
           context,
-          '/orders', // Replace with your orders screen route
+          MyBookingsScreen.routeName,
           (route) => route.isFirst,
         );
 
@@ -61,6 +59,12 @@ class NotificationHelper {
       }
     } catch (e) {
       print('Error handling notification tap: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to handle notification: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 }

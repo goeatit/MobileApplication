@@ -1,8 +1,9 @@
+import 'package:eatit/Screens/My_Booking/screen/my_bookings_screen.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:typed_data';
 import 'background_message_handler.dart';
 import 'fcm_token_service.dart';
 import '../../Auth/login_screen/service/token_Storage.dart';
@@ -12,11 +13,8 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
 
   static Future<void> initializeWithoutPermission() async {
-    print('🔔 Initializing notification service without permission...');
-
     // Set background message handler
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-    print('✅ Background message handler set');
   }
 
   // Check if notification permissions are already granted
@@ -28,15 +26,12 @@ class NotificationService {
       return settings.authorizationStatus == AuthorizationStatus.authorized ||
           settings.authorizationStatus == AuthorizationStatus.provisional;
     } catch (e) {
-      print(' Error checking notification permissions: $e');
+      print('Error checking notification permissions: $e');
       return false;
     }
   }
 
   static Future<void> initialize(BuildContext context) async {
-    print('🔔 Initializing notification service...');
-
-    // Request permission for iOS
     FirebaseMessaging messaging = FirebaseMessaging.instance;
     NotificationSettings settings = await messaging.requestPermission(
       alert: true,
@@ -48,10 +43,7 @@ class NotificationService {
       sound: true,
     );
 
-    print('📱 User granted permission: ${settings.authorizationStatus}');
-
     if (settings.authorizationStatus == AuthorizationStatus.denied) {
-      print('❌ User denied notification permissions');
       return;
     }
 
@@ -65,7 +57,6 @@ class NotificationService {
     await flutterLocalNotificationsPlugin.initialize(
       initializationSettings,
       onDidReceiveNotificationResponse: (NotificationResponse details) {
-        print('🔔 Notification tapped: ${details.payload}');
         // Handle notification tap
         final payload = details.payload;
         if (payload != null) {
@@ -73,18 +64,15 @@ class NotificationService {
             final data = json.decode(payload);
             final orderId = data['orderId'];
             if (orderId != null) {
-              print('📋 Navigating to order details for: $orderId');
               fetchOrderDetails(orderId, context);
             }
           } catch (e) {
-            print('❌ Error parsing notification payload: $e');
             // Fallback for simple string payload
             fetchOrderDetails(payload, context);
           }
         }
       },
     );
-    print('✅ Local notifications initialized');
 
     // Create notification channel for Android
     const AndroidNotificationChannel channel = AndroidNotificationChannel(
@@ -100,32 +88,19 @@ class NotificationService {
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(channel);
-    print('✅ Notification channel created');
 
     // Handle foreground messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print('🔔 Received FCM message in foreground!');
-      print('📱 Message data: ${message.data}');
-      print(
-          '📬 Notification: ${message.notification?.title} - ${message.notification?.body}');
-
       if (message.notification != null || message.data.isNotEmpty) {
         showNotification(message);
-      } else {
-        print('❌ No notification payload in message.');
       }
     });
 
     // Handle when app is opened from notification
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print('🔔 Notification clicked!');
-      print('📱 Message data: ${message.data}');
       final orderId = message.data['orderId'];
       if (orderId != null) {
-        print('📋 Navigating to order details for: $orderId');
         fetchOrderDetails(orderId, context);
-      } else {
-        print('❌ No orderId found in notification data.');
       }
     });
 
@@ -133,22 +108,18 @@ class NotificationService {
     RemoteMessage? initialMessage =
         await FirebaseMessaging.instance.getInitialMessage();
     if (initialMessage != null) {
-      print('🔔 App opened from terminated state');
       final orderId = initialMessage.data['orderId'];
       if (orderId != null) {
-        print('📋 Navigating to order details for: $orderId');
         fetchOrderDetails(orderId, context);
       }
     }
 
     // Get FCM token and save to backend
     String? token = await FirebaseMessaging.instance.getToken();
-    print('🔑 FCM Token: ${token?.substring(0, 20)}...');
 
     // Save FCM token after initialization if user is authenticated
     final authToken = await TokenManager().getAccessToken();
     if (authToken != null) {
-      print('💾 Saving FCM token to backend...');
       // Get user ID from token or user model
       final userModel = await _getUserModelFromToken(authToken);
       final userId = userModel?._id?.toString();
@@ -157,12 +128,7 @@ class NotificationService {
       // This should be set in SplashScreen or main app initialization
       if (FcmTokenService.getApiRepository != null) {
         await FcmTokenService.saveFcmTokenToBackend(authToken, userId);
-      } else {
-        print(
-            '⚠️ ApiRepository not set in FcmTokenService, skipping FCM token save');
       }
-    } else {
-      print('❌ No auth token available for FCM token save');
     }
 
     // Setup token refresh listener
@@ -171,12 +137,9 @@ class NotificationService {
     if (FcmTokenService.getApiRepository != null) {
       await FcmTokenService.setupFcmTokenListener(authToken, userId);
     }
-    print('✅ Notification service initialization complete');
   }
 
   static Future<void> showNotification(RemoteMessage message) async {
-    print('🔔 Showing local notification for: ${message.notification?.title}');
-
     // Get system theme brightness
     final brightness =
         WidgetsBinding.instance.platformDispatcher.platformBrightness;
@@ -217,25 +180,20 @@ class NotificationService {
         platformChannelSpecifics,
         payload: payload,
       );
-      print('✅ Local notification shown successfully');
     } catch (e) {
-      print('❌ Error showing local notification: $e');
+      print('Error showing notification: $e');
     }
   }
 
   static Future<void> fetchOrderDetails(
       String orderId, BuildContext context) async {
     try {
-      print('📋 Fetching order details for: $orderId');
-
       // Navigate to orders screen to show updated status
-      // You can customize this navigation based on your app structure
       Navigator.pushNamedAndRemoveUntil(
         context,
-        '/orders', // Replace with your orders screen route
+        MyBookingsScreen.routeName,
         (route) => route.isFirst,
       );
-
       // Optional: Show a snackbar with order update
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -245,40 +203,43 @@ class NotificationService {
         ),
       );
     } catch (e) {
-      print('❌ Error handling order notification: $e');
+      print('Error fetching order details: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to fetch order details: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
-  // FCM token saving is now handled by FcmTokenService
-  // This method is kept for backward compatibility
-  static Future<void> saveFcmTokenToBackend(String fcmToken) async {
-    // This functionality has been moved to FcmTokenService
-    print('ℹ️ Use FcmTokenService.saveFcmTokenToBackend() instead');
-  }
-
-  // Debug method to check FCM token status
-  static Future<void> debugFcmTokenStatus() async {
-    try {
-      final token = await FirebaseMessaging.instance.getToken();
-      final authToken = await TokenManager().getAccessToken();
-
-      print('🔍 FCM Debug Info:');
-      print('  - FCM Token: ${token?.substring(0, 20) ?? 'null'}...');
-      print('  - Auth Token: ${authToken?.substring(0, 20) ?? 'null'}...');
-      print('  - Should Save: ${await FcmTokenService.shouldSaveFcmToken()}');
-    } catch (e) {
-      print('❌ Error in FCM debug: $e');
-    }
-  }
-
-  /// Extract user model from auth token (you may need to implement this based on your token structure)
+  /// Extract user model from auth token (JWT parsing)
   static Future<dynamic> _getUserModelFromToken(String? authToken) async {
+    if (authToken == null) return null;
+
     try {
-      // This is a placeholder - implement based on your token structure
-      // You might need to decode the JWT token or make an API call to get user info
-      return null;
+      // JWT tokens have 3 parts separated by dots: header.payload.signature
+      final parts = authToken.split('.');
+      if (parts.length != 3) return null;
+
+      // Decode the payload (second part)
+      final payload = parts[1];
+      // Add padding if needed for base64 decoding
+      final normalizedPayload = base64.normalize(payload);
+      final decodedBytes = base64.decode(normalizedPayload);
+      final decodedPayload = utf8.decode(decodedBytes);
+
+      // Parse JSON payload
+      final Map<String, dynamic> tokenData = json.decode(decodedPayload);
+
+      // Return an object with _id property that can be accessed
+      return {
+        '_id': tokenData['userId'] ?? tokenData['id'] ?? tokenData['sub'],
+        'email': tokenData['email'],
+        'name': tokenData['name'],
+      };
     } catch (e) {
-      print('❌ Error getting user model from token: $e');
+      print('Error parsing JWT token: $e');
       return null;
     }
   }
