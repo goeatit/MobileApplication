@@ -20,13 +20,20 @@ import 'api/api_repository.dart';
 import 'api/network_manager.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Firebase will be initialized in SplashScreen
+  // await Firebase.initializeApp();
+
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.dark,
   ));
+
   final connectivity = Connectivity();
   final networkManager = NetworkManager(connectivity);
   final apiRepository = ApiRepository(networkManager);
+  
   runApp(MultiProvider(
     providers: [
       Provider<Connectivity>.value(value: connectivity),

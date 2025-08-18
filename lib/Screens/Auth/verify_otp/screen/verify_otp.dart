@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:eatit/Screens/Auth/login_screen/service/auth_mobile_otp_service.dart';
+import 'package:eatit/Screens/Auth/login_screen/service/token_Storage.dart';
 import 'package:eatit/Screens/CompleteYourProfile/Screen/Complete_your_profile_screen.dart';
 import 'package:eatit/Screens/location/screen/location_screen.dart';
+import 'package:eatit/Screens/noftification/services/fcm_token_service.dart';
 import 'package:eatit/Screens/splash_screen/service/SplashScreenService.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/models/user_model.dart';
@@ -14,6 +16,7 @@ import 'package:pinput/pinput.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:sms_autofill/sms_autofill.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 import '../../../../api/api_repository.dart';
 
@@ -103,6 +106,31 @@ class _VerifyOtpState extends State<VerifyOtp> with CodeAutoFill {
     });
   }
 
+  Future<void> _saveFcmToken() async {
+    try {
+      // Get user ID from the user model
+      final userModel =
+          Provider.of<UserModelProvider>(context, listen: false).userModel;
+      String? userId;
+
+      // Try to get user ID from phone number or email
+      if (userModel?.phoneNumber != null) {
+        userId = userModel!.phoneNumber;
+      } else if (userModel?.useremail != null) {
+        userId = userModel!.useremail;
+      }
+
+      // Set ApiRepository in FcmTokenService
+      final apiRepository = Provider.of<ApiRepository>(context, listen: false);
+      FcmTokenService.setApiRepository(apiRepository);
+
+      // Save FCM token to backend using the service
+      await FcmTokenService.saveFcmTokenToBackend(null, userId);
+    } catch (e) {
+      // Handle error silently
+    }
+  }
+
   void _verifyOtp() async {
     setState(() {
       _isLoading = true;
@@ -126,8 +154,9 @@ class _VerifyOtpState extends State<VerifyOtp> with CodeAutoFill {
         Provider.of<CartProvider>(context, listen: false)
             .loadGroupedCartFromResponse(data);
       }
-      // Add delay to show success state before navigation
-      // await Future.delayed(const Duration(milliseconds: 1500));
+
+      // Save FCM token after successful authentication
+      await _saveFcmToken();
 
       user = Provider.of<UserModelProvider>(context, listen: false).userModel;
       if (!mounted) return; // Check if widget is still mounted

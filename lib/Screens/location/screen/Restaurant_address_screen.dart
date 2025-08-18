@@ -8,6 +8,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:eatit/Screens/noftification/screen/notification_screen.dart';
+import 'package:eatit/Screens/homes/screen/home_screen.dart';
+import 'package:eatit/Screens/noftification/services/notification_service.dart';
 
 class RestaurantAddressScreen extends StatefulWidget {
   static const routeName = '/restaurant-address';
@@ -468,10 +470,13 @@ class _RestaurantAddressScreenState extends State<RestaurantAddressScreen> {
                                   );
                                   Navigator.of(context).pop();
 
-                                  // Navigate to notification screen
-                                  Navigator.pushReplacementNamed(
+                                  // Navigate to notification screen or home screen based on permissions
+                                  await NotificationService
+                                      .checkNotificationPermissionsAndNavigate(
                                     context,
-                                    NotificationScreen.routeName,
+                                    enabledRouteName: HomePage.routeName,
+                                    disabledRouteName:
+                                        NotificationScreen.routeName,
                                   );
                                 }
                               } catch (e) {
@@ -519,4 +524,6 @@ class _RestaurantAddressScreenState extends State<RestaurantAddressScreen> {
 
     super.dispose();
   }
+
+  
 }
