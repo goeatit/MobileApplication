@@ -56,19 +56,10 @@ class _SplashScreenState extends State<SplashScreen>
     try {
       if (!_firebaseInitialized) {
         await Firebase.initializeApp();
-
-        // Set up background message handler
-        FirebaseMessaging.onBackgroundMessage(
-            firebaseMessagingBackgroundHandler);
-
-        // Initialize notification service without requesting permissions
+        FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
         await NotificationService.initializeWithoutPermission();
-
-        // Setup FCM token refresh listener
         await FcmTokenService.setupFcmTokenListener();
-
         _firebaseInitialized = true;
-        print(' Firebase and FCM initialization complete');
       }
     } catch (e) {
       print(' Error initializing Firebase: $e');
@@ -161,19 +152,13 @@ class _SplashScreenState extends State<SplashScreen>
           } else {
             if (!mounted) return;
 
-            // Save FCM token for authenticated user
+            // On login: clear local FCM token cache and initialize/save once if backend needs it
             try {
-              String? userId = user.phoneNumber ?? user.useremail;
-              if (userId != null) {
-                print(
-                    '🔑 [SPLASH] Saving FCM token for authenticated user: $userId');
-                await FcmTokenService.saveFcmTokenToBackend(null, userId);
-
-                // Setup FCM token refresh listener for this user
-                await FcmTokenService.setupFcmTokenListener(null, userId);
-              }
+              await FcmTokenService.clearLocalCache();
+              await FcmTokenService.saveTokenIfNeeded();
+              await FcmTokenService.setupFcmTokenListener();
             } catch (e) {
-              print('❌ [SPLASH] Error saving FCM token: $e');
+              print('❌ [SPLASH] Error initializing FCM token: $e');
             }
 
             // Check notification permissions before navigating

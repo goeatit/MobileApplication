@@ -64,6 +64,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     try {
       final apiRepository = Provider.of<ApiRepository>(context, listen: false);
       FcmTokenService.setApiRepository(apiRepository);
+      await FcmTokenService.saveTokenIfNeeded();
     } catch (e) {
       print("Error setting ApiRepository in FcmTokenService: $e");
     }
@@ -173,7 +174,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
             channelDescription: 'Order status updates',
             importance: Importance.max,
             priority: Priority.high,
-            sound: RawResourceAndroidNotificationSound('notification'),
             playSound: true,
           ),
         ),

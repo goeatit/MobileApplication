@@ -480,8 +480,13 @@ class _BookingBottomSheetState extends State<BookingBottomSheet> {
             ),
 
             const SizedBox(height: 8),
-            _buildDetailRow(Icons.access_time_filled_rounded, 'Pickup Time:',
-                booking.pickupTime ?? 'N/A', theme),
+            _buildDetailRow(
+                Icons.access_time_filled_rounded,
+                (booking.orderType == 'Dine-in')
+                    ? 'Reservation Time:'
+                    : 'Pickup Time:',
+                booking.pickupTime ?? 'N/A',
+                theme),
             const SizedBox(height: 8),
             _buildDetailRow(
               Icons.pending_actions_rounded,

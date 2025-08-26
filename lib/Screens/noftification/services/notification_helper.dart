@@ -10,10 +10,8 @@ class NotificationHelper {
     try {
       // Initialize notification service with permissions
       await NotificationService.initialize(context);
-
-      // Note: FCM token operations are now handled by individual services
-      // that have access to ApiRepository (e.g., FcmTokenService)
-      // The ApiRepository should be set in FcmTokenService before calling this
+      // Save token if backend doesn't have one yet
+      await FcmTokenService.saveTokenIfNeeded();
     } catch (e) {
       print('Error initializing notifications: $e');
     }
@@ -22,10 +20,7 @@ class NotificationHelper {
   /// Check if FCM token needs to be saved and save it
   static Future<void> ensureFcmTokenSaved([String? authToken]) async {
     try {
-      if (await FcmTokenService.shouldSaveFcmToken()) {
-        // Note: ApiRepository must be set in FcmTokenService before calling this
-        await FcmTokenService.saveFcmTokenToBackend(authToken);
-      }
+      await FcmTokenService.saveTokenIfNeeded();
     } catch (e) {
       print('Error ensuring FCM token saved: $e');
     }

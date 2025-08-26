@@ -33,50 +33,22 @@ class GoogleLoginService {
 
   Future<void> _saveFcmToken() async {
     try {
-      // Get user ID from the user info
-      final userInfo = await _getGoogleUserInfo();
-      String? userId = userInfo?['email']; // Use email as user ID
-
-      // Set ApiRepository in FcmTokenService
       FcmTokenService.setApiRepository(_apiRepository);
 
-      // Save FCM token to backend using the service
-      await FcmTokenService.saveFcmTokenToBackend(null, userId);
-    } catch (e) {
-      // Handle error silently
-    }
-  }
+      // Check if we need to force regenerate token
+      bool shouldForce = await FcmTokenService.shouldForceFcmTokenSave();
 
-  /// Get Google user info (helper method)
-  Future<Map<String, dynamic>?> _getGoogleUserInfo() async {
-    try {
-      final GoogleSignInAccount? googleUser =
-          await _googleSignIn.signInSilently();
-      if (googleUser != null) {
-        final GoogleSignInAuthentication googleAuth =
-            await googleUser.authentication;
-        final accessToken = googleAuth.accessToken;
-
-        if (accessToken != null) {
-          final userInfoResponse = await http.get(
-            Uri.parse(
-                "https://www.googleapis.com/oauth2/v1/userinfo?access_token=$accessToken"),
-            headers: {
-              "Authorization": "Bearer $accessToken",
-              "Accept": "application/json",
-            },
-          );
-
-          if (userInfoResponse.statusCode == 200) {
-            return json.decode(userInfoResponse.body);
-          }
-        }
+      if (shouldForce) {
+        await FcmTokenService.forceRegenerateToken();
+      } else {
+        await FcmTokenService.saveTokenIfNeeded();
       }
-      return null;
     } catch (e) {
-      return null;
+      print('Error saving FCM token: $e');
     }
   }
+
+  // Removed user info utility: not needed for FCM token save logic
 
   Future<void> loginWithGoogle(BuildContext context) async {
     try {
