@@ -25,18 +25,18 @@ class FacebookSignInService {
 
   Future<void> _saveFcmToken() async {
     try {
-      // Get user ID from the user data
-      final userData =
-          await FacebookAuth.instance.getUserData(fields: "email,name");
-      String? userId = userData['email']; // Use email as user ID
-
-      // Set ApiRepository in FcmTokenService
       FcmTokenService.setApiRepository(_apiRepository);
 
-      // Save FCM token to backend using the service
-      await FcmTokenService.saveFcmTokenToBackend(null, userId);
+      // Check if we need to force regenerate token
+      bool shouldForce = await FcmTokenService.shouldForceFcmTokenSave();
+
+      if (shouldForce) {
+        await FcmTokenService.forceRegenerateToken();
+      } else {
+        await FcmTokenService.saveTokenIfNeeded();
+      }
     } catch (e) {
-      // Handle error silently
+      print('Error saving FCM token: $e');
     }
   }
 

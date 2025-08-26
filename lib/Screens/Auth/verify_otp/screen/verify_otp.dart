@@ -108,26 +108,19 @@ class _VerifyOtpState extends State<VerifyOtp> with CodeAutoFill {
 
   Future<void> _saveFcmToken() async {
     try {
-      // Get user ID from the user model
-      final userModel =
-          Provider.of<UserModelProvider>(context, listen: false).userModel;
-      String? userId;
-
-      // Try to get user ID from phone number or email
-      if (userModel?.phoneNumber != null) {
-        userId = userModel!.phoneNumber;
-      } else if (userModel?.useremail != null) {
-        userId = userModel!.useremail;
-      }
-
-      // Set ApiRepository in FcmTokenService
       final apiRepository = Provider.of<ApiRepository>(context, listen: false);
       FcmTokenService.setApiRepository(apiRepository);
 
-      // Save FCM token to backend using the service
-      await FcmTokenService.saveFcmTokenToBackend(null, userId);
+      // Check if we need to force regenerate token (e.g., after user switch)
+      bool shouldForce = await FcmTokenService.shouldForceFcmTokenSave();
+
+      if (shouldForce) {
+        await FcmTokenService.forceRegenerateToken();
+      } else {
+        await FcmTokenService.saveTokenIfNeeded();
+      }
     } catch (e) {
-      // Handle error silently
+      print('Error saving FCM token: $e');
     }
   }
 
