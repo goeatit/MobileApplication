@@ -1,4 +1,5 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:dio/dio.dart';
 import 'package:eatit/Screens/Auth/login_screen/service/token_Storage.dart';
 import 'package:eatit/api/api_repository.dart';
 import 'package:eatit/api/network_manager.dart';
@@ -10,11 +11,12 @@ import 'package:provider/provider.dart';
 
 class OtpService {
   final ApiRepository _apiRepository;
+
   OtpService({required ApiRepository apiRepository})
       : _apiRepository = apiRepository;
 
   Future<bool> sendOtp(String countryCode, String phoneNumber) async {
-      try {
+    try {
       final response = await _apiRepository.genOtp(countryCode, phoneNumber);
       if (response != null) {
         if (response.statusCode == 200) {
@@ -43,6 +45,15 @@ class OtpService {
         // );
         return false;
       }
+    } on DioException catch (e) {
+      // Fluttertoast.showToast(
+      //   msg: "DioException sending OTP: $e",
+      //   toastLength: Toast.LENGTH_SHORT,
+      //   gravity: ToastGravity.BOTTOM,
+      //   backgroundColor: Colors.red,
+      // );
+      print("DioException sending OTP: $e");
+      return false;
     } catch (error) {
       // Fluttertoast.showToast(
       //   msg: "Error sending OTP: $error",
@@ -50,13 +61,14 @@ class OtpService {
       //   gravity: ToastGravity.BOTTOM,
       //   backgroundColor: Colors.red,
       // );
+      print("Error sending OTP: $error");
       return false;
     }
   }
 
   Future<bool> verifyOtp(String countryCode, String phoneNumber, String code,
       BuildContext context) async {
-        try {
+    try {
       final response =
           await _apiRepository.verifyOtp(countryCode, phoneNumber, code);
       if (response != null) {

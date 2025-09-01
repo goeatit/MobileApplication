@@ -27,22 +27,16 @@ class GoogleLoginService {
       : _apiRepository = apiRepository;
 
   late SplashScreenServiceInit? _splashScreenServiceInit;
+  late FcmTokenService _fcmTokenService;
   final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email']);
 
   // final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
-  Future<void> _saveFcmToken() async {
+  Future<void> _saveFcmToken(BuildContext context) async {
     try {
-      FcmTokenService.setApiRepository(_apiRepository);
-
-      // Check if we need to force regenerate token
-      bool shouldForce = await FcmTokenService.shouldForceFcmTokenSave();
-
-      if (shouldForce) {
-        await FcmTokenService.forceRegenerateToken();
-      } else {
-        await FcmTokenService.saveTokenIfNeeded();
-      }
+      _fcmTokenService = FcmTokenService(
+          apiRepository: Provider.of<ApiRepository>(context, listen: false));
+      await _fcmTokenService.syncTokenOnLogin();
     } catch (e) {
       print('Error saving FCM token: $e');
     }
@@ -61,7 +55,7 @@ class GoogleLoginService {
 
       // Fetch Google OAuth access token
       final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
+      await googleUser.authentication;
 
       final String? accessToken = googleAuth.accessToken;
       if (accessToken == null) {
@@ -102,7 +96,7 @@ class GoogleLoginService {
           _splashScreenServiceInit =
               SplashScreenServiceInit(apiRepository: apireop);
           final cartRes =
-              await _splashScreenServiceInit!.fetchCartItems(context);
+          await _splashScreenServiceInit!.fetchCartItems(context);
           if (cartRes != null && cartRes.statusCode == 200) {
             final cartData = cartRes.data['cart'];
             context.read<CartProvider>().loadGroupedCartFromResponse(cartData);
@@ -110,7 +104,7 @@ class GoogleLoginService {
           }
 
           // Save FCM token after successful authentication
-          await _saveFcmToken();
+          await _saveFcmToken(context);
 
           if (user.user.name == null || user.user.phoneNumber == null) {
             Navigator.pushReplacementNamed(

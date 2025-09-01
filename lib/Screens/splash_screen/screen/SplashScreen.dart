@@ -33,12 +33,12 @@ class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   final TokenManager _tokenManager = TokenManager();
-  bool _isFirstTime = true;
   bool _servicesInitialized = false;
   bool _firebaseInitialized = false;
 
   late SplashScreenServiceInit _screenServiceInit;
   late MyBookingService _myBookingService;
+  late FcmTokenService _fcmTokenService;
 
   @override
   void initState() {
@@ -46,23 +46,28 @@ class _SplashScreenState extends State<SplashScreen>
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
-    )..repeat();
+    )
+      ..repeat();
 
-    // Initialize Firebase and FCM
-    _initializeFirebase();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _initializeApp();
+    });
   }
 
   Future<void> _initializeFirebase() async {
+    print(">>> Initializing Firebase...");
     try {
       if (!_firebaseInitialized) {
-        await Firebase.initializeApp();
-        FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+        final init = await Firebase.initializeApp();
+        print(">>> Firebase initialized: $init");
         await NotificationService.initializeWithoutPermission();
-        await FcmTokenService.setupFcmTokenListener();
         _firebaseInitialized = true;
+      } else {
+        print(">>> Firebase already initialized");
       }
-    } catch (e) {
-      print(' Error initializing Firebase: $e');
+    } catch (e, s) {
+      print('!!! Error initializing Firebase: $e');
+      print(s);
     }
   }
 
@@ -75,24 +80,18 @@ class _SplashScreenState extends State<SplashScreen>
           SplashScreenServiceInit(apiRepository: context.read<ApiRepository>());
       _myBookingService =
           MyBookingService(apiRepository: context.read<ApiRepository>());
-
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _initializeApp();
-      });
-
+      _fcmTokenService =
+          FcmTokenService(apiRepository: context.read<ApiRepository>());
       _servicesInitialized = true;
     }
   }
 
   Future<void> _initializeApp() async {
     // Wait for Firebase to be initialized
-    while (!_firebaseInitialized) {
-      await Future.delayed(const Duration(milliseconds: 100));
-    }
-
-    // Set ApiRepository in FcmTokenService
-    final apiRepository = context.read<ApiRepository>();
-    FcmTokenService.setApiRepository(apiRepository);
+    print(">>> Starting app initialization...");
+    await _initializeFirebase();
+    print(">>> Firebase done, now loading cart...");
+    if (!mounted) return;
 
     // Load cart data
     await context.read<CartProvider>().loadCartFromStorage();
@@ -102,10 +101,6 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _checkAuthentication() async {
-    // Add a delay to show splash screen for at least 2 seconds
-    await Future.delayed(const Duration(seconds: 2));
-
-    // Check if access token and refresh token exist
     final accessToken = await _tokenManager.getAccessToken();
     final refreshToken = await _tokenManager.getRefreshToken();
 
@@ -142,8 +137,11 @@ class _SplashScreenState extends State<SplashScreen>
         if (fetched != null) {
           context.read<MyBookingProvider>().setMyBookings(fetched.user);
         }
+        await _fcmTokenService.syncTokenOnLogin();
 
-        var user = context.read<UserModelProvider>().userModel;
+        var user = context
+            .read<UserModelProvider>()
+            .userModel;
         if (user != null) {
           if (user.phoneNumber == null) {
             if (!mounted) return;
@@ -151,22 +149,9 @@ class _SplashScreenState extends State<SplashScreen>
                 context, CreateAccountScreen.routeName);
           } else {
             if (!mounted) return;
+            Navigator.pushReplacementNamed(context, LocationScreen.routeName);
 
             // On login: clear local FCM token cache and initialize/save once if backend needs it
-            try {
-              await FcmTokenService.clearLocalCache();
-              await FcmTokenService.saveTokenIfNeeded();
-              await FcmTokenService.setupFcmTokenListener();
-            } catch (e) {
-              print('❌ [SPLASH] Error initializing FCM token: $e');
-            }
-
-            // Check notification permissions before navigating
-            await NotificationService.checkNotificationPermissionsAndNavigate(
-              context,
-              enabledRouteName: LocationScreen.routeName,
-              disabledRouteName: NotificationScreen.routeName,
-            );
           }
         }
       }

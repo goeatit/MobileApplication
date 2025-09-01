@@ -1,7 +1,9 @@
 import 'package:eatit/Screens/first_time_screen/screen/first_time_screen.dart';
+import 'package:eatit/Screens/noftification/services/fcm_token_service.dart';
 import 'package:eatit/Screens/profile/screen/collections_screen.dart';
 import 'package:eatit/Screens/profile/screen/edit_profile.dart';
 import 'package:eatit/Screens/My_Booking/screen/my_bookings_screen.dart';
+import 'package:eatit/api/api_repository.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/models/user_model.dart';
 import 'package:eatit/provider/user_provider.dart';
@@ -85,17 +87,19 @@ class ProfileScreen extends StatelessWidget {
 
                         // Clear all tokens
                         final tokenManager = TokenManager();
-                        await tokenManager.clearTokens();
 
                         // Clear user data from provider
                         await context
                             .read<UserModelProvider>()
                             .clearUserModel();
 
+                        final FcmTokenService fcmTokenService=FcmTokenService(apiRepository: Provider.of<ApiRepository>(context, listen: false));
                         // Sign out from social providers if needed
                         try {
                           await GoogleSignIn().signOut();
                           await FacebookAuth.instance.logOut();
+                          await fcmTokenService.removeTokenOnLogout();
+                          await tokenManager.clearTokens();
                         } catch (e) {
                           print('Error signing out from social providers: $e');
                         }

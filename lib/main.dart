@@ -10,6 +10,7 @@ import 'package:eatit/provider/saved_restaurants_provider.dart';
 import 'package:eatit/provider/selected_category_provider.dart';
 import 'package:eatit/provider/user_provider.dart';
 import 'package:eatit/routes/main_router.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -238,7 +239,7 @@ class MyApp extends StatelessWidget {
           backgroundColor: white,
           surfaceTintColor: white,
         ),
-        bottomAppBarTheme: const BottomAppBarTheme(
+        bottomAppBarTheme: const BottomAppBarThemeData(
           color: white,
           surfaceTintColor: white,
         ),

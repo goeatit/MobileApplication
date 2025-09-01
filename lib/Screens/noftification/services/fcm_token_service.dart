@@ -3,174 +3,69 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../api/api_repository.dart';
 
 class FcmTokenService {
-  static ApiRepository? _apiRepository;
+  final ApiRepository _apiRepository;
+  static const _tokenKey = 'fcm_device_token';
+
 
   /// Set the ApiRepository instance for FCM token operations
-  static void setApiRepository(ApiRepository apiRepository) {
-    _apiRepository = apiRepository;
-  }
+  FcmTokenService({required ApiRepository apiRepository})
+      : _apiRepository = apiRepository;
 
-  /// Get the current ApiRepository instance
-  static ApiRepository? get getApiRepository => _apiRepository;
-
-  /// Generate a unique FCM token and save to backend if user doesn't have one
-  static Future<bool> saveTokenIfNeeded() async {
-    try {
-      if (_apiRepository == null) return false;
-
-      // Check if backend already has a token for this user
-      final existing = await _apiRepository!.getFcmToken();
-      if (existing != null && existing.statusCode == 200) {
-        final data = existing.data;
-        if (data != null &&
-            data['data'] != null &&
-            data['data']['hasToken'] == true) {
-          // User already has a token, cache it locally
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setBool('fcm_token_saved', true);
-          await prefs.setString(
-              'saved_fcm_token', data['data']['fcmToken'] ?? '');
-          return true;
-        }
-      }
-
-      // User doesn't have a token, generate and save a new one
-      String? token = await _generateUniqueToken();
-      if (token == null) return false;
-
-      final resp = await _apiRepository!.saveFcmToken(token);
-      if (resp != null && resp.statusCode == 200) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setBool('fcm_token_saved', true);
-        await prefs.setString('saved_fcm_token', token);
-        return true;
-      }
-      return false;
-    } catch (e) {
-      print('Error in saveTokenIfNeeded: $e');
-      return false;
-    }
-  }
-
-  /// Generate a unique FCM token for the current device
-  static Future<String?> _generateUniqueToken() async {
-    try {
-      // Delete the current token to force generation of a new one
-      await FirebaseMessaging.instance.deleteToken();
-
-      // Wait a bit for the deletion to process
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      // Get a new token
-      String? newToken = await FirebaseMessaging.instance.getToken();
-
-      if (newToken != null) {
-        print(
-            'Generated new unique FCM token: ${newToken.substring(0, 20)}...');
-        return newToken;
-      }
-
-      return null;
-    } catch (e) {
-      print('Error generating unique token: $e');
-      // Fallback to regular token generation
-      return await FirebaseMessaging.instance.getToken();
-    }
-  }
-
-  /// Listen to token refresh and only update local cache (no backend update)
-  static Future<void> setupFcmTokenListener() async {
-    FirebaseMessaging.instance.onTokenRefresh.listen((token) async {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('saved_fcm_token', token);
-      // Intentionally do not update backend token
+  /// **1. Setup the listener when the app starts.**
+  /// This should be called once, e.g., in your SplashScreen.
+  /// It ensures that if FCM refreshes the token in the background, your server is updated.
+  Future<void> setupFcmTokenListener() async {
+    FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
+      print('FCM token refreshed. Updating server...');
+      _sendTokenToServer(newToken);
     });
   }
 
-  /// Clear saved FCM token using ApiRepository
-  static Future<void> clearSavedFcmToken() async {
+
+  Future<void> _sendTokenToServer(String token) async {
     try {
-      if (_apiRepository != null) {
-        // Clear token from backend
-        await _apiRepository!.clearFcmToken();
+      // Avoids sending the same token repeatedly in the same session.
+      final prefs = await SharedPreferences.getInstance();
+      // final savedToken = prefs.getString(_tokenKey);
+      // // if (savedToken == token) {
+      // //   print('Token is already up-to-date on the server.');
+      // //   return;
+      // // }
+
+      final response = await _apiRepository.saveFcmToken(token);
+      if (response != null && response.statusCode == 200) {
+        // Cache the token locally upon successful save.
+        await prefs.setString(_tokenKey, token);
+        print('FCM token successfully saved to server.');
       }
-
-      // Clear local storage
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('saved_fcm_token');
-      await prefs.remove('fcm_token_saved');
-
-      // Delete the FCM token from Firebase
-      await FirebaseMessaging.instance.deleteToken();
     } catch (e) {
-      print('Error clearing FCM token: $e');
+      print('Error sending FCM token to server: $e');
+    }
+  }
+  /// **2. On user login, sync the token with the backend.**
+  /// This ensures the current device token is associated with the logged-in user.
+  Future<void> syncTokenOnLogin() async {
+    // Get the current token from FCM. This is safe to call anytime.
+    String? token = await FirebaseMessaging.instance.getToken();
+    if (token != null) {
+      print('Syncing FCM token on login: $token');
+      await _sendTokenToServer(token);
+    }else{
+      print('FCM token is null, cannot sync with server.');
     }
   }
 
-  /// Clear only local cache, do not touch backend token
-  static Future<void> clearLocalCache() async {
+  /// **3. On user logout, remove the token association from the backend.**
+  Future<void> removeTokenOnLogout() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('saved_fcm_token');
-      await prefs.remove('fcm_token_saved');
-    } catch (_) {}
-  }
-
-  /// Handle user account switch - clear old tokens and prepare for new user
-  static Future<void> handleUserSwitch(String newUserId) async {
-    try {
-      // Clear all tokens when switching users
-      await clearSavedFcmToken();
-
-      // Mark that we need to generate a new token for the new user
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('force_fcm_token_save', true);
-    } catch (e) {
-      print('Error handling user switch: $e');
-    }
-  }
-
-  /// Check if FCM token save should be forced (e.g., after user switch)
-  static Future<bool> shouldForceFcmTokenSave() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final shouldForce = prefs.getBool('force_fcm_token_save') ?? false;
-
-      if (shouldForce) {
-        await prefs.remove('force_fcm_token_save');
-        return true;
+      String? token = await FirebaseMessaging.instance.getToken();
+      if (token != null) {
+        // Tell the backend to disassociate this token from the logged-out user.
+        await _apiRepository.clearFcmToken(token);
       }
-
-      return false;
     } catch (e) {
-      return false;
+      print('Error removing FCM token on logout: $e');
     }
   }
 
-  /// Force regenerate and save a new FCM token
-  static Future<bool> forceRegenerateToken() async {
-    try {
-      if (_apiRepository == null) return false;
-
-      // Clear existing token from backend first
-      await _apiRepository!.clearFcmToken();
-
-      // Generate new unique token
-      String? newToken = await _generateUniqueToken();
-      if (newToken == null) return false;
-
-      // Save new token to backend
-      final resp = await _apiRepository!.saveFcmToken(newToken);
-      if (resp != null && resp.statusCode == 200) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setBool('fcm_token_saved', true);
-        await prefs.setString('saved_fcm_token', newToken);
-        return true;
-      }
-      return false;
-    } catch (e) {
-      print('Error force regenerating token: $e');
-      return false;
-    }
-  }
 }

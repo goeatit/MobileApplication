@@ -359,17 +359,12 @@ class ApiRepository {
     });
   }
 
-  Future<Response?> getFcmToken() async {
-    final endpoint = ApiEndpoints.getFcmToken;
-    return await networkManager.makeRequest(() {
-      return networkManager.dioManger.get(endpoint);
-    });
-  }
-
-  Future<Response?> clearFcmToken() async {
+  Future<Response?> clearFcmToken(String fcmToken) async {
     final endpoint = ApiEndpoints.clearFcmToken;
     return await networkManager.makeRequest(() {
-      return networkManager.dioManger.delete(endpoint);
+      return networkManager.dioManger.delete(endpoint, data: {
+        'fcmToken': fcmToken,
+      });
     });
   }
 }
