@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:eatit/Screens/homes/screen/home_screen.dart';
 import 'package:eatit/Screens/noftification/screen/notification_screen.dart';
+import 'package:eatit/Screens/noftification/services/notification_service.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/utils/reverse_location.dart';
 import 'package:flutter/foundation.dart';
@@ -210,10 +211,14 @@ class _LocationScreenState extends State<LocationScreen> {
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                           backgroundColor: primaryColor),
-                      onPressed: () {
+                      onPressed: () async {
                         if (!isLoading) {
-                          Navigator.pushReplacementNamed(
-                              context, NotificationScreen.routeName);
+                          // Check notification permissions before navigating
+                          await NotificationService.checkNotificationPermissionsAndNavigate(
+                            context,
+                            enabledRouteName: HomePage.routeName,
+                            disabledRouteName: NotificationScreen.routeName,
+                          );
                         } else {
                           requestLocationPermission();
                         }
@@ -246,4 +251,6 @@ class _LocationScreenState extends State<LocationScreen> {
       ),
     );
   }
+
+  
 }

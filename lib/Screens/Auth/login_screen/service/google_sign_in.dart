@@ -3,6 +3,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:eatit/Screens/Auth/login_screen/service/token_Storage.dart';
 import 'package:eatit/Screens/CompleteYourProfile/Screen/Complete_your_profile_screen.dart';
 import 'package:eatit/Screens/location/screen/location_screen.dart';
+import 'package:eatit/Screens/noftification/services/fcm_token_service.dart';
 import 'package:eatit/api/api_repository.dart';
 import 'package:eatit/api/network_manager.dart';
 import 'package:eatit/main.dart';
@@ -16,6 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:eatit/Screens/splash_screen/service/SplashScreenService.dart';
 import 'package:eatit/provider/cart_dish_provider.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class GoogleLoginService {
   final ApiRepository _apiRepository;
@@ -28,6 +30,25 @@ class GoogleLoginService {
   final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email']);
 
   // final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
+
+  Future<void> _saveFcmToken() async {
+    try {
+      FcmTokenService.setApiRepository(_apiRepository);
+
+      // Check if we need to force regenerate token
+      bool shouldForce = await FcmTokenService.shouldForceFcmTokenSave();
+
+      if (shouldForce) {
+        await FcmTokenService.forceRegenerateToken();
+      } else {
+        await FcmTokenService.saveTokenIfNeeded();
+      }
+    } catch (e) {
+      print('Error saving FCM token: $e');
+    }
+  }
+
+  // Removed user info utility: not needed for FCM token save logic
 
   Future<void> loginWithGoogle(BuildContext context) async {
     try {
@@ -87,6 +108,9 @@ class GoogleLoginService {
             context.read<CartProvider>().loadGroupedCartFromResponse(cartData);
             _splashScreenServiceInit = null;
           }
+
+          // Save FCM token after successful authentication
+          await _saveFcmToken();
 
           if (user.user.name == null || user.user.phoneNumber == null) {
             Navigator.pushReplacementNamed(

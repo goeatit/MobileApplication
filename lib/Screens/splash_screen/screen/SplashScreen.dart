@@ -12,6 +12,13 @@ import 'package:eatit/Screens/location/screen/location_screen.dart';
 import 'package:eatit/provider/cart_dish_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:eatit/Screens/noftification/services/notification_service.dart';
+import 'package:eatit/Screens/noftification/services/fcm_token_service.dart';
+import 'package:eatit/Screens/noftification/services/background_message_handler.dart';
+import 'package:eatit/Screens/homes/screen/home_screen.dart';
+import 'package:eatit/Screens/noftification/screen/notification_screen.dart';
 
 import '../../../api/api_repository.dart';
 
@@ -28,9 +35,8 @@ class _SplashScreenState extends State<SplashScreen>
   final TokenManager _tokenManager = TokenManager();
   bool _isFirstTime = true;
   bool _servicesInitialized = false;
+  bool _firebaseInitialized = false;
 
-  // SplashScreenServiceInit screenServiceInit = SplashScreenServiceInit();
-  // MyBookingService myBookingService = MyBookingService();
   late SplashScreenServiceInit _screenServiceInit;
   late MyBookingService _myBookingService;
 
@@ -42,7 +48,22 @@ class _SplashScreenState extends State<SplashScreen>
       duration: const Duration(seconds: 2),
     )..repeat();
 
-    // Initialize app data and check authentication status
+    // Initialize Firebase and FCM
+    _initializeFirebase();
+  }
+
+  Future<void> _initializeFirebase() async {
+    try {
+      if (!_firebaseInitialized) {
+        await Firebase.initializeApp();
+        FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+        await NotificationService.initializeWithoutPermission();
+        await FcmTokenService.setupFcmTokenListener();
+        _firebaseInitialized = true;
+      }
+    } catch (e) {
+      print(' Error initializing Firebase: $e');
+    }
   }
 
   @override
@@ -50,7 +71,6 @@ class _SplashScreenState extends State<SplashScreen>
     super.didChangeDependencies();
     if (!_servicesInitialized) {
       // Initialize services only once
-
       _screenServiceInit =
           SplashScreenServiceInit(apiRepository: context.read<ApiRepository>());
       _myBookingService =
@@ -59,32 +79,27 @@ class _SplashScreenState extends State<SplashScreen>
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _initializeApp();
       });
-      // Call this here once dependencies are ready
 
       _servicesInitialized = true;
     }
   }
 
   Future<void> _initializeApp() async {
+    // Wait for Firebase to be initialized
+    while (!_firebaseInitialized) {
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
+
+    // Set ApiRepository in FcmTokenService
+    final apiRepository = context.read<ApiRepository>();
+    FcmTokenService.setApiRepository(apiRepository);
+
     // Load cart data
     await context.read<CartProvider>().loadCartFromStorage();
-
-    // Check if it's the first time opening the app
-    // await _checkFirstTimeUser();
 
     // Check if user is authenticated
     await _checkAuthentication();
   }
-
-  // Future<void> _checkFirstTimeUser() async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   _isFirstTime = prefs.getBool('first_time') ?? true;
-  //
-  //   if (_isFirstTime) {
-  //     // Set first_time to false for future app launches
-  //     await prefs.setBool('first_time', false);
-  //   }
-  // }
 
   Future<void> _checkAuthentication() async {
     // Add a delay to show splash screen for at least 2 seconds
@@ -111,7 +126,7 @@ class _SplashScreenState extends State<SplashScreen>
           print("cart Loaded ");
         } else {
           // Failed to fetch cart items, handle accordingly
-          if (!mounted) return; // <-- Add here
+          if (!mounted) return;
 
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -121,8 +136,6 @@ class _SplashScreenState extends State<SplashScreen>
           );
         }
 
-        // context.read<CartProvider>().loadCartFromStorage();
-        // User is authenticated, navigate to location screen
         var fetched = await _myBookingService.fetchOrderDetails();
         if (!mounted) return;
 
@@ -133,18 +146,33 @@ class _SplashScreenState extends State<SplashScreen>
         var user = context.read<UserModelProvider>().userModel;
         if (user != null) {
           if (user.phoneNumber == null) {
-            if (!mounted) return; // <-- Add here!
+            if (!mounted) return;
             Navigator.pushReplacementNamed(
                 context, CreateAccountScreen.routeName);
           } else {
-            if (!mounted) return; // <-- Add here!
-            Navigator.pushReplacementNamed(context, LocationScreen.routeName);
+            if (!mounted) return;
+
+            // On login: clear local FCM token cache and initialize/save once if backend needs it
+            try {
+              await FcmTokenService.clearLocalCache();
+              await FcmTokenService.saveTokenIfNeeded();
+              await FcmTokenService.setupFcmTokenListener();
+            } catch (e) {
+              print('❌ [SPLASH] Error initializing FCM token: $e');
+            }
+
+            // Check notification permissions before navigating
+            await NotificationService.checkNotificationPermissionsAndNavigate(
+              context,
+              enabledRouteName: LocationScreen.routeName,
+              disabledRouteName: NotificationScreen.routeName,
+            );
           }
         }
       }
     } else {
       // Returning user but not logged in
-      if (!mounted) return; // <-- Add here!
+      if (!mounted) return;
       Navigator.of(context).pushReplacementNamed(FirstTimeScreen.routeName);
     }
   }
