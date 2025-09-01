@@ -37,6 +37,7 @@ class _VerifyOtpState extends State<VerifyOtp> with CodeAutoFill {
   final TextEditingController _otpController = TextEditingController();
   late OtpService? _otpService;
   late SplashScreenServiceInit? screenServiceInit;
+  late FcmTokenService? _fcmTokenService;
   bool _isButtonEnabled = false;
   int _secondsRemaining = 60;
   Timer? _timer;
@@ -62,6 +63,7 @@ class _VerifyOtpState extends State<VerifyOtp> with CodeAutoFill {
       final apiRepository = Provider.of<ApiRepository>(context, listen: false);
       _otpService = OtpService(apiRepository: apiRepository);
       screenServiceInit = SplashScreenServiceInit(apiRepository: apiRepository);
+      _fcmTokenService= FcmTokenService(apiRepository: apiRepository);
       _servicesInitialized = true;
     }
   }
@@ -86,6 +88,16 @@ class _VerifyOtpState extends State<VerifyOtp> with CodeAutoFill {
     }
   }
 
+  Future<void> _saveFcmToken(BuildContext context) async {
+    try {
+      _fcmTokenService = FcmTokenService(
+          apiRepository: Provider.of<ApiRepository>(context, listen: false));
+      await _fcmTokenService!.syncTokenOnLogin();
+    } catch (e) {
+      print('Error saving FCM token: $e');
+    }
+  }
+
   @override
   void dispose() {
     _timer?.cancel();
@@ -93,6 +105,7 @@ class _VerifyOtpState extends State<VerifyOtp> with CodeAutoFill {
     cancel();
     _servicesInitialized = false;
     _otpService = null;
+    _fcmTokenService = null;
     screenServiceInit = null;
     super.dispose();
   }
@@ -105,25 +118,6 @@ class _VerifyOtpState extends State<VerifyOtp> with CodeAutoFill {
       }
     });
   }
-
-  Future<void> _saveFcmToken() async {
-    try {
-      final apiRepository = Provider.of<ApiRepository>(context, listen: false);
-      FcmTokenService.setApiRepository(apiRepository);
-
-      // Check if we need to force regenerate token (e.g., after user switch)
-      bool shouldForce = await FcmTokenService.shouldForceFcmTokenSave();
-
-      if (shouldForce) {
-        await FcmTokenService.forceRegenerateToken();
-      } else {
-        await FcmTokenService.saveTokenIfNeeded();
-      }
-    } catch (e) {
-      print('Error saving FCM token: $e');
-    }
-  }
-
   void _verifyOtp() async {
     setState(() {
       _isLoading = true;
@@ -149,7 +143,7 @@ class _VerifyOtpState extends State<VerifyOtp> with CodeAutoFill {
       }
 
       // Save FCM token after successful authentication
-      await _saveFcmToken();
+     await _saveFcmToken(context);
 
       user = Provider.of<UserModelProvider>(context, listen: false).userModel;
       if (!mounted) return; // Check if widget is still mounted

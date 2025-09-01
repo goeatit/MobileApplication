@@ -36,6 +36,5 @@ class ApiEndpoints {
       "/mobile/cart/removeItem/$cartId";
   static String fetchCartItems = "/mobile/cart/getCart";
   static String saveFcmToken = "/mobile/user/saveFcmToken";
-  static String getFcmToken = "/mobile/user/getFcmToken";
   static String clearFcmToken = "/mobile/user/clearFcmToken";
 }

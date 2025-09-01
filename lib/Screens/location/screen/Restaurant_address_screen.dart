@@ -464,20 +464,13 @@ class _RestaurantAddressScreenState extends State<RestaurantAddressScreen> {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                       content:
-                                          Text('Address saved successfully'),
+                                      Text('Address saved successfully'),
                                       backgroundColor: Colors.green,
                                     ),
                                   );
                                   Navigator.of(context).pop();
-
-                                  // Navigate to notification screen or home screen based on permissions
-                                  await NotificationService
-                                      .checkNotificationPermissionsAndNavigate(
-                                    context,
-                                    enabledRouteName: HomePage.routeName,
-                                    disabledRouteName:
-                                        NotificationScreen.routeName,
-                                  );
+                                  Navigator.pushNamed(
+                                      context, HomePage.routeName);
                                 }
                               } catch (e) {
                                 if (context.mounted) {
@@ -524,6 +517,4 @@ class _RestaurantAddressScreenState extends State<RestaurantAddressScreen> {
 
     super.dispose();
   }
-
-  
 }

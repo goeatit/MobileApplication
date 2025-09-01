@@ -2,6 +2,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:convert';
 
+
 // This needs to be a top-level function
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -43,4 +44,5 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       print('Error showing notification: $e');
     }
   }
+
 }

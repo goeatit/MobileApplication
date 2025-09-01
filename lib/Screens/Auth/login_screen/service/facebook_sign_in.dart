@@ -25,16 +25,7 @@ class FacebookSignInService {
 
   Future<void> _saveFcmToken() async {
     try {
-      FcmTokenService.setApiRepository(_apiRepository);
 
-      // Check if we need to force regenerate token
-      bool shouldForce = await FcmTokenService.shouldForceFcmTokenSave();
-
-      if (shouldForce) {
-        await FcmTokenService.forceRegenerateToken();
-      } else {
-        await FcmTokenService.saveTokenIfNeeded();
-      }
     } catch (e) {
       print('Error saving FCM token: $e');
     }

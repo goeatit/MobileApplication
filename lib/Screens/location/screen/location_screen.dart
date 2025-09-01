@@ -213,12 +213,8 @@ class _LocationScreenState extends State<LocationScreen> {
                           backgroundColor: primaryColor),
                       onPressed: () async {
                         if (!isLoading) {
-                          // Check notification permissions before navigating
-                          await NotificationService.checkNotificationPermissionsAndNavigate(
-                            context,
-                            enabledRouteName: HomePage.routeName,
-                            disabledRouteName: NotificationScreen.routeName,
-                          );
+                          Navigator.pushReplacementNamed(
+                              context, NotificationScreen.routeName);
                         } else {
                           requestLocationPermission();
                         }
@@ -251,6 +247,4 @@ class _LocationScreenState extends State<LocationScreen> {
       ),
     );
   }
-
-  
 }

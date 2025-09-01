@@ -3,6 +3,7 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:eatit/Screens/CompleteYourProfile/Service/Complete_your_profile_service.dart';
 import 'package:eatit/Screens/location/screen/location_screen.dart';
 import 'package:eatit/Screens/first_time_screen/screen/first_time_screen.dart';
+import 'package:eatit/Screens/noftification/services/fcm_token_service.dart';
 import 'package:eatit/api/api_repository.dart';
 import 'package:eatit/common/constants/colors.dart';
 import 'package:eatit/models/user_model.dart';
@@ -298,17 +299,20 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
 
                         // Clear all tokens
                         final tokenManager = TokenManager();
-                        await tokenManager.clearTokens();
 
                         // Clear user data from provider
                         await context
                             .read<UserModelProvider>()
                             .clearUserModel();
 
+                        final FcmTokenService fcmTokenService =
+                            FcmTokenService(apiRepository: Provider.of<ApiRepository>(context, listen: false));
                         // Sign out from social providers if needed
                         try {
                           await GoogleSignIn().signOut();
                           await FacebookAuth.instance.logOut();
+                          await fcmTokenService.removeTokenOnLogout();
+                          await tokenManager.clearTokens();
                         } catch (e) {
                           print('Error signing out from social providers: $e');
                         }

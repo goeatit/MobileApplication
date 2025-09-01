@@ -4,27 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:eatit/Screens/My_Booking/screen/my_bookings_screen.dart';
 
 class NotificationHelper {
-  /// Initialize notifications and save FCM token after user login
-  static Future<void> initializeAfterLogin(
-      BuildContext context, String authToken) async {
-    try {
-      // Initialize notification service with permissions
-      await NotificationService.initialize(context);
-      // Save token if backend doesn't have one yet
-      await FcmTokenService.saveTokenIfNeeded();
-    } catch (e) {
-      print('Error initializing notifications: $e');
-    }
-  }
-
-  /// Check if FCM token needs to be saved and save it
-  static Future<void> ensureFcmTokenSaved([String? authToken]) async {
-    try {
-      await FcmTokenService.saveTokenIfNeeded();
-    } catch (e) {
-      print('Error ensuring FCM token saved: $e');
-    }
-  }
 
   /// Handle notification when app is opened from notification
   static Future<void> handleNotificationTap(
@@ -35,10 +14,9 @@ class NotificationHelper {
 
       if (orderId != null) {
         // Navigate to order details or orders list
-        Navigator.pushNamedAndRemoveUntil(
+        Navigator.pushNamed(
           context,
           MyBookingsScreen.routeName,
-          (route) => route.isFirst,
         );
 
         // Show status update message

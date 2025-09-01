@@ -18,7 +18,11 @@ class MyBookingService {
         return OrderDetailsResponse.fromJson(response.data);
       }
       return null;
-    } catch (e) {
+    }on DioException catch(e){
+      print('DioException in fetchOrderDetails: $e');
+      return null;
+    }
+    catch (e) {
       print('Error in fetchOrderDetails: $e');
       return null;
     }

@@ -13,8 +13,13 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../../api/api_repository.dart';
+import '../../noftification/services/fcm_handler.dart';
+import '../../noftification/services/fcm_token_service.dart';
+
 class HomePage extends StatefulWidget {
   static const routeName = "/home-screen";
+
   const HomePage({super.key});
 
   @override
@@ -26,6 +31,8 @@ class _HomePage extends State<HomePage> {
   var _currentPage = 0;
   var screenWidth = 0.0;
   bool isCartLoading = false;
+  late final FCMHandler _fcmHandler; // Create an instance variable
+  late final FcmTokenService _fcmTokenService;
 
   TextTheme? textTheme;
   String fullAddress = "";
@@ -34,6 +41,11 @@ class _HomePage extends State<HomePage> {
   void initState() {
     super.initState();
     _retrieveFullAddress();
+    _fcmHandler = FCMHandler();
+    _fcmHandler.initializeListeners(context);
+    _fcmTokenService = FcmTokenService(
+        apiRepository: Provider.of<ApiRepository>(context, listen: false));
+    _fcmTokenService.setupFcmTokenListener();
   }
 
   Future<void> _retrieveFullAddress() async {
@@ -180,7 +192,8 @@ class _HomePage extends State<HomePage> {
                               //   border: Border.all(width: 2),
                               // ),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
                                   Row(
@@ -193,7 +206,8 @@ class _HomePage extends State<HomePage> {
                                           height: 50,
                                           decoration: BoxDecoration(
                                             color: const Color(0xFFF8951D),
-                                            borderRadius: BorderRadius.circular(25),
+                                            borderRadius:
+                                                BorderRadius.circular(25),
                                           ),
                                           child: Padding(
                                             padding: const EdgeInsets.all(12),
@@ -210,7 +224,8 @@ class _HomePage extends State<HomePage> {
                                         child: Column(
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
-                                          mainAxisAlignment: MainAxisAlignment.end,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.end,
                                           children: [
                                             Row(
                                               children: [
@@ -233,8 +248,8 @@ class _HomePage extends State<HomePage> {
                                                   0.47,
                                               child: Text(
                                                 fullAddress,
-                                                style:
-                                                    textTheme?.bodySmall?.copyWith(
+                                                style: textTheme?.bodySmall
+                                                    ?.copyWith(
                                                   color: Colors.black,
                                                 ),
                                                 overflow: TextOverflow.ellipsis,
@@ -277,7 +292,8 @@ class _HomePage extends State<HomePage> {
                                         splashColor: Colors.transparent,
                                         highlightColor: Colors.transparent,
                                         child: CircleAvatar(
-                                          backgroundColor: const Color(0xFFF4F4F4),
+                                          backgroundColor:
+                                              const Color(0xFFF4F4F4),
                                           radius: 20,
                                           child: ClipOval(
                                             child: SvgPicture.asset(
