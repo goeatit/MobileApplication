@@ -239,7 +239,7 @@ class MyApp extends StatelessWidget {
           backgroundColor: white,
           surfaceTintColor: white,
         ),
-        bottomAppBarTheme: const BottomAppBarTheme(
+        bottomAppBarTheme: const BottomAppBarThemeData(
           color: white,
           surfaceTintColor: white,
         ),
